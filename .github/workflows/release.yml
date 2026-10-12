@@ -1,0 +1,229 @@
+name: Release / Build Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Release mode / build target"
+        required: true
+        type: choice
+        default: "new-tag"
+        options:
+          - new-tag  # Bump version -> open PR (merge it, then run target=tag to build)
+          - tag      # Tag HEAD if missing -> build & publish release
+          - commit # Test build latest commit -> upload Actions artifacts only (no release)
+      ref:
+        description: "Custom tag or commit SHA (optional, defaults to latest)"
+        required: false
+        type: string
+  schedule:
+    - cron: '0 0 * * 0' # Weekly: Sunday 00:00 UTC (defaults to target: new-tag)
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  prepare:
+    name: Prepare / Bump Version
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      ref: ${{ steps.resolve.outputs.ref }}
+      version: ${{ steps.resolve.outputs.version }}
+      publish: ${{ steps.resolve.outputs.publish }}
+      skip: ${{ steps.resolve.outputs.skip }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          token: ${{ github.token }}
+          persist-credentials: true
+          fetch-depth: 0
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
+      - uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
+        with:
+          components: rustfmt, clippy
+      - name: Install cargo-audit
+        if: (inputs.target || 'new-tag') == 'new-tag'
+        run: cargo install cargo-audit --locked
+
+      - name: Calculate Next SemVer
+        if: (inputs.target || 'new-tag') == 'new-tag'
+        id: semver
+        uses: ietf-tools/semver-action@c90370b2958652d71c06a3484129a4d423a6d8a8 # v1
+        with:
+          token: ${{ github.token }}
+          fallbackTag: v0.0.0
+          noNewCommitBehavior: silent
+          noVersionBumpBehavior: patch
+
+      # ------------------------------------------------------------------
+      # Mode 1: new-tag (semver -> CI gate -> bump -> open PR for review)
+      # ------------------------------------------------------------------
+      - name: CI Gate (verify code is green before bumping)
+        if: (inputs.target || 'new-tag') == 'new-tag' && steps.semver.outputs.bump != 'none'
+        run: just check
+
+      - name: Bump package manager version
+        if: (inputs.target || 'new-tag') == 'new-tag' && steps.semver.outputs.bump != 'none'
+        env:
+          NEXT_STRICT: ${{ steps.semver.outputs.nextStrict }}
+        run: |
+          set -euo pipefail
+          just bump "$NEXT_STRICT"
+
+      - name: Commit and open release PR
+        if: (inputs.target || 'new-tag') == 'new-tag' && steps.semver.outputs.bump != 'none'
+        id: release-pr
+        env:
+          NEXT_TAG: ${{ steps.semver.outputs.next }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "actions@users.noreply.github.com"
+
+          # Stage all modified tracked files (lib/Cargo.toml + cli/Cargo.toml via just bump)
+          git add -u
+          git diff --staged --quiet && { echo "::error::bump produced no change in package files"; exit 1; }
+          git commit -m "chore(release): ${NEXT_TAG}"
+
+          # Branch protection blocks a direct push to main, so open a PR.
+          # The owner merges it (status checks run on the PR), then re-runs
+          # the workflow with target=tag to tag and publish.
+          BRANCH="release/${NEXT_TAG}"
+          git checkout -b "$BRANCH"
+          git push -u origin "$BRANCH"
+
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          gh pr create --title "chore(release): ${NEXT_TAG}" \
+            --body "Automated version bump to \`${NEXT_TAG}\`. Merge this PR, then run the release workflow with \`target=tag\` to build and publish." \
+            --head "$BRANCH" --base main
+
+      - name: Resolve outputs
+        id: resolve
+        env:
+          INPUT_TARGET: ${{ inputs.target || 'new-tag' }}
+          INPUT_REF: ${{ inputs.ref || '' }}
+          SEMVER_BUMP: ${{ steps.semver.outputs.bump }}
+          SEMVER_CURRENT: ${{ steps.semver.outputs.current }}
+          SEMVER_NEXT: ${{ steps.semver.outputs.next }}
+          SEMVER_NEXT_STRICT: ${{ steps.semver.outputs.nextStrict }}
+        run: |
+          set -euo pipefail
+          # -----------------------------------------------------------------------
+          # Resolve outputs for Job 2 (build)
+          # -----------------------------------------------------------------------
+          # new-tag only opens the release PR (branch protection blocks a
+          # direct push to main). Merge the PR, then re-run with target=tag.
+          if [ "$INPUT_TARGET" = "new-tag" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            if [ "$SEMVER_BUMP" = "none" ]; then
+              echo "No version bump needed (current: ${SEMVER_CURRENT:-none})."
+            else
+              echo "Release PR opened; merge it, then re-run with target=tag to build and publish."
+            fi
+            exit 0
+          elif [ "$INPUT_TARGET" = "tag" ]; then
+            if [ -n "$INPUT_REF" ]; then
+              # Re-run for an existing tag: build and publish it.
+              TAG="$INPUT_REF"
+            else
+              # Normal path: tag the merged release commit, then build it.
+              # The version comes from the manifests on main, which the
+              # release PR just bumped (lib/Cargo.toml + cli/Cargo.toml).
+              LIB_VER="$(grep -m1 '^version = ' lib/Cargo.toml | cut -d'"' -f2)"
+              CLI_VER="$(grep -m1 '^version = ' cli/Cargo.toml | cut -d'"' -f2)"
+              [ -n "$LIB_VER" ] || { echo "::error::No version in lib/Cargo.toml"; exit 1; }
+              [ "$LIB_VER" = "$CLI_VER" ] || { echo "::error::lib/Cargo.toml ($LIB_VER) != cli/Cargo.toml ($CLI_VER)"; exit 1; }
+              TAG="v$LIB_VER"
+              if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+                echo "Tag $TAG already exists; building it."
+              else
+                git config user.name "github-actions[bot]"
+                git config user.email "actions@users.noreply.github.com"
+                git tag -a "$TAG" -m "Release $TAG"
+                git push origin "refs/tags/$TAG"
+              fi
+            fi
+            { echo "ref=$TAG"; echo "version=${TAG#v}"; echo "publish=true"; echo "skip=false"; } >> "$GITHUB_OUTPUT"
+          else
+            SHA="${INPUT_REF:-$(git rev-parse HEAD)}"
+            { echo "ref=$SHA"; echo "version=$SHA"; echo "publish=false"; echo "skip=false"; } >> "$GITHUB_OUTPUT"
+            echo "Running test build against commit $SHA (will not publish release)"
+          fi
+
+  build:
+    name: Build (${{ matrix.target }})
+    needs: prepare
+    if: needs.prepare.outputs.skip != 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            ext: ""
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            ext: ".exe"
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            ext: ""
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.prepare.outputs.ref }}
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Build release binary
+        env:
+          TARGET: ${{ matrix.target }}
+        run: cargo build -p rsrpc-cli --release --target "$TARGET"
+      - name: Stage artifact
+        env:
+          TARGET: ${{ matrix.target }}
+          EXT: ${{ matrix.ext }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp "target/$TARGET/release/rsrpc-cli$EXT" "dist/rsrpc-$TARGET$EXT"
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: rsrpc-${{ matrix.target }}
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    name: Publish Consolidated Release
+    needs: [prepare, build]
+    if: needs.prepare.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          path: artifacts
+      - name: Zip each artifact
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          for dir in artifacts/*/; do
+            folder="$(basename "$dir")"
+            (cd "$dir" && zip -j -r "../../dist/${folder}.zip" .)
+          done
+      - name: Publish release
+        uses: softprops/action-gh-release@5113cdc90fd4d541c801c55356214017bf5ae34b # v3
+        with:
+          tag_name: ${{ needs.prepare.outputs.ref }}
+          generate_release_notes: true
+          files: dist/*
