@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "Rebuild this existing tag instead of shipping a new version. Leave empty for a normal release."
+        description: "Empty = ship a new version. SHA = test-build it (no publish). Tag = rebuild it."
         required: false
         type: string
       dry-run:
@@ -74,6 +74,12 @@ jobs:
           NEXT_STRICT: ${{ steps.semver.outputs.nextStrict }}
         run: |
           set -euo pipefail
+          # Test-build path: a raw commit SHA builds that commit without publishing.
+          if echo "$INPUT_REF" | grep -qE '^[0-9a-f]{4,64}$'; then
+            echo "Test build against commit $INPUT_REF (will not publish)."
+            { echo "ref=$INPUT_REF"; echo "version=$INPUT_REF"; echo "publish=false"; echo "skip=false"; } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           # Rebuild path: an explicit tag means ship exactly that, no bump.
           if [ -n "$INPUT_REF" ]; then
             echo "Rebuilding existing tag $INPUT_REF."
@@ -193,6 +199,7 @@ jobs:
             (cd "$dir" && zip -j -r "../../dist/${folder}.zip" .)
           done
       - name: Publish release
+        if: needs.prepare.outputs.publish == 'true'
         uses: softprops/action-gh-release@5113cdc90fd4d541c801c55356214017bf5ae34b # v3
         with:
           tag_name: ${{ needs.prepare.outputs.ref }}
