@@ -1,69 +1,74 @@
-<div align=center>
-  <h1>rsRPC</h1>
+<div align="center">
 
-  <div align="center">
-    <img src="https://img.shields.io/github/actions/workflow/status/SpikeHD/rsRPC/build.yml" />
-    <img src="https://img.shields.io/github/actions/workflow/status/SpikeHD/rsRPC/code_quality.yml?label=code quality" />
-    <img src="https://img.shields.io/github/repo-size/SpikeHD/rsRPC" />
-  </div>
-  <p>Alternative Discord RPC server CLI tool and Rust library, inspired by <a href="https://github.com/OpenAsar/arRPC">arRPC</a></p>
+# rsRPC
+
+**Shows what game you're playing on Discord, for Linux setups where the official client can't. For gamers and tinkerers.**
+
+[![CI](https://img.shields.io/github/actions/workflow/status/Delnegend/rsRPC/ci.yml?branch=main&style=flat-square)](https://github.com/Delnegend/rsRPC/actions)
+[![Release](https://img.shields.io/github/v/release/Delnegend/rsRPC?style=flat-square)](https://github.com/Delnegend/rsRPC/releases)
+[![License](https://img.shields.io/github/license/Delnegend/rsRPC?style=flat-square)](LICENSE)
+
 </div>
 
-# Features
+---
 
-* Process detection
-* IPC/Socket-based RPC detection
-* Websocket-based RPC detection
-* `INVITE_BROWSER` support
-* Adding new processes on the fly
-* Manually triggering scans
+## Quick Start
 
-# Building
+Get running in less than 60 seconds:
 
-## Requirements
+```bash
+# 1. Install — grab the binary for your OS from Releases
+curl -fSLO https://github.com/Delnegend/rsRPC/releases/latest/download/rsrpc-x86_64-unknown-linux-gnu.zip && unzip rsrpc-*.zip
 
-- [Cargo and Rust](https://www.rust-lang.org/)
-
-## Testing it out
-
-1. Download a binary from [releases](https://github.com/SpikeHD/rsRPC/releases), [GitHub Actions](https://www.github.com/SpikeHD/rsRPC/actions) or build it yourself below!
-2. If you just want to use the default detectable list, just run the binary!
-3. If you want to use your own detectable list, place a `detectable.json` file in the same directory as the binary (you can use [the arRPC one](https://raw.githubusercontent.com/OpenAsar/arrpc/main/src/process/detectable.json) as an example), then run the binary with `./rsrpc-cli -d ./detectable.json`
-
-## Building the binary
-
-1. Clone the repository
-2. `cargo build -p rsrpc-cli --release`
-3. Your file will be in `target/release/`
-
-## Using as a library
-
-1. Add the following to your `Cargo.toml` file:
-
-```toml
-[dependencies]
-rsrpc = { git = "https://www.github.com/SpikeHD/rsRPC", tag = "VERSION_NUMBER_HERE" }
+# 2. Run it — fetches Discord's game list automatically
+./rsrpc-cli
 ```
 
-2. Use the library in your code:
+Open Discord and launch a game: your status updates. Press `Ctrl+C` to stop.
 
-```rust
-use rsrpc::{RPCServer, RPCConfig};
+## Highlights
 
-fn main() {
-  let mut server = RPCServer::from_file("./detectable.json", RPCConfig::default());
-  server.start();
-}
+- **Zero setup for most games** — downloads Discord's detectable-games list on start, no config file needed.
+- **Catches games three ways** — running-process scan, local socket, and browser websocket, so odd launchers still show up.
+- **Your list, your rules** — point it at your own `detectable.json`, or add and scan games while it runs.
+- **Use it as a part, not just an app** — the `rsrpc` crate embeds the same server in your own Rust program.
+
+## Common Options
+
+```bash
+# Use your own game list instead of Discord's
+./rsrpc-cli --detectable-file ./detectable.json
 ```
 
-You can also grab the `detectable.json` programmatically and pass it via string:
-```rust
-use rsrpc::{RPCServer, RPCConfig};
+| Option | Default | Description |
+|---|---|---|
+| `-d, --detectable-file <file>` | Discord's list | Path to a custom `detectable.json` game list |
+| `-n, --no-process-scan` | `false` | Skip the running-process scan (socket + websocket only) |
 
-fn main() {
-  let detectable = reqwest::blocking::get("https://raw.githubusercontent.com/OpenAsar/arrpc/main/src/process/detectable.json")?.text()?;
-  let mut server = RPCServer::from_json_str(detectable, RPCConfig::default());
+For the library API, `RPCConfig` fields, and `RSRPC_LOGS_ENABLED`, see **[Configuration Reference](docs/configuration.md)**.
 
-  server.start();
-}
+## Architecture
+
+```mermaid
+flowchart LR
+    Game[Running game] --> Scanner[Process scanner]
+    Game2[Game client] --> IPC[IPC socket]
+    Game2 --> WS[Websocket]
+    Scanner --> Hub[Client connector :1337]
+    IPC --> Hub
+    WS --> Hub
+    Hub --> Discord[Discord client]
 ```
+
+For connectors, event flow, and design notes, see **[Architecture Guide](docs/architecture.md)**.
+
+## Documentation
+
+- **[Configuration](docs/configuration.md)** — CLI flags, `RPCConfig`, env vars, and the Rust API.
+- **[Architecture](docs/architecture.md)** — Connectors, event flow, and invariants.
+- **[Deployment](docs/deployment.md)** — Install from releases and run under systemd.
+- **[Development](docs/development.md)** — Dev container, build, `just check`, releases.
+
+## License
+
+[MIT](LICENSE) — fork of [SpikeHD/rsRPC](https://github.com/SpikeHD/rsRPC), inspired by [arRPC](https://github.com/OpenAsar/arRPC).
