@@ -1,0 +1,36 @@
+{
+	"name": "rsrpc",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"containerUser": "dev",
+	"remoteUser": "dev",
+	"runArgs": [
+		"--hostname=rsrpc",
+		"--userns=keep-id",
+		"--security-opt",
+		"label=disable",
+		"-v",
+		"cargo-cache:/usr/local/cargo"
+	],
+	"mounts": [
+		"source=${localEnv:XDG_RUNTIME_DIR:/run/user/1000},target=/run/user/1000,type=bind"
+	],
+	"containerEnv": {
+		"XDG_RUNTIME_DIR": "/run/user/1000",
+		"RSRPC_LOGS_ENABLED": "1"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"rust-lang.rust-analyzer",
+				"tamasfe.even-better-toml",
+				"fill-labs.dependi"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "bash"
+			}
+		}
+	},
+	"postCreateCommand": "bash .devcontainer/postinstall.sh"
+}
