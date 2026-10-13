@@ -13,4 +13,3 @@ target/
 *.pdb
 
 detectable.json
-.direnv

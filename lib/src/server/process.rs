@@ -346,19 +346,16 @@ impl ProcessServer {
           let pattern_id: PatternID = mat.pattern();
           let exe_index = self.detectable_indexes.lock().unwrap()[pattern_id.as_usize()];
           (&self.detectable_list[exe_index[0]], exe_index[1])
-        } else if let Some(custom_ac) = custom_ac.as_ref() {
-          if let Some(mat) = custom_ac.find(&reversed_path) {
-            let pattern_id: PatternID = mat.pattern();
-            let exe_index = self.custom_detectable_indexes.lock().unwrap()[pattern_id.as_usize()];
-            (
-              &self.custom_detectables.lock().unwrap()[exe_index[0]],
-              exe_index[1],
-            )
-          } else {
-            return None;
-          }
         } else {
-          return None;
+          let mat = custom_ac
+            .as_ref()
+            .and_then(|custom| custom.find(&reversed_path))?;
+          let pattern_id: PatternID = mat.pattern();
+          let exe_index = self.custom_detectable_indexes.lock().unwrap()[pattern_id.as_usize()];
+          (
+            &self.custom_detectables.lock().unwrap()[exe_index[0]],
+            exe_index[1],
+          )
         };
 
         // Argument checks

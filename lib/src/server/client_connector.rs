@@ -357,7 +357,7 @@ impl ClientConnector {
 
   pub fn send_data(&mut self, data: String) {
     // Send data to all clients
-    for (_, responder) in self.clients.lock().unwrap().iter() {
+    for responder in self.clients.lock().unwrap().values() {
       responder.send(Message::Text(data.clone()));
     }
   }
