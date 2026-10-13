@@ -28,6 +28,8 @@ jobs:
         with:
           components: rustfmt, clippy
       - name: Install cargo-audit
+        shell: bash
         run: cargo install cargo-audit --locked
       - name: Run verification
+        shell: bash
         run: just check

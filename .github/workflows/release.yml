@@ -65,6 +65,7 @@ jobs:
 
       - name: Bump, tag, and push
         id: resolve
+        shell: bash
         env:
           INPUT_REF: ${{ inputs.ref }}
           DRY_RUN: ${{ inputs.dry-run }}
@@ -220,7 +221,7 @@ jobs:
         with:
           path: artifacts
       - name: Zip each artifact
-        run: |
+        shell: bash
           set -euo pipefail
           mkdir -p dist
           for dir in artifacts/*/; do
