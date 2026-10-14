@@ -33,3 +33,39 @@ jobs:
       - name: Run verification
         shell: bash
         run: just check
+
+  secret-scan:
+    name: Secret Scanning (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Run Gitleaks
+        shell: bash
+        run: docker run --rm -v "$GITHUB_WORKSPACE:/path" zricethezav/gitleaks:latest detect --source="/path" --verbose
+
+  sast-scan:
+    name: SAST (Semgrep)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Run Semgrep OSS
+        shell: bash
+        run: docker run --rm -v "$GITHUB_WORKSPACE:/src" returntocorp/semgrep semgrep scan --config=auto --error
+
+  trivy-scan:
+    name: Container & Infra (Trivy)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Run Trivy (OS packages & Misconfigurations)
+        shell: bash
+        run: docker run --rm -v "$GITHUB_WORKSPACE:/src" aquasec/trivy fs /src --severity HIGH,CRITICAL --exit-code 1
+
+  osv-scan:
+    name: Dependencies (OSV-Scanner)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Run OSV-Scanner
+        shell: bash
+        run: docker run --rm -v "$GITHUB_WORKSPACE:/src" ghcr.io/google/osv-scanner:latest --recursive /src
