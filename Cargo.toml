@@ -2,9 +2,30 @@
 members = ["lib", "cli"]
 resolver = "2"
 
+[workspace.lints.clippy]
+# Progressive disclosure: allow pedantic/nursery warnings during strict CI transition,
+# explicit denies promote in follow-up.
+pedantic = { level = "allow", priority = -1 }
+nursery = { level = "allow", priority = -1 }
+
 [profile.release]
 opt-level = 3
+# Thin LTO for CI speed; full LTO lives in [profile.dist] for releases.
+lto = "thin"
+codegen-units = 16
+# Binaries are shipped stripped; keep symbols in dev/test for backtraces.
+strip = true
+# Abort on panic: smaller binaries, no unwinding in a single-shot RPC bridge.
+panic = "abort"
+
+# Release artifacts only (`cargo build --profile dist`).
+[profile.dist]
+inherits = "release"
 lto = true
 codegen-units = 1
-strip = true
-panic = "abort"
+
+[profile.dev]
+opt-level = 0
+
+[profile.test]
+opt-level = 0

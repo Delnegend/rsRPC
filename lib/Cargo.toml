@@ -1,20 +1,32 @@
 [package]
 name = "rsrpc"
 version = "0.28.0"
-edition = "2018"
+edition = "2021"
+rust-version = "1.85"
 authors = ["spikehd"]
+
+[lints]
+workspace = true
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-serde_with = "3.21"
-simple-websockets = { git = "https://github.com/SpikeHD/simple-websockets.git", branch = "master" }
-chrono = "0.4"
+serde_with = { version = "3.24", default-features = false, features = ["macros"] }
+simple-websockets = { git = "https://github.com/SpikeHD/simple-websockets.git", rev = "13de011d97654edead82069f37ddf8aec6594e7d" }
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 interprocess = "2.2"
 aho-corasick = "1.1"
 
 [target.'cfg(not(target_os = "linux"))'.dependencies]
-sysinfo = { version = "0.38", default-features = false, features = ["system", "multithread"] }
+sysinfo = { version = "0.38", default-features = false, features = ["system"] }
 
-[target.'cfg(target_os = "windows")'.dependencies]
-winapi = { version = "0.3", features = ["namedpipeapi", "winbase"] }
+[dev-dependencies]
+criterion = "0.8"
+serial_test = "2"
+[[bench]]
+name = "scan"
+harness = false
+
+[[bench]]
+name = "ipc"
+harness = false
