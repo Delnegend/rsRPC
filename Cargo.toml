@@ -2,9 +2,21 @@
 members = ["lib", "cli"]
 resolver = "2"
 
+[workspace.lints.rust]
+unreachable_pub = "warn"
+
 [workspace.lints.clippy]
-# Progressive disclosure: allow pedantic/nursery warnings during strict CI transition,
-# explicit denies promote in follow-up.
+# Namtao strict lints: stop runtime panics and unexpected crashes
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+panic_in_result_fn = "deny"
+unchecked_time_subtraction = "deny"
+
+# Progressive disclosure: allow non-panic style warnings
 pedantic = { level = "allow", priority = -1 }
 nursery = { level = "allow", priority = -1 }
 
