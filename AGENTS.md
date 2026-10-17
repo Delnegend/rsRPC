@@ -14,3 +14,8 @@ This repository has a generated `openwiki/` evidence index. It is optional just-
 The scheduled OpenWiki GitHub Actions workflow refreshes the repository wiki. Do not hand-edit generated OpenWiki pages unless explicitly asked; prefer updating source code/docs and letting OpenWiki regenerate.
 
 <!-- OPENWIKI:END -->
+
+<!-- Manual note (2026-10-17): the scheduled `openwiki-update` GitHub Actions workflow was
+     removed from this repository, so OpenWiki updates run locally on demand via the
+     OpenWiki MCP tools. The "scheduled OpenWiki GitHub Actions workflow ..." sentence
+     inside the managed block above is a stale tooling template artifact. -->
