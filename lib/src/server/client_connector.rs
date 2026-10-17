@@ -35,6 +35,7 @@ pub struct ClientConnector {
 
   pub last_pid: Option<u64>,
   pub active_socket: Option<String>,
+  pub last_payload: Arc<Mutex<Option<String>>>,
 
   pub ipc_event_rec: Arc<Mutex<Option<std::sync::mpsc::Receiver<ActivityCmd>>>>,
   pub proc_event_rec: Arc<Mutex<Option<std::sync::mpsc::Receiver<ProcessDetectedEvent>>>>,
@@ -95,6 +96,7 @@ impl ClientConnector {
 
       last_pid: None,
       active_socket: None,
+      last_payload: Arc::new(Mutex::new(None)),
 
       ipc_event_rec: Arc::new(Mutex::new(Some(ipc_event_rec))),
       proc_event_rec: Arc::new(Mutex::new(Some(proc_event_rec))),
@@ -118,6 +120,7 @@ impl ClientConnector {
     };
     let clients_clone = self.clients.clone();
     let data_on_connect = self.data_on_connect.clone();
+    let last_payload_clone = self.last_payload.clone();
 
     std::thread::spawn(move || {
       loop {
@@ -131,6 +134,21 @@ impl ClientConnector {
                 "[Client Connector] Failed to send connect data to client {}",
                 client_id
               );
+            }
+
+            if let Ok(guard) = last_payload_clone.lock() {
+              if let Some(payload) = guard.as_ref() {
+                log!(
+                  "[Client Connector] Resending cached activity payload to client {}",
+                  client_id
+                );
+                if !responder.send(Message::Text(payload.clone())) {
+                  log!(
+                    "[Client Connector] Failed to send cached payload to client {}",
+                    client_id
+                  );
+                }
+              }
             }
 
             match clients_clone.lock() {
@@ -202,12 +220,6 @@ impl ClientConnector {
 
     std::thread::spawn(move || {
       while let Ok(mut ipc_activity) = ipc_event_rec.recv() {
-        // if there are no client, skip
-        if !has_clients(&ipc_clone.clients) {
-          log!("[Client Connector] No clients connected, skipping");
-          continue;
-        }
-
         ipc_activity.fix();
 
         let mut args = match ipc_activity.args {
@@ -225,7 +237,7 @@ impl ClientConnector {
 
           log!("[Client Connector] Sending empty payload");
 
-          ipc_clone.send_data(payload);
+          ipc_clone.send_empty_payload(payload);
 
           continue;
         }
@@ -247,7 +259,7 @@ impl ClientConnector {
                 "[Client Connector] Sending payload for IPC activity: {:?}",
                 payload
               );
-              ipc_clone.send_data(payload)
+              ipc_clone.send_activity_payload(payload);
             }
             Err(err) => log!("[Client Connector] Error serializing IPC activity: {}", err),
           };
@@ -261,12 +273,6 @@ impl ClientConnector {
       while let Ok(proc_event) = proc_event_rec.recv() {
         let proc_activity = proc_event.activity;
 
-        // if there are no clients, skip
-        if !has_clients(&proc_clone.clients) {
-          log!("[Client Connector] No clients connected, skipping");
-          continue;
-        }
-
         if proc_activity.id == "null" {
           // If our last socket id is empty, skip
           let active_socket = match proc_clone.active_socket.clone() {
@@ -279,7 +285,7 @@ impl ClientConnector {
 
           let payload = empty_activity(proc_clone.last_pid.unwrap_or_default(), active_socket);
 
-          proc_clone.send_data(payload);
+          proc_clone.send_empty_payload(payload);
 
           proc_clone.active_socket = None;
 
@@ -294,7 +300,7 @@ impl ClientConnector {
 
             let payload = empty_activity(proc_clone.last_pid.unwrap_or_default(), active_socket);
 
-            proc_clone.send_data(payload);
+            proc_clone.send_empty_payload(payload);
           }
         } else {
           log!(
@@ -334,7 +340,7 @@ impl ClientConnector {
         );
 
         match serde_json::to_string(&payload_struct) {
-          Ok(payload) => proc_clone.send_data(payload),
+          Ok(payload) => proc_clone.send_activity_payload(payload),
           Err(err) => log!(
             "[Client Connector] Error serializing process activity: {}",
             err
@@ -345,11 +351,6 @@ impl ClientConnector {
 
     std::thread::spawn(move || {
       while let Ok(mut ws_event) = ws_event_rec.recv() {
-        // if there are no clients, skip
-        if !has_clients(&ws_clone.clients) {
-          log!("[Client Connector] No clients connected, skipping");
-          continue;
-        }
         if ws_event.cmd != "SET_ACTIVITY" {
           // Just send the event as-is, there isn't really anything to go off of here
           // I will change this if arRPC implements things like INVITE_BROWSER event responses, to ensure compatibility
@@ -377,7 +378,7 @@ impl ClientConnector {
 
           log!("[Client Connector] Sending empty payload");
 
-          ws_clone.send_data(payload);
+          ws_clone.send_empty_payload(payload);
 
           continue;
         }
@@ -399,7 +400,7 @@ impl ClientConnector {
                 "[Client Connector] Sending payload for WS activity: {:?}",
                 payload
               );
-              ws_clone.send_data(payload)
+              ws_clone.send_activity_payload(payload);
             }
             Err(err) => log!("[Client Connector] Error serializing WS activity: {}", err),
           };
@@ -408,6 +409,23 @@ impl ClientConnector {
         }
       }
     });
+  }
+  /// Send an active activity payload to all connected clients and cache it
+  /// for newly connecting clients.
+  pub fn send_activity_payload(&mut self, payload: String) {
+    if let Ok(mut guard) = self.last_payload.lock() {
+      *guard = Some(payload.clone());
+    }
+    self.send_data(payload);
+  }
+
+  /// Send an empty activity payload to clear presence and clear the cached
+  /// activity payload.
+  pub fn send_empty_payload(&mut self, payload: String) {
+    if let Ok(mut guard) = self.last_payload.lock() {
+      *guard = None;
+    }
+    self.send_data(payload);
   }
 
   /// Fan-out `data` to every connected client. Responders are snapshotted
@@ -444,18 +462,6 @@ impl ClientConnector {
           }
         }
       }
-    }
-  }
-}
-
-/// True when at least one client is connected. A poisoned lock logs and
-/// reports no clients so the caller skips the payload.
-fn has_clients(clients: &Arc<Mutex<HashMap<u64, Responder>>>) -> bool {
-  match clients.lock() {
-    Ok(guard) => !guard.is_empty(),
-    Err(err) => {
-      log!("[Client Connector] Clients lock poisoned: {}", err);
-      false
     }
   }
 }

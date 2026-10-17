@@ -41,3 +41,8 @@ Enable with `systemctl --user enable --now rsrpc`.
   `[RPC Server] Done! Watching for activity...`.
 - **Socket:** `ls "$XDG_RUNTIME_DIR"/discord-ipc-0` exists while running.
 - **Status:** launch a detectable game and confirm your Discord status updates.
+
+## Windows games under Proton & Wine
+
+To relay Discord Rich Presence from Windows games running through Steam Proton,
+Lutris, or Wine to `rsrpc`, see the **[Proton & Wine Bridge Guide](proton-bridge.md)**.

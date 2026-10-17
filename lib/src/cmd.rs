@@ -133,7 +133,7 @@ impl ActivityCmd {
 }
 
 #[skip_serializing_none]
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct ActivityCmdArgs {
   pub pid: Option<u64>,
   pub activity: Option<Activity>,
@@ -184,7 +184,7 @@ pub struct Metadata {
 }
 
 #[skip_serializing_none]
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "snake_case")]
 pub struct Activity {
   pub id: Option<String>,

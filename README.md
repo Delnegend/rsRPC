@@ -68,6 +68,7 @@ For connectors, event flow, and design notes, see **[Architecture Guide](docs/ar
 - **[Architecture](docs/architecture.md)** — Connectors, event flow, and invariants.
 - **[Deployment](docs/deployment.md)** — Install from releases and run under systemd.
 - **[Development](docs/development.md)** — Dev container, build, `just check`, releases.
+- **[Proton & Wine Bridge](docs/proton-bridge.md)** — Connect Windows games running in Steam Proton, Lutris, or Wine.
 
 ## License
 
