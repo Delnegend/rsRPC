@@ -56,7 +56,7 @@ impl Drop for BoundListener {
 
 #[derive(Clone)]
 pub struct IpcConnector {
-    socket: Arc<Mutex<BoundListener>>,
+    socket: Option<Arc<Mutex<BoundListener>>>,
     did_handshake: bool,
     pub client_id: String,
     pub pid: u64,
@@ -102,7 +102,13 @@ impl IpcFacilitator for IpcConnector {
      * Create a new thread that will recieve messages from the socket
      */
     fn start(&mut self) {
-        let socket_arc = Arc::clone(&self.socket);
+        let socket_arc = match self.socket.as_ref() {
+            Some(arc) => Arc::clone(arc),
+            None => {
+                warn!("IPC connector is disabled (no socket bound), nothing to start");
+                return;
+            }
+        };
         let event_sender = self.event_sender.clone();
 
         thread::spawn(move || {
@@ -129,7 +135,7 @@ impl IpcFacilitator for IpcConnector {
                         // start empty. Nothing leaks from a previous connection, and no
                         // snapshot of the parent's state is shared.
                         let mut conn = IpcConnector {
-                            socket: Arc::clone(&socket_arc),
+                            socket: Some(Arc::clone(&socket_arc)),
                             did_handshake: false,
                             client_id: String::new(),
                             pid: 0,
@@ -156,20 +162,21 @@ impl IpcConnector {
     /**
      * Create a socket and return a new IpcConnector.
      *
-     * Fatal when no socket can be bound: without a listener the bridge is
-     * deaf, so exiting loudly beats serving nothing.
+     * When no socket can be bound (every candidate slot is taken), the
+     * connector is created disabled: `start` logs and does nothing (no
+     * listener, no thread) instead of taking the host process down with it.
      */
     pub fn new(event_sender: mpsc::Sender<ActivityCmd>) -> Self {
-        let (socket, path) = match Self::create_socket(None) {
-            Ok(bound) => bound,
+        let socket = match Self::create_socket(None) {
+            Ok((socket, path)) => Some(Arc::new(Mutex::new(BoundListener { socket, path }))),
             Err(err) => {
-                error!("Failed to create socket: {}, exiting", err);
-                std::process::exit(1);
+                error!("Could not create IPC socket, connector disabled: {}", err);
+                None
             }
         };
 
         Self {
-            socket: Arc::new(Mutex::new(BoundListener { socket, path })),
+            socket,
             did_handshake: false,
             client_id: String::new(),
             pid: 0,

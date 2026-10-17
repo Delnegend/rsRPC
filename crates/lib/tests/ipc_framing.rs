@@ -236,3 +236,44 @@ fn stalled_partial_frame_unblocks_on_peer_close() {
         "handler must report disconnect within 2s of client drop"
     );
 }
+
+/// All ten IPC slots taken: the eleventh connector comes back disabled —
+/// construction returns normally and `start` is an inert no-op — instead of
+/// exiting the host process.
+#[test]
+#[serial_test::serial]
+fn exhausted_slots_leave_connector_disabled() {
+    let dir = next_free_socket_dir();
+    // SAFETY: This test binary serializes env mutation via `#[serial]`; no other
+    // test thread touches the environment concurrently.
+    unsafe {
+        std::env::set_var("XDG_RUNTIME_DIR", &dir);
+    }
+
+    // Hold every slot (discord-ipc-0..9). Connections are never accepted, but
+    // a bound listener is enough: `Stream::connect` succeeds and the next
+    // connector must treat the slot as in use.
+    let (tx, _rx) = mpsc::channel();
+    let held: Vec<IpcConnector> = (0..10).map(|_| IpcConnector::new(tx.clone())).collect();
+
+    // The eleventh connector has nowhere to bind; it must stay alive and
+    // disabled, and its `start` must not panic or spawn an accept loop.
+    let mut disabled = IpcConnector::new(tx.clone());
+    IpcFacilitator::start(&mut disabled);
+
+    // The disabled connector may not have claimed a socket of its own.
+    let sockets = std::fs::read_dir(&dir)
+        .expect("socket dir readable")
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| {
+            entry
+                .file_name()
+                .to_string_lossy()
+                .starts_with("discord-ipc-")
+        })
+        .count();
+    assert_eq!(sockets, 10, "only the ten held slots may be bound");
+
+    drop(disabled);
+    drop(held);
+}

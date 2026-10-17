@@ -12,7 +12,7 @@ use super::ipc_utils::{IpcFacilitator, handle_stream};
 
 #[derive(Clone)]
 pub struct IpcConnector {
-    socket: Arc<Mutex<Listener>>,
+    socket: Option<Arc<Mutex<Listener>>>,
     did_handshake: bool,
     pub client_id: String,
     pub pid: u64,
@@ -58,7 +58,13 @@ impl IpcFacilitator for IpcConnector {
      * Create a new thread that will recieve messages from the socket
      */
     fn start(&mut self) {
-        let socket_arc = Arc::clone(&self.socket);
+        let socket_arc = match self.socket.as_ref() {
+            Some(arc) => Arc::clone(arc),
+            None => {
+                warn!("IPC connector is disabled (no pipe bound), nothing to start");
+                return;
+            }
+        };
         let event_sender = self.event_sender.clone();
 
         std::thread::spawn(move || {
@@ -84,7 +90,7 @@ impl IpcFacilitator for IpcConnector {
 
                         // Fresh per-connection state (see unix backend).
                         let mut conn = IpcConnector {
-                            socket: Arc::clone(&socket_arc),
+                            socket: Some(Arc::clone(&socket_arc)),
                             did_handshake: false,
                             client_id: String::new(),
                             pid: 0,
@@ -111,19 +117,21 @@ impl IpcConnector {
     /**
      * Create a socket and return a new IpcConnector.
      *
-     * Fatal when no pipe can be bound (see unix backend).
+     * When no pipe can be bound, the connector is created disabled: `start`
+     * logs and does nothing instead of taking the host process down with it
+     * (see unix backend).
      */
     pub fn new(event_sender: mpsc::Sender<ActivityCmd>) -> Self {
         let socket = match Self::create_socket(None) {
-            Ok(bound) => bound,
+            Ok(socket) => Some(Arc::new(Mutex::new(socket))),
             Err(err) => {
-                error!("Failed to create socket: {}, exiting", err);
-                std::process::exit(1);
+                error!("Could not create IPC socket, connector disabled: {}", err);
+                None
             }
         };
 
         Self {
-            socket: Arc::new(Mutex::new(socket)),
+            socket,
             did_handshake: false,
             client_id: String::new(),
             pid: 0,
