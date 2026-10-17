@@ -94,12 +94,23 @@ impl WebsocketConnector {
         ))
     }
 
+    /// A connector whose facade never bound a port: `start` is a no-op and no
+    /// client can connect. `RPCServer::start` uses it when every candidate
+    /// port is taken, so the rest of the server keeps serving.
+    pub(crate) fn disabled(event_sender: mpsc::Sender<ActivityCmd>) -> Self {
+        Self {
+            server: Arc::new(Mutex::new(None)),
+            clients: Arc::new(Mutex::new(HashMap::new())),
+            event_sender,
+        }
+    }
+
     pub fn start(&mut self, set_activity: bool, secondary_events: bool) {
         let server = match self.server.lock() {
             Ok(mut guard) => match guard.take() {
                 Some(server) => server,
                 None => {
-                    warn!("Server already started");
+                    warn!("No websocket server to start (disabled or already started)");
                     return;
                 }
             },

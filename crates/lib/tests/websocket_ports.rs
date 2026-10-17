@@ -15,7 +15,7 @@ use std::net::{TcpListener, TcpStream};
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
-use rsrpc::WebsocketConnector;
+use rsrpc::{RPCConfig, RPCServer, WebsocketConnector};
 
 /// Unwrap-or-fail without `unwrap`/`expect` tokens (owned files stay
 /// grep-clean). Fails the test with context on `Err` or `None`.
@@ -141,4 +141,43 @@ fn exhausted_override_reports_error() {
         std::env::remove_var("RSRPC_WS_PORTS");
     }
     drop(held);
+}
+
+/// An exhausted websocket range must not abort `RPCServer::start`: the rest
+/// of the server (client connector on the configured port, IPC) still comes
+/// up, observable through a mutator reaching the running connectors instead
+/// of reporting `NotStarted`.
+#[test]
+#[serial_test::serial]
+fn rpc_server_starts_with_exhausted_websocket_range() {
+    let client_port = free_port();
+    let (start, end) = free_consecutive_pair();
+    let _held_start = must!(TcpListener::bind(("127.0.0.1", start)), "range start held");
+    let _held_end = must!(TcpListener::bind(("127.0.0.1", end)), "range end held");
+
+    // SAFETY: env mutation is serialized via `#[serial]`; this binary owns
+    // `RSRPC_WS_PORTS`.
+    unsafe {
+        std::env::set_var("RSRPC_WS_PORTS", format!("{start}-{end}"));
+    }
+
+    let config = RPCConfig {
+        port: client_port,
+        enable_process_scanner: false,
+        ..Default::default()
+    };
+    let mut server = must!(RPCServer::from_json_str("[]", config), "server builds");
+    server.start();
+
+    // The facade stayed disabled, but `start` completed: mutators reach the
+    // initialized connectors instead of reporting `NotStarted`.
+    must!(
+        server.append_detectables(Vec::new()),
+        "server must finish starting despite the disabled facade"
+    );
+
+    // SAFETY: as above.
+    unsafe {
+        std::env::remove_var("RSRPC_WS_PORTS");
+    }
 }

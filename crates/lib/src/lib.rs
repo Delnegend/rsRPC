@@ -359,11 +359,14 @@ impl RPCServer {
                 return;
             }
         };
-        let ws_connector = match WebsocketConnector::new(ws_event_sender) {
+        let ws_connector = match WebsocketConnector::new(ws_event_sender.clone()) {
             Ok(connector) => connector,
             Err(err) => {
-                tracing::error!("Websocket connector failed: {}", err);
-                return;
+                tracing::warn!(
+                    "Websocket facade unavailable, continuing without it: {}",
+                    err
+                );
+                WebsocketConnector::disabled(ws_event_sender)
             }
         };
         let connectors = Connectors {
