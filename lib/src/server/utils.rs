@@ -4,7 +4,7 @@
 /// fields are filled in by the client connector when forwarding activity.
 /// Keep this string byte-stable: `ipc_framing` asserts the READY reply
 /// contains `"READY"` and the pre-encoded frame in `ipc_utils` must match.
-pub static CONNECTION_RESPONSE: &str = r#"
+pub(crate) static CONNECTION_RESPONSE: &str = r#"
 {
   "cmd": "DISPATCH",
   "evt": "READY",
@@ -32,4 +32,4 @@ pub static CONNECTION_RESPONSE: &str = r#"
 /// New code MUST use [`CONNECTION_RESPONSE`].
 #[deprecated(since = "0.28.0", note = "use CONNECTION_RESPONSE instead")]
 #[allow(dead_code)]
-pub static CONNECTION_REPONSE: &str = CONNECTION_RESPONSE;
+pub(crate) static CONNECTION_REPONSE: &str = CONNECTION_RESPONSE;

@@ -70,9 +70,9 @@ impl PacketType {
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
-pub struct Handshake {
-  pub v: u32,
-  pub client_id: String,
+pub(crate) struct Handshake {
+  pub(crate) v: u32,
+  pub(crate) client_id: String,
 }
 
 pub fn encode(r_type: PacketType, data: &str) -> Vec<u8> {
@@ -100,7 +100,7 @@ pub fn encode_into(out: &mut Vec<u8>, opcode: u32, body: &[u8]) {
 }
 
 #[allow(clippy::result_large_err)]
-pub fn send_empty(
+pub(crate) fn send_empty(
   event_sender: &mut mpsc::Sender<ActivityCmd>,
   pid: u64,
 ) -> Result<(), mpsc::SendError<ActivityCmd>> {
@@ -142,7 +142,7 @@ fn read_header(reader: &mut BufReader<&mut Stream>) -> Option<(u32, u32)> {
   Some((opcode, len))
 }
 
-pub fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream) {
+pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream) {
   // Write helper: pushes bytes through the buffered reader's inner stream.
   // (`BufReader` buffers only reads, so writing via `get_mut` never loses
   // bytes; this also keeps ONE mutable borrow of `stream` for the loop.)

@@ -25,7 +25,7 @@ macro_rules! must {
 static SOCKET_DIR_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 /// Returns a fresh, unique, existing directory for one test's sockets.
-pub fn next_free_socket_dir() -> PathBuf {
+pub(crate) fn next_free_socket_dir() -> PathBuf {
   let id = SOCKET_DIR_COUNTER.fetch_add(1, Ordering::Relaxed);
   let dir = std::env::temp_dir().join(format!("rsrpc-test-{}-{id}", std::process::id()));
   must!(
@@ -36,7 +36,7 @@ pub fn next_free_socket_dir() -> PathBuf {
 }
 
 /// Encodes one wire frame: `opcode` + `len` (both little-endian u32) + body.
-pub fn encode_frame(opcode: u32, body: &[u8]) -> Vec<u8> {
+pub(crate) fn encode_frame(opcode: u32, body: &[u8]) -> Vec<u8> {
   let mut out = Vec::with_capacity(8 + body.len());
   out.extend_from_slice(&opcode.to_le_bytes());
   out.extend_from_slice(&(body.len() as u32).to_le_bytes());
@@ -45,7 +45,7 @@ pub fn encode_frame(opcode: u32, body: &[u8]) -> Vec<u8> {
 }
 
 /// Reads one wire frame from `reader` (blocking). Returns `(opcode, body)`.
-pub fn read_frame(reader: &mut impl Read) -> (u32, Vec<u8>) {
+pub(crate) fn read_frame(reader: &mut impl Read) -> (u32, Vec<u8>) {
   let mut header = [0u8; 8];
   must!(
     reader.read_exact(&mut header),
@@ -59,7 +59,7 @@ pub fn read_frame(reader: &mut impl Read) -> (u32, Vec<u8>) {
 }
 
 /// Sends one frame on `stream`, flushing afterwards.
-pub fn write_frame(stream: &mut impl Write, opcode: u32, body: &[u8]) {
+pub(crate) fn write_frame(stream: &mut impl Write, opcode: u32, body: &[u8]) {
   must!(
     stream.write_all(&encode_frame(opcode, body)),
     "test frame must send"
