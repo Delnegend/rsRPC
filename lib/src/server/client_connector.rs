@@ -66,20 +66,27 @@ struct ProcessPayload {
 }
 
 impl ClientConnector {
+  /// Create a client connector listening on `port`.
+  ///
+  /// # Errors
+  /// Returns an `io::Error` with kind `AddrInUse` when the websocket
+  /// server cannot be launched (e.g. the port is already taken).
   pub fn new(
     port: u16,
     data_on_connect: String,
     ipc_event_rec: std::sync::mpsc::Receiver<ActivityCmd>,
     proc_event_rec: std::sync::mpsc::Receiver<ProcessDetectedEvent>,
     ws_event_rec: std::sync::mpsc::Receiver<ActivityCmd>,
-  ) -> ClientConnector {
-    ClientConnector {
-      server: Arc::new(Mutex::new(Some(
-        simple_websockets::launch(port).unwrap_or_else(|_| {
-          log!("[Client Connector] Failed to launch websocket server, port may already be in use");
-          std::process::exit(1);
-        }),
-      ))),
+  ) -> std::io::Result<ClientConnector> {
+    let server = simple_websockets::launch(port).map_err(|_| {
+      log!("[Client Connector] Failed to launch websocket server, port may already be in use");
+      std::io::Error::new(
+        std::io::ErrorKind::AddrInUse,
+        format!("client connector: port {} already in use", port),
+      )
+    })?;
+    Ok(ClientConnector {
+      server: Arc::new(Mutex::new(Some(server))),
       clients: Arc::new(Mutex::new(HashMap::new())),
       data_on_connect,
       port,
@@ -90,16 +97,23 @@ impl ClientConnector {
       ipc_event_rec: Arc::new(Mutex::new(Some(ipc_event_rec))),
       proc_event_rec: Arc::new(Mutex::new(Some(proc_event_rec))),
       ws_event_rec: Arc::new(Mutex::new(Some(ws_event_rec))),
-    }
+    })
   }
 
   pub fn start(&mut self) {
-    let server = self
-      .server
-      .lock()
-      .unwrap()
-      .take()
-      .expect("Client connector already started");
+    let server = match self.server.lock() {
+      Ok(mut guard) => match guard.take() {
+        Some(server) => server,
+        None => {
+          log!("[Client Connector] Server already started");
+          return;
+        }
+      },
+      Err(err) => {
+        log!("[Client Connector] Server lock poisoned: {}", err);
+        return;
+      }
+    };
     let clients_clone = self.clients.clone();
     let data_on_connect = self.data_on_connect.clone();
 
@@ -110,22 +124,51 @@ impl ClientConnector {
             log!("[Client Connector] Client {} connected", client_id);
 
             // Send initial connection data
-            responder.send(Message::Text(data_on_connect.clone()));
+            if !responder.send(Message::Text(data_on_connect.clone())) {
+              log!(
+                "[Client Connector] Failed to send connect data to client {}",
+                client_id
+              );
+            }
 
-            clients_clone.lock().unwrap().insert(client_id, responder);
+            match clients_clone.lock() {
+              Ok(mut guard) => {
+                guard.insert(client_id, responder);
+              }
+              Err(err) => log!("[Client Connector] Clients lock poisoned: {}", err),
+            }
           }
-          Event::Disconnect(client_id) => {
-            clients_clone.lock().unwrap().remove(&client_id);
-          }
+          Event::Disconnect(client_id) => match clients_clone.lock() {
+            Ok(mut guard) => {
+              guard.remove(&client_id);
+            }
+            Err(err) => log!("[Client Connector] Clients lock poisoned: {}", err),
+          },
           Event::Message(client_id, message) => {
             log!(
               "[Client Connector] Received message from client {}: {:?}",
               client_id,
               message
             );
-            let clients = clients_clone.lock().unwrap();
-            if let Some(responder) = clients.get(&client_id) {
-              responder.send(message);
+            let responder = match clients_clone.lock() {
+              Ok(guard) => guard.get(&client_id).cloned(),
+              Err(err) => {
+                log!("[Client Connector] Clients lock poisoned: {}", err);
+                continue;
+              }
+            };
+            if let Some(responder) = responder {
+              if !responder.send(message) {
+                log!(
+                  "[Client Connector] Failed to echo message to client {}",
+                  client_id
+                );
+              }
+            } else {
+              log!(
+                "[Client Connector] Message from unknown client {}, ignoring",
+                client_id
+              );
             }
           }
         }
@@ -133,9 +176,23 @@ impl ClientConnector {
     });
 
     // Create a thread for each reciever
-    let ipc_event_rec = self.ipc_event_rec.lock().unwrap().take().unwrap();
-    let proc_event_rec = self.proc_event_rec.lock().unwrap().take().unwrap();
-    let ws_event_rec = self.ws_event_rec.lock().unwrap().take().unwrap();
+    let (ipc_event_rec, proc_event_rec, ws_event_rec) = match (
+      self.ipc_event_rec.lock(),
+      self.proc_event_rec.lock(),
+      self.ws_event_rec.lock(),
+    ) {
+      (Ok(mut ipc), Ok(mut proc), Ok(mut ws)) => match (ipc.take(), proc.take(), ws.take()) {
+        (Some(ipc), Some(proc), Some(ws)) => (ipc, proc, ws),
+        _ => {
+          log!("[Client Connector] Receivers already taken");
+          return;
+        }
+      },
+      _ => {
+        log!("[Client Connector] Receiver lock poisoned");
+        return;
+      }
+    };
 
     let mut ipc_clone = self.clone();
     let mut proc_clone = self.clone();
@@ -144,7 +201,7 @@ impl ClientConnector {
     std::thread::spawn(move || {
       while let Ok(mut ipc_activity) = ipc_event_rec.recv() {
         // if there are no client, skip
-        if ipc_clone.clients.lock().unwrap().is_empty() {
+        if !has_clients(&ipc_clone.clients) {
           log!("[Client Connector] No clients connected, skipping");
           continue;
         }
@@ -203,24 +260,22 @@ impl ClientConnector {
         let proc_activity = proc_event.activity;
 
         // if there are no clients, skip
-        if proc_clone.clients.lock().unwrap().is_empty() {
+        if !has_clients(&proc_clone.clients) {
           log!("[Client Connector] No clients connected, skipping");
           continue;
         }
 
         if proc_activity.id == "null" {
           // If our last socket id is empty, skip
-          if proc_clone.active_socket.is_none() {
-            continue;
-          }
+          let active_socket = match proc_clone.active_socket.clone() {
+            Some(socket) => socket,
+            None => continue,
+          };
 
           // Send an empty payload
           log!("[Client Connector] Sending empty payload");
 
-          let payload = empty_activity(
-            proc_clone.last_pid.unwrap_or_default(),
-            proc_clone.active_socket.as_ref().unwrap().clone(),
-          );
+          let payload = empty_activity(proc_clone.last_pid.unwrap_or_default(), active_socket);
 
           proc_clone.send_data(payload);
 
@@ -231,14 +286,11 @@ impl ClientConnector {
 
         // If the active socket is different from the current socket, send an empty payload for the old socket
         if proc_clone.active_socket != Some(proc_activity.id.clone()) {
-          if proc_clone.active_socket.is_some() {
+          if let Some(active_socket) = proc_clone.active_socket.clone() {
             // Send an empty payload
             log!("[Client Connector] Sending empty payload");
 
-            let payload = empty_activity(
-              proc_clone.last_pid.unwrap_or_default(),
-              proc_clone.active_socket.as_ref().unwrap().clone(),
-            );
+            let payload = empty_activity(proc_clone.last_pid.unwrap_or_default(), active_socket);
 
             proc_clone.send_data(payload);
           }
@@ -290,11 +342,10 @@ impl ClientConnector {
     std::thread::spawn(move || {
       while let Ok(mut ws_event) = ws_event_rec.recv() {
         // if there are no clients, skip
-        if ws_clone.clients.lock().unwrap().is_empty() {
+        if !has_clients(&ws_clone.clients) {
           log!("[Client Connector] No clients connected, skipping");
           continue;
         }
-
         if ws_event.cmd != "SET_ACTIVITY" {
           // Just send the event as-is, there isn't really anything to go off of here
           // I will change this if arRPC implements things like INVITE_BROWSER event responses, to ensure compatibility
@@ -355,10 +406,52 @@ impl ClientConnector {
     });
   }
 
+  /// Fan-out `data` to every connected client. Responders are snapshotted
+  /// under a short lock and messaged after the guard is dropped so a slow
+  /// reader can never hold the clients lock; a lone client gets `data`
+  /// moved instead of cloned.
   pub fn send_data(&mut self, data: String) {
-    // Send data to all clients
-    for responder in self.clients.lock().unwrap().values() {
-      responder.send(Message::Text(data.clone()));
+    let responders: Vec<Responder> = match self.clients.lock() {
+      Ok(guard) => guard.values().cloned().collect(),
+      Err(err) => {
+        log!("[Client Connector] Clients lock poisoned: {}", err);
+        return;
+      }
+    };
+    // Guard is dropped here; all sends below run unlocked.
+    let mut iter = responders.into_iter();
+    match (iter.next(), iter.next()) {
+      (None, _) => {}
+      (Some(only), None) => {
+        if !only.send(Message::Text(data)) {
+          log!("[Client Connector] Failed to send data to client");
+        }
+      }
+      (Some(first), Some(second)) => {
+        if !first.send(Message::Text(data.clone())) {
+          log!("[Client Connector] Failed to send data to client");
+        }
+        if !second.send(Message::Text(data.clone())) {
+          log!("[Client Connector] Failed to send data to client");
+        }
+        for responder in iter {
+          if !responder.send(Message::Text(data.clone())) {
+            log!("[Client Connector] Failed to send data to client");
+          }
+        }
+      }
+    }
+  }
+}
+
+/// True when at least one client is connected. A poisoned lock logs and
+/// reports no clients so the caller skips the payload.
+fn has_clients(clients: &Arc<Mutex<HashMap<u64, Responder>>>) -> bool {
+  match clients.lock() {
+    Ok(guard) => !guard.is_empty(),
+    Err(err) => {
+      log!("[Client Connector] Clients lock poisoned: {}", err);
+      false
     }
   }
 }
