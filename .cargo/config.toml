@@ -1,6 +1,8 @@
 [registry]
 # Supply chain security: quarantine any crate version for 14 days.
-# Stable since Cargo 1.100. Requires a registry that publishes `pubtime`.
+# NOTE: `global-min-publish-age` needs `-Zmin-publish-age` (nightly-only as of
+# Oct 2026; stable cargo emits "unused config key" warnings). Kept as a
+# documented no-op so nightly CI enforces the quarantine once stabilized.
 global-min-publish-age = "14 days"
 
 [resolver]
