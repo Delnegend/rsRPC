@@ -12,12 +12,12 @@ pub(crate) mod ipc_win;
 pub(crate) mod ipc_unix;
 #[cfg(target_os = "windows")]
 mod platform {
-  pub use super::ipc_win as ipc;
+    pub use super::ipc_win as ipc;
 }
 
 #[cfg(not(target_os = "windows"))]
 mod platform {
-  pub(crate) use super::ipc_unix as ipc;
+    pub(crate) use super::ipc_unix as ipc;
 }
 
 pub(crate) use platform::ipc;
