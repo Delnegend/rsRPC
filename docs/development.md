@@ -4,8 +4,8 @@
 
 - A container runtime (Docker or Podman) — open the repo in the dev container
   and everything below is pre-installed.
-- Without containers: Rust stable ≥1.100 (the 14-day dependency quarantine in
-  `.cargo/config.toml` is ignored on older toolchains) plus `just`.
+- Without containers: Rust stable ≥1.85 (per `rust-version` in the manifests;
+  `rust-toolchain.toml` pins the `stable` channel) plus `just`.
 
 ## Build & test
 
