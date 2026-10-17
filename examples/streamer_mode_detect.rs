@@ -1,8 +1,8 @@
-use rsrpc::RPCConfig;
+use rsrpc::{logger::set_logs_enabled, RPCConfig};
 
-pub fn main() {
+pub fn main() -> Result<(), Box<dyn std::error::Error>> {
   // When running as a binary, enable logs
-  std::env::set_var("RSRPC_LOGS_ENABLED", "1");
+  set_logs_enabled(true);
 
   // Create new client and stuff
   let mut client = rsrpc::RPCServer::from_json_str(
@@ -27,8 +27,7 @@ pub fn main() {
     }]
   "#,
     RPCConfig::default(),
-  )
-  .expect("Failed to create RPCServer");
+  )?;
 
   client.on_process_scan_complete(move |state| {
     if state.obs_open {
@@ -36,13 +35,12 @@ pub fn main() {
     } else {
       println!("Streamer mode should NOT be toggled");
     }
-  });
+  })?;
 
   // Starts the other threads (process detector, client connector, etc)
   client.start();
 
   // let 'er run forever
-  loop {
-    std::thread::sleep(std::time::Duration::from_millis(10));
-  }
+  std::thread::park();
+  Ok(())
 }
