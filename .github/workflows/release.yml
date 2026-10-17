@@ -222,6 +222,7 @@ jobs:
           path: artifacts
       - name: Zip each artifact
         shell: bash
+        run: |
           set -euo pipefail
           mkdir -p dist
           for dir in artifacts/*/; do
