@@ -7,7 +7,8 @@ use serde::Serialize;
 use serde_with::skip_serializing_none;
 use simple_websockets::{Event, EventHub, Message, Responder};
 
-use crate::cmd::{ActivityCmd, ActivityPayload};
+use crate::cmd::{Activity, ActivityCmd, ActivityPayload};
+use crate::middleware::MiddlewarePipeline;
 use tracing::{debug, error, info, warn};
 
 use super::process::ProcessDetectedEvent;
@@ -34,6 +35,7 @@ pub struct ClientConnector {
     pub last_pid: Option<u64>,
     pub active_socket: Option<String>,
     pub last_payload: Arc<Mutex<Option<String>>>,
+    pub middleware: MiddlewarePipeline,
 
     pub ipc_event_rec: Arc<Mutex<Option<std::sync::mpsc::Receiver<ActivityCmd>>>>,
     pub proc_event_rec: Arc<Mutex<Option<std::sync::mpsc::Receiver<ProcessDetectedEvent>>>>,
@@ -95,6 +97,7 @@ impl ClientConnector {
             last_pid: None,
             active_socket: None,
             last_payload: Arc::new(Mutex::new(None)),
+            middleware: MiddlewarePipeline::default_rules(),
 
             ipc_event_rec: Arc::new(Mutex::new(Some(ipc_event_rec))),
             proc_event_rec: Arc::new(Mutex::new(Some(proc_event_rec))),
@@ -225,7 +228,7 @@ impl ClientConnector {
 
                 if let Some(activity) = activity {
                     activity.application_id = ipc_activity.application_id;
-
+                    ipc_clone.middleware.process(activity);
                     let payload = ActivityPayload {
                         activity: Some(activity.clone()),
                         pid: args.pid,
@@ -287,6 +290,13 @@ impl ClientConnector {
                     continue;
                 }
 
+                let mut act = Activity {
+                    details: proc_activity.details.clone(),
+                    state: proc_activity.state.clone(),
+                    ..Default::default()
+                };
+                proc_clone.middleware.process(&mut act);
+
                 let payload_struct = ProcessPayload {
                     activity: ProcessActivity {
                         application_id: proc_activity.id.clone(),
@@ -301,8 +311,8 @@ impl ClientConnector {
                         r#type: 0,
                         metadata: HashMap::new(),
                         flags: 0,
-                        details: proc_activity.details.clone(),
-                        state: proc_activity.state.clone(),
+                        details: act.details,
+                        state: act.state,
                     },
                     pid: proc_activity.pid.unwrap_or_default(),
                     socket_id: proc_activity.id.clone(),
@@ -358,7 +368,7 @@ impl ClientConnector {
 
                 if let Some(activity) = activity {
                     activity.application_id = ws_event.application_id;
-
+                    ws_clone.middleware.process(activity);
                     let payload = ActivityPayload {
                         activity: Some(activity.clone()),
                         pid: args.pid,

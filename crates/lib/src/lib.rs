@@ -7,6 +7,7 @@ use std::{
 pub mod cmd;
 pub mod detection;
 pub mod logger;
+pub mod middleware;
 pub mod plugins;
 mod server;
 pub mod url_params;
@@ -17,6 +18,9 @@ pub use tracing;
 /// Prefer the crate-root [`ProcessScanState`] re-export in new code.
 pub type ProcessCallback = Box<dyn FnMut(ProcessScanState) + Send + Sync>;
 
+pub use middleware::{
+    ActivityMiddleware, MiddlewarePipeline, ModWatermarkFilter, ThreadNameFilter,
+};
 pub use plugins::{
     GameEnrichment, GameStatusPlugin, LeagueOfLegendsPlugin, PluginRegistry, VrChatPlugin,
 };
