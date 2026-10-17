@@ -7,10 +7,8 @@ use serde::Serialize;
 use serde_with::skip_serializing_none;
 use simple_websockets::{Event, EventHub, Message, Responder};
 
-use crate::{
-    cmd::{ActivityCmd, ActivityPayload},
-    log,
-};
+use crate::cmd::{ActivityCmd, ActivityPayload};
+use tracing::{debug, error, info, warn};
 
 use super::process::ProcessDetectedEvent;
 
@@ -82,7 +80,7 @@ impl ClientConnector {
         ws_event_rec: std::sync::mpsc::Receiver<ActivityCmd>,
     ) -> std::io::Result<ClientConnector> {
         let server = simple_websockets::launch(port).map_err(|_| {
-            log!(
+            error!(
                 "[Client Connector] Failed to launch websocket server, port may already be in use"
             );
             std::io::Error::new(
@@ -111,12 +109,12 @@ impl ClientConnector {
             Ok(mut guard) => match guard.take() {
                 Some(server) => server,
                 None => {
-                    log!("[Client Connector] Server already started");
+                    warn!("[Client Connector] Server already started");
                     return;
                 }
             },
             Err(err) => {
-                log!("[Client Connector] Server lock poisoned: {}", err);
+                error!("[Client Connector] Server lock poisoned: {}", err);
                 return;
             }
         };
@@ -128,11 +126,11 @@ impl ClientConnector {
             loop {
                 match server.poll_event() {
                     Event::Connect(client_id, responder) => {
-                        log!("[Client Connector] Client {} connected", client_id);
+                        info!("[Client Connector] Client {} connected", client_id);
 
                         // Send initial connection data
                         if !responder.send(Message::Text(data_on_connect.clone())) {
-                            log!(
+                            error!(
                                 "[Client Connector] Failed to send connect data to client {}",
                                 client_id
                             );
@@ -140,15 +138,15 @@ impl ClientConnector {
 
                         if let Ok(guard) = last_payload_clone.lock() {
                             if let Some(payload) = guard.as_ref() {
-                                log!(
-                  "[Client Connector] Resending cached activity payload to client {}",
-                  client_id
-                );
+                                info!(
+                                    "[Client Connector] Resending cached activity payload to client {}",
+                                    client_id
+                                );
                                 if !responder.send(Message::Text(payload.clone())) {
-                                    log!(
-                    "[Client Connector] Failed to send cached payload to client {}",
-                    client_id
-                  );
+                                    error!(
+                                        "[Client Connector] Failed to send cached payload to client {}",
+                                        client_id
+                                    );
                                 }
                             }
                         }
@@ -157,37 +155,36 @@ impl ClientConnector {
                             Ok(mut guard) => {
                                 guard.insert(client_id, responder);
                             }
-                            Err(err) => log!("[Client Connector] Clients lock poisoned: {}", err),
+                            Err(err) => error!("[Client Connector] Clients lock poisoned: {}", err),
                         }
                     }
                     Event::Disconnect(client_id) => match clients_clone.lock() {
                         Ok(mut guard) => {
                             guard.remove(&client_id);
                         }
-                        Err(err) => log!("[Client Connector] Clients lock poisoned: {}", err),
+                        Err(err) => error!("[Client Connector] Clients lock poisoned: {}", err),
                     },
                     Event::Message(client_id, message) => {
-                        log!(
+                        debug!(
                             "[Client Connector] Received message from client {}: {:?}",
-                            client_id,
-                            message
+                            client_id, message
                         );
                         let responder = match clients_clone.lock() {
                             Ok(guard) => guard.get(&client_id).cloned(),
                             Err(err) => {
-                                log!("[Client Connector] Clients lock poisoned: {}", err);
+                                error!("[Client Connector] Clients lock poisoned: {}", err);
                                 continue;
                             }
                         };
                         if let Some(responder) = responder {
                             if !responder.send(message) {
-                                log!(
+                                error!(
                                     "[Client Connector] Failed to echo message to client {}",
                                     client_id
                                 );
                             }
                         } else {
-                            log!(
+                            warn!(
                                 "[Client Connector] Message from unknown client {}, ignoring",
                                 client_id
                             );
@@ -206,12 +203,12 @@ impl ClientConnector {
             (Ok(mut ipc), Ok(mut proc), Ok(mut ws)) => match (ipc.take(), proc.take(), ws.take()) {
                 (Some(ipc), Some(proc), Some(ws)) => (ipc, proc, ws),
                 _ => {
-                    log!("[Client Connector] Receivers already taken");
+                    warn!("[Client Connector] Receivers already taken");
                     return;
                 }
             },
             _ => {
-                log!("[Client Connector] Receiver lock poisoned");
+                error!("[Client Connector] Receiver lock poisoned");
                 return;
             }
         };
@@ -227,7 +224,7 @@ impl ClientConnector {
                 let mut args = match ipc_activity.args {
                     Some(args) => args,
                     None => {
-                        log!("[Client Connector] Invalid activity command, skipping");
+                        warn!("[Client Connector] Invalid activity command, skipping");
                         continue;
                     }
                 };
@@ -237,7 +234,7 @@ impl ClientConnector {
                     // Send empty payload
                     let payload = empty_activity(pid, pid.to_string());
 
-                    log!("[Client Connector] Sending empty payload");
+                    info!("[Client Connector] Sending empty payload");
 
                     ipc_clone.send_empty_payload(payload);
 
@@ -257,18 +254,18 @@ impl ClientConnector {
 
                     match serde_json::to_string(&payload) {
                         Ok(payload) => {
-                            log!(
+                            info!(
                                 "[Client Connector] Sending payload for IPC activity: {:?}",
                                 payload
                             );
                             ipc_clone.send_activity_payload(payload);
                         }
                         Err(err) => {
-                            log!("[Client Connector] Error serializing IPC activity: {}", err)
+                            error!("[Client Connector] Error serializing IPC activity: {}", err)
                         }
                     };
                 } else {
-                    log!("[Client Connector] Invalid activity command, skipping");
+                    warn!("[Client Connector] Invalid activity command, skipping");
                 }
             }
         });
@@ -285,7 +282,7 @@ impl ClientConnector {
                     };
 
                     // Send an empty payload
-                    log!("[Client Connector] Sending empty payload");
+                    info!("[Client Connector] Sending empty payload");
 
                     let payload =
                         empty_activity(proc_clone.last_pid.unwrap_or_default(), active_socket);
@@ -301,7 +298,7 @@ impl ClientConnector {
                 if proc_clone.active_socket != Some(proc_activity.id.clone()) {
                     if let Some(active_socket) = proc_clone.active_socket.clone() {
                         // Send an empty payload
-                        log!("[Client Connector] Sending empty payload");
+                        info!("[Client Connector] Sending empty payload");
 
                         let payload =
                             empty_activity(proc_clone.last_pid.unwrap_or_default(), active_socket);
@@ -309,7 +306,7 @@ impl ClientConnector {
                         proc_clone.send_empty_payload(payload);
                     }
                 } else {
-                    log!(
+                    debug!(
                         "[Client Connector] Already sent payload for activity: {}",
                         proc_activity.name
                     );
@@ -340,14 +337,14 @@ impl ClientConnector {
                 proc_clone.last_pid = proc_activity.pid;
                 proc_clone.active_socket = Some(proc_activity.id.clone());
 
-                log!(
+                info!(
                     "[Client Connector] Sending payload for activity: {}",
                     proc_activity.name
                 );
 
                 match serde_json::to_string(&payload_struct) {
                     Ok(payload) => proc_clone.send_activity_payload(payload),
-                    Err(err) => log!(
+                    Err(err) => error!(
                         "[Client Connector] Error serializing process activity: {}",
                         err
                     ),
@@ -361,7 +358,7 @@ impl ClientConnector {
                     // Just send the event as-is, there isn't really anything to go off of here
                     // I will change this if arRPC implements things like INVITE_BROWSER event responses, to ensure compatibility
                     let payload = serde_json::to_string(&ws_event).unwrap_or("".to_string());
-                    log!("[Client Connector] Sending payload for WS event");
+                    info!("[Client Connector] Sending payload for WS event");
                     ws_clone.send_data(payload);
 
                     continue;
@@ -372,7 +369,7 @@ impl ClientConnector {
                 let mut args = match ws_event.args {
                     Some(args) => args,
                     None => {
-                        log!("[Client Connector] Invalid activity command, skipping");
+                        warn!("[Client Connector] Invalid activity command, skipping");
                         continue;
                     }
                 };
@@ -382,7 +379,7 @@ impl ClientConnector {
                     // Send empty payload
                     let payload = empty_activity(pid, pid.to_string());
 
-                    log!("[Client Connector] Sending empty payload");
+                    info!("[Client Connector] Sending empty payload");
 
                     ws_clone.send_empty_payload(payload);
 
@@ -402,18 +399,18 @@ impl ClientConnector {
 
                     match serde_json::to_string(&payload) {
                         Ok(payload) => {
-                            log!(
+                            info!(
                                 "[Client Connector] Sending payload for WS activity: {:?}",
                                 payload
                             );
                             ws_clone.send_activity_payload(payload);
                         }
                         Err(err) => {
-                            log!("[Client Connector] Error serializing WS activity: {}", err)
+                            error!("[Client Connector] Error serializing WS activity: {}", err)
                         }
                     };
                 } else {
-                    log!("[Client Connector] Invalid activity command, skipping");
+                    warn!("[Client Connector] Invalid activity command, skipping");
                 }
             }
         });
@@ -444,7 +441,7 @@ impl ClientConnector {
         let responders: Vec<Responder> = match self.clients.lock() {
             Ok(guard) => guard.values().cloned().collect(),
             Err(err) => {
-                log!("[Client Connector] Clients lock poisoned: {}", err);
+                error!("[Client Connector] Clients lock poisoned: {}", err);
                 return;
             }
         };
@@ -454,19 +451,19 @@ impl ClientConnector {
             (None, _) => {}
             (Some(only), None) => {
                 if !only.send(Message::Text(data)) {
-                    log!("[Client Connector] Failed to send data to client");
+                    error!("[Client Connector] Failed to send data to client");
                 }
             }
             (Some(first), Some(second)) => {
                 if !first.send(Message::Text(data.clone())) {
-                    log!("[Client Connector] Failed to send data to client");
+                    error!("[Client Connector] Failed to send data to client");
                 }
                 if !second.send(Message::Text(data.clone())) {
-                    log!("[Client Connector] Failed to send data to client");
+                    error!("[Client Connector] Failed to send data to client");
                 }
                 for responder in iter {
                     if !responder.send(Message::Text(data.clone())) {
-                        log!("[Client Connector] Failed to send data to client");
+                        error!("[Client Connector] Failed to send data to client");
                     }
                 }
             }

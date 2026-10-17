@@ -19,29 +19,22 @@ pub fn enabled() -> bool {
 }
 
 /// Explicitly enable or disable RPC logging, overriding the env-var default.
+///
+/// Kept for backwards compatibility; prefer configuring a `tracing_subscriber` subscriber.
 pub fn set_logs_enabled(enabled: bool) {
     LOGS_INIT.call_once(|| {});
     LOGS_ENABLED.store(enabled, Ordering::Relaxed);
 }
 
-/// Print a log line when logging is [`enabled`].
+/// Print a log line through `tracing::info!`.
 pub fn log(message: impl AsRef<str>) {
-    if enabled() {
-        println!(
-            "[{}] {}",
-            chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
-            message.as_ref()
-        );
-    }
+    tracing::info!("{}", message.as_ref());
 }
 
-/// Log a formatted message. The arguments are only formatted when logging is
-/// [`enabled`], so disabled logging costs a single atomic load.
+/// Log a formatted message through `tracing::info!`.
 #[macro_export]
 macro_rules! log {
-  ($($arg:tt)*) => {
-    if $crate::logger::enabled() {
-      $crate::logger::log(format!($($arg)*))
-    }
-  };
+    ($($arg:tt)*) => {
+        $crate::tracing::info!($($arg)*)
+    };
 }

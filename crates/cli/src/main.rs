@@ -1,7 +1,7 @@
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 
 use clap::Parser;
-use rsrpc::{logger::set_logs_enabled, RPCConfig, RPCServer, RpcError};
+use rsrpc::{RPCConfig, RPCServer, RpcError};
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
@@ -37,9 +37,17 @@ fn build_client(args: &Args) -> Result<RPCServer, RpcError> {
 }
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // When running as a binary, enable logs
-    set_logs_enabled(true);
-
+    let filter = match std::env::var("RUST_LOG") {
+        Ok(val) => tracing_subscriber::EnvFilter::new(val),
+        Err(_) => {
+            if matches!(std::env::var("RSRPC_LOGS_ENABLED"), Ok(val) if val == "0") {
+                tracing_subscriber::EnvFilter::new("off")
+            } else {
+                tracing_subscriber::EnvFilter::new("info")
+            }
+        }
+    };
+    tracing_subscriber::fmt().with_env_filter(filter).init();
     let args = Args::parse();
     let mut client = build_client(&args)?;
 
@@ -51,10 +59,10 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         let _ = tx.send(());
     })?;
 
-    println!("Press Ctrl+C to exit");
+    tracing::info!("Press Ctrl+C to exit");
     let _ = rx.recv();
 
-    println!("Shutting down...");
+    tracing::info!("Shutting down...");
     drop(client);
 
     // giving them a bit so they can clean up (e.g. drop BoundListener)

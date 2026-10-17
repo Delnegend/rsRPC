@@ -9,6 +9,10 @@ description = "Wine and Proton named pipe bridge for rsRPC"
 [lints]
 workspace = true
 
+[dependencies]
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["env-filter", "fmt", "ansi"] }
+
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.52.0", features = [
   "Win32_Foundation",

@@ -14,3 +14,5 @@ clap = { version = "4.5", features = ["derive", "std", "help", "usage"], default
 # charset dropped: CLI only reads Discord JSON (UTF-8 fallback is enough).
 ureq = { version = "3.3", default-features = false, features = ["rustls"] }
 ctrlc = "3.4"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", default-features = false, features = ["env-filter", "fmt", "ansi"] }

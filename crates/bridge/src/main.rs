@@ -14,8 +14,9 @@
 
 #[cfg(not(windows))]
 fn main() {
-    eprintln!("rsrpc-bridge is a Windows executable designed to run inside Wine/Proton.");
-    eprintln!(
+    tracing_subscriber::fmt().init();
+    tracing::error!("rsrpc-bridge is a Windows executable designed to run inside Wine/Proton.");
+    tracing::error!(
         "To build for Wine/Proton: cargo build -p rsrpc-bridge --target x86_64-pc-windows-gnu"
     );
 }
@@ -196,7 +197,7 @@ mod imp {
                 for candidate in &candidates {
                     if Path::new(candidate).exists() {
                         if let Some(sock) = LinuxSocket::open_unix(candidate) {
-                            println!("[rsrpc-bridge] Connected to Linux socket: {candidate}");
+                            tracing::info!("Connected to Linux socket: {candidate}");
                             return Some(sock);
                         }
                     }
@@ -207,8 +208,9 @@ mod imp {
     }
 
     pub(crate) fn run() {
+        tracing_subscriber::fmt().init();
         let pipe_name = to_wide(r"\\.\pipe\discord-ipc-0");
-        println!("[rsrpc-bridge] Starting Wine/Proton named pipe bridge...");
+        tracing::info!("Starting Wine/Proton named pipe bridge...");
 
         loop {
             let handle: HANDLE = unsafe {
@@ -226,12 +228,12 @@ mod imp {
 
             if handle == INVALID_HANDLE_VALUE {
                 let err = unsafe { GetLastError() };
-                eprintln!("[rsrpc-bridge] CreateNamedPipeW failed: {err}");
+                tracing::error!("CreateNamedPipeW failed: {err}");
                 thread::sleep(std::time::Duration::from_secs(1));
                 continue;
             }
 
-            println!("[rsrpc-bridge] Awaiting game connection on \\\\.\\pipe\\discord-ipc-0");
+            tracing::info!("Awaiting game connection on \\\\.\\pipe\\discord-ipc-0");
             let connected = unsafe { ConnectNamedPipe(handle, core::ptr::null_mut()) };
             let is_connected =
                 connected == TRUE || unsafe { GetLastError() } == ERROR_PIPE_CONNECTED;
@@ -241,11 +243,11 @@ mod imp {
                 continue;
             }
 
-            println!("[rsrpc-bridge] Game client connected to named pipe");
+            tracing::info!("Game client connected to named pipe");
             let linux_sock = match find_linux_socket() {
                 Some(sock) => sock,
                 None => {
-                    eprintln!("[rsrpc-bridge] Failed to connect to host Linux Discord socket");
+                    tracing::error!("Failed to connect to host Linux Discord socket");
                     unsafe {
                         DisconnectNamedPipe(handle);
                         CloseHandle(handle);
@@ -301,7 +303,7 @@ mod imp {
                 if ok == FALSE {
                     let err = unsafe { GetLastError() };
                     if err != ERROR_BROKEN_PIPE {
-                        eprintln!("[rsrpc-bridge] ReadFile error: {err}");
+                        tracing::warn!("ReadFile error: {err}");
                     }
                     break;
                 }
@@ -320,7 +322,7 @@ mod imp {
                 DisconnectNamedPipe(handle);
                 CloseHandle(handle);
             }
-            println!("[rsrpc-bridge] Session closed, waiting for next connection");
+            tracing::info!("Session closed, waiting for next connection");
         }
     }
 }

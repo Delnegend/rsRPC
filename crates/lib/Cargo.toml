@@ -16,6 +16,7 @@ simple-websockets = { git = "https://github.com/SpikeHD/simple-websockets.git", 
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 interprocess = "2.2"
 aho-corasick = "1.1"
+tracing = "0.1"
 
 [target.'cfg(not(target_os = "linux"))'.dependencies]
 sysinfo = { version = "0.38", default-features = false, features = ["system"] }

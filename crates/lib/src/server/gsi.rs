@@ -9,7 +9,6 @@ use serde::Deserialize;
 use serde_json::Value;
 
 use crate::cmd::{Activity, ActivityCmd, ActivityCmdArgs, Assets};
-use crate::log;
 
 /// Payload received from Valve Game State Integration (GSI).
 #[derive(Deserialize, Debug, Default)]
@@ -185,7 +184,7 @@ impl GsiServer {
             }
         });
 
-        log!("[GSI] Listening on 127.0.0.1:{}", self.port);
+        tracing::info!("[GSI] Listening on 127.0.0.1:{}", self.port);
         Ok(())
     }
 
