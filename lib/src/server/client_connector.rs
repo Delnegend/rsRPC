@@ -50,6 +50,8 @@ struct ProcessActivity {
   pub r#type: u32,
   pub metadata: HashMap<String, String>,
   pub flags: u32,
+  pub details: Option<String>,
+  pub state: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -316,6 +318,8 @@ impl ClientConnector {
             r#type: 0,
             metadata: HashMap::new(),
             flags: 0,
+            details: proc_activity.details.clone(),
+            state: proc_activity.state.clone(),
           },
           pid: proc_activity.pid.unwrap_or_default(),
           socket_id: proc_activity.id.clone(),

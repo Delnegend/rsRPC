@@ -29,6 +29,7 @@ pub struct Exec {
   pub pid: u64,
   pub path: String,
   pub arguments: Option<String>,
+  pub window_title: Option<String>,
 }
 
 #[derive(Clone)]
@@ -61,7 +62,7 @@ pub struct ProcessServer {
   pub event_sender: mpsc::Sender<ProcessDetectedEvent>,
 
   event_listeners: Arc<Mutex<ProcessEventListeners>>,
-
+  plugin_registry: crate::plugins::PluginRegistry,
   #[cfg(not(target_os = "linux"))]
   sysinfo: Arc<Mutex<System>>,
 }
@@ -70,6 +71,11 @@ unsafe impl Sync for ProcessServer {}
 
 static NULL_ACTIVITY: OnceLock<Arc<DetectableActivity>> = OnceLock::new();
 
+fn empty_ac() -> AhoCorasick {
+  #[allow(clippy::unwrap_used)]
+  AhoCorasick::new(Vec::<String>::new()).unwrap()
+}
+
 impl ProcessServer {
   pub fn new(
     detectable: Vec<Arc<DetectableActivity>>,
@@ -77,7 +83,7 @@ impl ProcessServer {
     event_listeners: ProcessEventListeners,
   ) -> Self {
     log!("[Process Scanner] Building Aho-Corasick patterns for main detectable activities...");
-    let (ac, idx) = build_ac_patterns(&detectable).expect("failed to build AC patterns");
+    let (ac, idx) = build_ac_patterns(&detectable).unwrap_or_else(|_| (empty_ac(), Vec::new()));
     log!("[Process Scanner] Done!");
 
     ProcessServer {
@@ -93,22 +99,40 @@ impl ProcessServer {
       custom_detectable_ac: Arc::new(Mutex::new(None)),
 
       event_listeners: Arc::new(Mutex::new(event_listeners)),
+      plugin_registry: crate::plugins::PluginRegistry::new(),
 
       #[cfg(not(target_os = "linux"))]
       sysinfo: Arc::new(Mutex::new(System::new())),
     }
   }
 
+  pub fn register_plugin(&self, plugin: impl crate::plugins::GameStatusPlugin + 'static) {
+    self.plugin_registry.register(plugin);
+  }
+
   fn update_custom_detectables(&self) {
     log!("[Process Scanner] Updating Aho-Corasick patterns for custom detectable activities...");
-    let cd = self.custom_detectables.lock().unwrap().clone();
-    let (ac, idx) = build_ac_patterns(&cd).expect("failed to build AC patterns");
+    let cd = self
+      .custom_detectables
+      .lock()
+      .unwrap_or_else(|p| p.into_inner())
+      .clone();
+    let (ac, idx) = build_ac_patterns(&cd).unwrap_or_else(|_| (empty_ac(), Vec::new()));
     if !idx.is_empty() {
-      *self.custom_detectable_ac.lock().unwrap() = Some(ac);
+      *self
+        .custom_detectable_ac
+        .lock()
+        .unwrap_or_else(|p| p.into_inner()) = Some(ac);
     } else {
-      *self.custom_detectable_ac.lock().unwrap() = None;
+      *self
+        .custom_detectable_ac
+        .lock()
+        .unwrap_or_else(|p| p.into_inner()) = None;
     }
-    *self.custom_detectable_indexes.lock().unwrap() = idx;
+    *self
+      .custom_detectable_indexes
+      .lock()
+      .unwrap_or_else(|p| p.into_inner()) = idx;
     log!("[Process Scanner] Done!");
   }
 
@@ -116,7 +140,7 @@ impl ProcessServer {
     self
       .custom_detectables
       .lock()
-      .unwrap()
+      .unwrap_or_else(|p| p.into_inner())
       .extend(detectable.into_iter().map(Arc::new));
     self.update_custom_detectables();
   }
@@ -125,7 +149,7 @@ impl ProcessServer {
     self
       .custom_detectables
       .lock()
-      .unwrap()
+      .unwrap_or_else(|p| p.into_inner())
       .retain(|x| x.name != name);
     self.update_custom_detectables();
   }
@@ -148,7 +172,10 @@ impl ProcessServer {
 
       if !detected.is_empty() {
         let send = {
-          let detected_list = clone.detected_list.lock().unwrap();
+          let detected_list = clone
+            .detected_list
+            .lock()
+            .unwrap_or_else(|p| p.into_inner());
           if detected_list.is_empty() {
             true
           } else {
@@ -161,7 +188,7 @@ impl ProcessServer {
             .send(ProcessDetectedEvent {
               activity: detected[0].clone(),
             })
-            .unwrap();
+            .ok();
         }
       }
 
@@ -198,6 +225,8 @@ impl ProcessServer {
             tags: None,
             pid: None,
             timestamp: None,
+            details: None,
+            state: None,
           })
         });
         clone
@@ -205,19 +234,28 @@ impl ProcessServer {
           .send(ProcessDetectedEvent {
             activity: null.clone(),
           })
-          .unwrap();
+          .ok();
       }
 
       if !detected.is_empty() {
         let send = {
-          let detected_list = clone.detected_list.lock().unwrap();
+          let detected_list = clone
+            .detected_list
+            .lock()
+            .unwrap_or_else(|p| p.into_inner());
           detected_list.is_empty() || detected[0].id != detected_list[0].id
         };
         if send {
-          *clone.detected_list.lock().unwrap() = detected;
+          *clone
+            .detected_list
+            .lock()
+            .unwrap_or_else(|p| p.into_inner()) = detected;
         }
       } else {
-        *clone.detected_list.lock().unwrap() = detected;
+        *clone
+          .detected_list
+          .lock()
+          .unwrap_or_else(|p| p.into_inner()) = detected;
       }
 
       std::thread::sleep(wait_time);
@@ -230,7 +268,7 @@ impl ProcessServer {
     use sysinfo::{ProcessRefreshKind, ProcessesToUpdate, UpdateKind};
 
     let mut processes = Vec::new();
-    let mut sys = self.sysinfo.lock().unwrap();
+    let mut sys = self.sysinfo.lock().unwrap_or_else(|p| p.into_inner());
     sys.refresh_processes_specifics(
       ProcessesToUpdate::All,
       true,
@@ -250,6 +288,7 @@ impl ProcessServer {
             .collect::<Vec<_>>()
             .join(" ")
         }),
+        window_title: None,
       });
     }
 
@@ -293,10 +332,15 @@ impl ProcessServer {
           } else {
             Some(rest.join(" "))
           };
+          let window_title = fs::read_to_string(path.join("comm"))
+            .ok()
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
           processes.push(Exec {
             pid,
             path: cmd_path,
             arguments: cmd_args,
+            window_title,
           });
         }
       }
@@ -328,11 +372,31 @@ impl ProcessServer {
 
     log!("[Process Scanner] Process scan triggered");
 
-    let detectable_ac = self.detectable_ac.lock().unwrap().clone();
-    let custom_ac = self.custom_detectable_ac.lock().unwrap().clone();
-    let detectable_indexes = self.detectable_indexes.lock().unwrap().clone();
-    let custom_detectable_indexes = self.custom_detectable_indexes.lock().unwrap().clone();
-    let custom_detectables = self.custom_detectables.lock().unwrap().clone();
+    let detectable_ac = self
+      .detectable_ac
+      .lock()
+      .unwrap_or_else(|p| p.into_inner())
+      .clone();
+    let custom_ac = self
+      .custom_detectable_ac
+      .lock()
+      .unwrap_or_else(|p| p.into_inner())
+      .clone();
+    let detectable_indexes = self
+      .detectable_indexes
+      .lock()
+      .unwrap_or_else(|p| p.into_inner())
+      .clone();
+    let custom_detectable_indexes = self
+      .custom_detectable_indexes
+      .lock()
+      .unwrap_or_else(|p| p.into_inner())
+      .clone();
+    let custom_detectables = self
+      .custom_detectables
+      .lock()
+      .unwrap_or_else(|p| p.into_inner())
+      .clone();
     let detectable_list = self.detectable_list.clone();
 
     let mut obs_open = false;
@@ -373,7 +437,7 @@ impl ProcessServer {
           (&custom_detectables[exe_index[0]], exe_index[1])
         };
 
-        let executable = &obj.executables.as_ref().unwrap()[exe_index];
+        let executable = &obj.executables.as_ref()?[exe_index];
 
         if let Some(exec_args) = &executable.arguments {
           if executable.name.starts_with(">")
@@ -388,13 +452,28 @@ impl ProcessServer {
 
         let mut new_activity = (**obj).clone();
         new_activity.pid = Some(process.pid);
-        new_activity.timestamp = Some(format!(
-          "{:?}",
+        new_activity.timestamp = Some(
           std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis()
-        ));
+            .map(|d| d.as_millis().to_string())
+            .unwrap_or_else(|_| "0".to_string()),
+        );
+        // Check if any registered telemetry plugin provides live in-game status
+        if let Some(enrichment) =
+          self
+            .plugin_registry
+            .extract(&new_activity.id, process.pid, &new_activity.name)
+        {
+          if enrichment.details.is_some() {
+            new_activity.details = enrichment.details;
+          }
+          if enrichment.state.is_some() {
+            new_activity.state = enrichment.state;
+          }
+        } else if new_activity.details.is_none() {
+          // Fallback to window title / comm name
+          new_activity.details = process.window_title.clone();
+        }
         Some(Arc::new(new_activity))
       })
       .collect();
@@ -402,11 +481,11 @@ impl ProcessServer {
     if let Some(callback) = self
       .event_listeners
       .lock()
-      .unwrap()
+      .unwrap_or_else(|p| p.into_inner())
       .on_process_scan_complete
       .as_ref()
     {
-      callback.lock().unwrap()(ProcessScanState { obs_open });
+      callback.lock().unwrap_or_else(|p| p.into_inner())(ProcessScanState { obs_open });
     }
 
     detected_list.shrink_to_fit();

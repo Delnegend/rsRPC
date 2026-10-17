@@ -79,3 +79,35 @@ fn custom_detectable_greater_than_argument() {
   let _ = child.kill();
   let _ = child.wait();
 }
+
+#[test]
+fn process_detected_details_from_window_title() {
+  use std::process::Command;
+  // Spawn a real process with a distinct name/comm
+  let mut child = Command::new("sleep").arg("9999").spawn().unwrap();
+  let pid = child.id() as u64;
+
+  let da: DetectableActivity = serde_json::from_str(
+    r#"{"name":"sleep","id":"test_sleep_id","hook":false,"executables":[{"is_launcher":false,"name":"sleep","os":"linux"}]}"#,
+  )
+  .unwrap();
+
+  let mut s = empty_server();
+  s.append_detectables(vec![da]);
+  let matches = s.scan_for_processes().unwrap();
+
+  let found = matches.iter().find(|m| m.pid == Some(pid));
+  assert!(
+    found.is_some(),
+    "spawned process should be detected by scan"
+  );
+  let detected = found.unwrap();
+  assert!(
+    detected.details.is_some(),
+    "detected process should have details populated from window_title/comm"
+  );
+  assert_eq!(detected.details.as_deref(), Some("sleep"));
+
+  let _ = child.kill();
+  let _ = child.wait();
+}

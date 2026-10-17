@@ -56,6 +56,8 @@ pub struct DetectableActivity {
   pub tags: Option<Vec<String>>,
   pub pid: Option<u64>,
   pub timestamp: Option<String>,
+  pub details: Option<String>,
+  pub state: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
