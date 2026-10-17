@@ -1,7 +1,7 @@
 {
   "updatedAt": "2026-10-17T16:25:45.590Z",
   "command": "update",
-  "gitHead": "1a814a280c006dc41adc578375c1f1e01ebac65b",
+  "gitHead": "c099ab5b9975720045f722c10bd42e84ad874a14",
   "model": "host-agent/omp",
   "status": "complete",
   "language": "en"
