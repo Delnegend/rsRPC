@@ -99,8 +99,8 @@ fn mod_watermark_filter_clears_mod_promotions() {
 }
 
 #[test]
-fn default_pipeline_cleans_both_thread_names_and_watermarks() {
-    let pipeline = MiddlewarePipeline::default_rules();
+fn pipeline_new_cleans_both_thread_names_and_watermarks() {
+    let pipeline = MiddlewarePipeline::new();
 
     let mut act = Activity {
         details: Some("GameThread".to_string()),
@@ -125,26 +125,26 @@ fn default_pipeline_cleans_both_thread_names_and_watermarks() {
     assert_eq!(assets.small_text.as_deref(), Some("Huntress"));
 }
 
-struct CustomPrefixMiddleware;
-
-impl ActivityMiddleware for CustomPrefixMiddleware {
-    fn process(&self, activity: &mut Activity) {
-        if let Some(details) = activity.details.as_mut() {
-            *details = format!("[MODIFIED] {details}");
-        }
-    }
-}
-
 #[test]
-fn custom_middleware_can_be_added_to_pipeline() {
-    let mut pipeline = MiddlewarePipeline::new();
-    pipeline.add(CustomPrefixMiddleware);
+fn pipeline_preserves_clean_activities() {
+    let pipeline = MiddlewarePipeline::new();
 
     let mut act = Activity {
-        details: Some("Playing".to_string()),
+        details: Some("Wave 10 - Hell on Earth".to_string()),
+        state: Some("Outpost".to_string()),
+        assets: Some(Assets {
+            large_text: Some("Titanic Plains".to_string()),
+            small_text: Some("Commando".to_string()),
+            large_image: Some("stage_1".to_string()),
+            small_image: Some("char_commando".to_string()),
+        }),
         ..Default::default()
     };
 
     pipeline.process(&mut act);
-    assert_eq!(act.details.as_deref(), Some("[MODIFIED] Playing"));
+    assert_eq!(act.details.as_deref(), Some("Wave 10 - Hell on Earth"));
+    assert_eq!(act.state.as_deref(), Some("Outpost"));
+    let assets = act.assets.unwrap();
+    assert_eq!(assets.large_text.as_deref(), Some("Titanic Plains"));
+    assert_eq!(assets.small_text.as_deref(), Some("Commando"));
 }

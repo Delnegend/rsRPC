@@ -14,28 +14,17 @@ pub trait ActivityMiddleware: Send + Sync {
 }
 
 /// Ordered pipeline of activity middlewares.
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct MiddlewarePipeline {
     middlewares: Vec<Arc<dyn ActivityMiddleware>>,
 }
 
 impl MiddlewarePipeline {
-    /// Create an empty pipeline.
+    /// Create the middleware pipeline with all declared middlewares included.
     pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Create a pipeline pre-configured with standard cleanup rules.
-    pub fn default_rules() -> Self {
-        let mut pipeline = Self::new();
-        pipeline.add(ThreadNameFilter);
-        pipeline.add(ModWatermarkFilter);
-        pipeline
-    }
-
-    /// Add a middleware to the end of the pipeline.
-    pub fn add(&mut self, middleware: impl ActivityMiddleware + 'static) {
-        self.middlewares.push(Arc::new(middleware));
+        Self {
+            middlewares: vec![Arc::new(ThreadNameFilter), Arc::new(ModWatermarkFilter)],
+        }
     }
 
     /// Run all middlewares in sequence on the given activity.
@@ -43,6 +32,12 @@ impl MiddlewarePipeline {
         for mw in &self.middlewares {
             mw.process(activity);
         }
+    }
+}
+
+impl Default for MiddlewarePipeline {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

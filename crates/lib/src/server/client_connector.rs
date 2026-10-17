@@ -97,7 +97,7 @@ impl ClientConnector {
             last_pid: None,
             active_socket: None,
             last_payload: Arc::new(Mutex::new(None)),
-            middleware: MiddlewarePipeline::default_rules(),
+            middleware: MiddlewarePipeline::new(),
 
             ipc_event_rec: Arc::new(Mutex::new(Some(ipc_event_rec))),
             proc_event_rec: Arc::new(Mutex::new(Some(proc_event_rec))),

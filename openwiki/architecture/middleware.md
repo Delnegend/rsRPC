@@ -23,8 +23,7 @@ flowchart TD
     ActivityIn["Incoming Activity\n(IPC / Scanner / WebSocket)"] --> Pipeline[MiddlewarePipeline]
     Pipeline --> M1["ThreadNameFilter\n(Drop GameThread, MainThrd, etc.)"]
     M1 --> M2["ModWatermarkFilter\n(Strip DiscordRichPresence v* banners)"]
-    M2 --> M3["Custom Middlewares\n(Extensible hooks)"]
-    M3 --> Out["Clean Activity\n(Dispatched to Discord Clients)"]
+    M2 --> Out["Clean Activity\n(Dispatched to Discord Clients)"]
 ```
 *Activity middleware execution order applied in the client connector hub before JSON dispatch.*
 
@@ -37,7 +36,7 @@ The pipeline lives in `crates/lib/src/middleware.rs` and exposes two core abstra
 
 ## Built-in Middlewares
 
-`MiddlewarePipeline::default_rules()` registers two default cleanup filters:
+`MiddlewarePipeline::new()` registers all declared cleanup filters:
 
 ### 1. `ThreadNameFilter`
 
@@ -75,24 +74,21 @@ if let Some(activity) = activity {
 }
 ```
 
-## Adding Custom Middlewares
+## Declaring Middlewares
 
-Applications embedding the `rsrpc` library can extend the pipeline at runtime:
+All middleware stages are defined in `crates/lib/src/middleware.rs` and registered directly inside `MiddlewarePipeline::new()`:
 
 ```rust
-use rsrpc::cmd::Activity;
-use rsrpc::middleware::{ActivityMiddleware, MiddlewarePipeline};
-
-struct CustomPrefixMiddleware;
-
-impl ActivityMiddleware for CustomPrefixMiddleware {
-    fn process(&self, activity: &mut Activity) {
-        if let Some(details) = activity.details.as_mut() {
-            *details = format!("[MODIFIED] {details}");
+impl MiddlewarePipeline {
+    pub fn new() -> Self {
+        Self {
+            middlewares: vec![
+                Arc::new(ThreadNameFilter),
+                Arc::new(ModWatermarkFilter),
+            ],
         }
     }
 }
-
-let mut pipeline = MiddlewarePipeline::default_rules();
-pipeline.add(CustomPrefixMiddleware);
 ```
+
+New sanitization or enrichment stages implement the `ActivityMiddleware` trait and are declared and included directly in `MiddlewarePipeline::new()`.
