@@ -4,14 +4,29 @@ use std::sync::Once;
 static LOGS_ENABLED: AtomicBool = AtomicBool::new(false);
 static LOGS_INIT: Once = Once::new();
 
-pub fn log(message: impl AsRef<str>) {
+/// Returns true when RPC logging is enabled.
+///
+/// The `RSRPC_LOGS_ENABLED` environment variable is read once as the fallback
+/// default; an explicit [`set_logs_enabled`] call always wins.
+pub fn enabled() -> bool {
   LOGS_INIT.call_once(|| {
-    if std::env::var("RSRPC_LOGS_ENABLED").unwrap_or_else(|_| "0".to_string()) == "1" {
+    if matches!(std::env::var("RSRPC_LOGS_ENABLED"), Ok(value) if value == "1") {
       LOGS_ENABLED.store(true, Ordering::Relaxed);
     }
   });
 
-  if LOGS_ENABLED.load(Ordering::Relaxed) {
+  LOGS_ENABLED.load(Ordering::Relaxed)
+}
+
+/// Explicitly enable or disable RPC logging, overriding the env-var default.
+pub fn set_logs_enabled(enabled: bool) {
+  LOGS_INIT.call_once(|| {});
+  LOGS_ENABLED.store(enabled, Ordering::Relaxed);
+}
+
+/// Print a log line when logging is [`enabled`].
+pub fn log(message: impl AsRef<str>) {
+  if enabled() {
     println!(
       "[{}] {}",
       chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
@@ -20,9 +35,13 @@ pub fn log(message: impl AsRef<str>) {
   }
 }
 
+/// Log a formatted message. The arguments are only formatted when logging is
+/// [`enabled`], so disabled logging costs a single atomic load.
 #[macro_export]
 macro_rules! log {
   ($($arg:tt)*) => {
-    $crate::logger::log(format!($($arg)*))
+    if $crate::logger::enabled() {
+      $crate::logger::log(format!($($arg)*))
+    }
   };
 }
