@@ -267,10 +267,10 @@ fn invite_browser_echo_contains_code() {
     );
 
     for _ in 0..20 {
-        if let Some(text) = client.read_text() {
-            if text.contains("abc123") {
-                return;
-            }
+        if let Some(text) = client.read_text()
+            && text.contains("abc123")
+        {
+            return;
         }
     }
     panic!("INVITE_BROWSER echo must contain the invite code");

@@ -134,12 +134,12 @@ impl ClientConnector {
                             error!("Failed to send connect data to client {}", client_id);
                         }
 
-                        if let Ok(guard) = last_payload_clone.lock() {
-                            if let Some(payload) = guard.as_ref() {
-                                info!("Resending cached activity payload to client {}", client_id);
-                                if !responder.send(Message::Text(payload.clone())) {
-                                    error!("Failed to send cached payload to client {}", client_id);
-                                }
+                        if let Ok(guard) = last_payload_clone.lock()
+                            && let Some(payload) = guard.as_ref()
+                        {
+                            info!("Resending cached activity payload to client {}", client_id);
+                            if !responder.send(Message::Text(payload.clone())) {
+                                error!("Failed to send cached payload to client {}", client_id);
                             }
                         }
 

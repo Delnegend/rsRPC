@@ -315,33 +315,33 @@ impl ProcessServer {
             let entry = entry?;
             let path = entry.path();
 
-            if let Ok(cmdline) = fs::read_to_string(path.join("cmdline")) {
-                if !cmdline.is_empty() {
-                    let pid: u64 = path
-                        .file_name()
-                        .ok_or("Invalid path")?
-                        .to_str()
-                        .ok_or("Invalid path")?
-                        .parse()?;
-                    let mut cmd_iter = cmdline.split('\0');
-                    let cmd_path = cmd_iter.next().unwrap_or("").to_string();
-                    let rest: Vec<&str> = cmd_iter.collect();
-                    let cmd_args = if rest.is_empty() {
-                        None
-                    } else {
-                        Some(rest.join(" "))
-                    };
-                    let window_title = fs::read_to_string(path.join("comm"))
-                        .ok()
-                        .map(|s| s.trim().to_string())
-                        .filter(|s| !s.is_empty());
-                    processes.push(Exec {
-                        pid,
-                        path: cmd_path,
-                        arguments: cmd_args,
-                        window_title,
-                    });
-                }
+            if let Ok(cmdline) = fs::read_to_string(path.join("cmdline"))
+                && !cmdline.is_empty()
+            {
+                let pid: u64 = path
+                    .file_name()
+                    .ok_or("Invalid path")?
+                    .to_str()
+                    .ok_or("Invalid path")?
+                    .parse()?;
+                let mut cmd_iter = cmdline.split('\0');
+                let cmd_path = cmd_iter.next().unwrap_or("").to_string();
+                let rest: Vec<&str> = cmd_iter.collect();
+                let cmd_args = if rest.is_empty() {
+                    None
+                } else {
+                    Some(rest.join(" "))
+                };
+                let window_title = fs::read_to_string(path.join("comm"))
+                    .ok()
+                    .map(|s| s.trim().to_string())
+                    .filter(|s| !s.is_empty());
+                processes.push(Exec {
+                    pid,
+                    path: cmd_path,
+                    arguments: cmd_args,
+                    window_title,
+                });
             }
         }
 
@@ -440,15 +440,14 @@ impl ProcessServer {
 
                 let executable = &obj.executables.as_ref()?[exe_index];
 
-                if let Some(exec_args) = &executable.arguments {
-                    if executable.name.starts_with(">")
-                        && !process
-                            .arguments
-                            .as_ref()
-                            .is_some_and(|args| args.contains(exec_args))
-                    {
-                        return None;
-                    }
+                if let Some(exec_args) = &executable.arguments
+                    && executable.name.starts_with(">")
+                    && !process
+                        .arguments
+                        .as_ref()
+                        .is_some_and(|args| args.contains(exec_args))
+                {
+                    return None;
                 }
 
                 let mut new_activity = (**obj).clone();

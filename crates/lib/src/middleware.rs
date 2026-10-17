@@ -77,10 +77,10 @@ impl ActivityMiddleware for ThreadNameFilter {
         {
             activity.details = None;
         }
-        if let Some(state) = &activity.state {
-            if Self::is_generic_thread(state) {
-                activity.state = None;
-            }
+        if let Some(state) = &activity.state
+            && Self::is_generic_thread(state)
+        {
+            activity.state = None;
         }
     }
 }
@@ -105,15 +105,15 @@ impl ModWatermarkFilter {
 impl ActivityMiddleware for ModWatermarkFilter {
     fn process(&self, activity: &mut Activity) {
         if let Some(assets) = activity.assets.as_mut() {
-            if let Some(large_text) = &assets.large_text {
-                if Self::is_mod_watermark(large_text) {
-                    assets.large_text = None;
-                }
+            if let Some(large_text) = &assets.large_text
+                && Self::is_mod_watermark(large_text)
+            {
+                assets.large_text = None;
             }
-            if let Some(small_text) = &assets.small_text {
-                if Self::is_mod_watermark(small_text) {
-                    assets.small_text = None;
-                }
+            if let Some(small_text) = &assets.small_text
+                && Self::is_mod_watermark(small_text)
+            {
+                assets.small_text = None;
             }
         }
     }

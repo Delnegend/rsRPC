@@ -2,7 +2,6 @@
 name = "rsrpc-bridge"
 version.workspace = true
 edition.workspace = true
-rust-version.workspace = true
 authors = ["spikehd", "Delnegend"]
 description = "Wine and Proton named pipe bridge for rsRPC"
 

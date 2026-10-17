@@ -93,37 +93,38 @@ impl ActivityCmd {
 
     fn fix_buttons(&mut self) {
         // If `buttons` are an array of objects, we need to map the labels to `buttons` (as a string array) and the urls to `metadata.button_urls` (as an array of strings)
-        if let Some(activity) = self.activity_mut() {
-            if let Some(buttons) = activity.buttons.as_mut() {
-                let mut button_urls: Vec<String> = vec![];
-                let mut button_labels: Vec<Value> = vec![];
+        if let Some(activity) = self.activity_mut()
+            && let Some(buttons) = activity.buttons.as_mut()
+        {
+            let mut button_urls: Vec<String> = vec![];
+            let mut button_labels: Vec<Value> = vec![];
 
-                for b in buttons {
-                    if let Some(label) = b.get("label") {
-                        // Unless the provider of the actvity REALLY screwed up, we can safely assume this is a string
-                        button_labels.push(label.clone());
-                    }
-                    if let Some(url) = b.get("url") {
-                        let text = match url.as_str() {
-                            Some(text) => text.to_string(),
-                            None => String::new(),
-                        };
-                        button_urls.push(text);
-                    }
+            for b in buttons {
+                if let Some(label) = b.get("label") {
+                    // Unless the provider of the actvity REALLY screwed up, we can safely assume this is a string
+                    button_labels.push(label.clone());
                 }
-
-                activity.metadata.get_or_insert_default().button_urls = Some(button_urls);
-
-                activity.buttons = Some(button_labels);
+                if let Some(url) = b.get("url") {
+                    let text = match url.as_str() {
+                        Some(text) => text.to_string(),
+                        None => String::new(),
+                    };
+                    button_urls.push(text);
+                }
             }
+
+            activity.metadata.get_or_insert_default().button_urls = Some(button_urls);
+
+            activity.buttons = Some(button_labels);
         }
     }
 
     fn fix_flags(&mut self) {
-        if let Some(activity) = self.activity_mut() {
-            if matches!(activity.instance, Some(true)) && activity.flags.is_none() {
-                activity.flags = Some(INSTANCE_FLAG_DEFAULT);
-            }
+        if let Some(activity) = self.activity_mut()
+            && matches!(activity.instance, Some(true))
+            && activity.flags.is_none()
+        {
+            activity.flags = Some(INSTANCE_FLAG_DEFAULT);
         }
     }
 

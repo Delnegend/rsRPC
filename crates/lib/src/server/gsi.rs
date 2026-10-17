@@ -220,10 +220,10 @@ fn handle_gsi_stream(mut stream: TcpStream, sender: &Sender<ActivityCmd>) -> std
     if content_length > 0 && content_length <= 512 * 1024 {
         let mut body = vec![0u8; content_length];
         reader.read_exact(&mut body)?;
-        if let Ok(gsi_payload) = serde_json::from_slice::<GsiPayload>(&body) {
-            if let Some(cmd) = gsi_payload_to_activity(&gsi_payload) {
-                let _ = sender.send(cmd);
-            }
+        if let Ok(gsi_payload) = serde_json::from_slice::<GsiPayload>(&body)
+            && let Some(cmd) = gsi_payload_to_activity(&gsi_payload)
+        {
+            let _ = sender.send(cmd);
         }
     }
 
