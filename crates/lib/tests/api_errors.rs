@@ -6,7 +6,7 @@
 )]
 use rsrpc::cmd::{Activity, ActivityCmd, ActivityCmdArgs, TimeoutValue, Timestamps};
 use rsrpc::{RPCConfig, RPCServer, RpcError};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 fn empty_server() -> RPCServer {
     match RPCServer::from_json_str("[]", RPCConfig::default()) {

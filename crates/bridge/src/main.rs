@@ -26,15 +26,15 @@ mod imp {
     use std::ffi::OsStr;
     use std::os::windows::ffi::OsStrExt;
     use std::path::Path;
-    use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicBool, Ordering};
     use std::thread;
 
     use windows_sys::Win32::Foundation::{
-        CloseHandle, GetLastError, ERROR_BROKEN_PIPE, ERROR_PIPE_CONNECTED, FALSE, HANDLE,
+        CloseHandle, ERROR_BROKEN_PIPE, ERROR_PIPE_CONNECTED, FALSE, GetLastError, HANDLE,
         INVALID_HANDLE_VALUE, TRUE,
     };
-    use windows_sys::Win32::Storage::FileSystem::{ReadFile, WriteFile, PIPE_ACCESS_DUPLEX};
+    use windows_sys::Win32::Storage::FileSystem::{PIPE_ACCESS_DUPLEX, ReadFile, WriteFile};
     use windows_sys::Win32::System::Pipes::{
         ConnectNamedPipe, CreateNamedPipeW, DisconnectNamedPipe, PIPE_READMODE_BYTE,
         PIPE_TYPE_BYTE, PIPE_WAIT,
@@ -54,33 +54,37 @@ mod imp {
         #[cfg(target_arch = "x86_64")]
         unsafe fn syscall(num: usize, a1: usize, a2: usize, a3: usize) -> isize {
             let ret: isize;
-            core::arch::asm!(
-              "syscall",
-              inlateout("rax") num as isize => ret,
-              in("rdi") a1,
-              in("rsi") a2,
-              in("rdx") a3,
-              out("rcx") _,
-              out("r11") _,
-              options(nostack, preserves_flags)
-            );
+            unsafe {
+                core::arch::asm!(
+                    "syscall",
+                    inlateout("rax") num as isize => ret,
+                    in("rdi") a1,
+                    in("rsi") a2,
+                    in("rdx") a3,
+                    out("rcx") _,
+                    out("r11") _,
+                    options(nostack, preserves_flags)
+                );
+            }
             ret
         }
 
         #[cfg(target_arch = "x86")]
         unsafe fn syscall(num: usize, a1: usize, a2: usize, a3: usize) -> isize {
             let ret: isize;
-            core::arch::asm!(
-              "push ebx",
-              "mov ebx, edx",
-              "int 0x80",
-              "pop ebx",
-              inlateout("eax") num as isize => ret,
-              in("edx") a1,
-              in("ecx") a2,
-              in("esi") a3,
-              options(preserves_flags)
-            );
+            unsafe {
+                core::arch::asm!(
+                    "push ebx",
+                    "mov ebx, edx",
+                    "int 0x80",
+                    "pop ebx",
+                    inlateout("eax") num as isize => ret,
+                    in("edx") a1,
+                    in("ecx") a2,
+                    in("esi") a3,
+                    options(preserves_flags)
+                );
+            }
             ret
         }
 

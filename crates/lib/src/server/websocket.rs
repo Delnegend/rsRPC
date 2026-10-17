@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     io,
-    sync::{mpsc, Arc, Mutex},
+    sync::{Arc, Mutex, mpsc},
 };
 
 use serde::Deserialize;

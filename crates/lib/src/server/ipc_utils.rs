@@ -1,6 +1,6 @@
 use std::{
     io::{BufReader, Read, Write},
-    sync::{mpsc, LazyLock},
+    sync::{LazyLock, mpsc},
 };
 
 use interprocess::local_socket::Stream;

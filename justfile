@@ -13,9 +13,7 @@ check:
 bump version:
     #!/usr/bin/env bash
     set -euo pipefail
-    for manifest in crates/lib/Cargo.toml crates/cli/Cargo.toml crates/bridge/Cargo.toml; do \
-      sed -i -E '0,/^version = ".*"/s//version = "{{version}}"/' "$manifest"; \
-    done
+    sed -i -E '0,/^version = ".*"/s//version = "{{version}}"/' Cargo.toml
     # Rewrites Cargo.lock from the manifests; never hand-edit versions in it.
     cargo metadata --format-version 1 --no-deps >/dev/null
 

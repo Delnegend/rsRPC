@@ -12,8 +12,8 @@ use std::net::TcpStream;
 use std::sync::mpsc;
 use std::time::Duration;
 
-use rsrpc::cmd::{Activity, ActivityCmd, ActivityCmdArgs};
 use rsrpc::ClientConnector;
+use rsrpc::cmd::{Activity, ActivityCmd, ActivityCmdArgs};
 
 struct WsClient {
     stream: TcpStream,
@@ -25,9 +25,9 @@ impl WsClient {
         let mut stream = TcpStream::connect(("127.0.0.1", port))?;
         stream.set_read_timeout(Some(Duration::from_secs(2)))?;
         let request = format!(
-      "GET / HTTP/1.1\r\nHost: 127.0.0.1:{}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: AAAAAAAAAAAAAAAAAAAAAA==\r\nSec-WebSocket-Version: 13\r\nContent-Length: 0\r\n\r\n",
-      port
-    );
+            "GET / HTTP/1.1\r\nHost: 127.0.0.1:{}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: AAAAAAAAAAAAAAAAAAAAAA==\r\nSec-WebSocket-Version: 13\r\nContent-Length: 0\r\n\r\n",
+            port
+        );
         stream.write_all(request.as_bytes())?;
         stream.flush()?;
         let mut client = Self {
@@ -81,7 +81,7 @@ impl WsClient {
                     return Err(std::io::Error::new(
                         std::io::ErrorKind::UnexpectedEof,
                         "eof",
-                    ))
+                    ));
                 }
                 Ok(n_read) => self.buf.extend_from_slice(&chunk[..n_read]),
                 Err(e) => return Err(e),

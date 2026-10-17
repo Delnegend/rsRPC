@@ -2,13 +2,13 @@ use interprocess::local_socket::traits::{Listener as _, Stream as _};
 use interprocess::local_socket::{GenericFilePath, Listener, ListenerOptions, Stream, ToFsName};
 use std::env;
 use std::io::ErrorKind;
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 use std::thread;
 
 use crate::cmd::ActivityCmd;
 use tracing::{debug, error, info, warn};
 
-use super::ipc_utils::{handle_stream, IpcFacilitator};
+use super::ipc_utils::{IpcFacilitator, handle_stream};
 
 /// First set env dir wins; falls back to `/tmp`.
 fn env_dir(key: &str) -> String {

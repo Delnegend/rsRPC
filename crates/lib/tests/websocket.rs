@@ -70,9 +70,9 @@ impl WsClient {
         let mut stream = TcpStream::connect(("127.0.0.1", port))?;
         stream.set_read_timeout(Some(Duration::from_secs(3)))?;
         let mut request = format!(
-      "GET /{} HTTP/1.1\r\nHost: 127.0.0.1:{}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: AAAAAAAAAAAAAAAAAAAAAA==\r\nSec-WebSocket-Version: 13\r\n",
-      query, port
-    );
+            "GET /{} HTTP/1.1\r\nHost: 127.0.0.1:{}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: AAAAAAAAAAAAAAAAAAAAAA==\r\nSec-WebSocket-Version: 13\r\n",
+            query, port
+        );
         if let Some(o) = origin {
             request.push_str(&format!("Origin: {}\r\n", o));
         }
@@ -143,7 +143,7 @@ impl WsClient {
                     return Err(std::io::Error::new(
                         std::io::ErrorKind::UnexpectedEof,
                         "connection closed",
-                    ))
+                    ));
                 }
                 Ok(m) => self.buf.extend_from_slice(&chunk[..m]),
                 Err(e) => return Err(e),

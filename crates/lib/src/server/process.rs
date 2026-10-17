@@ -1,9 +1,9 @@
 use aho_corasick::{AhoCorasick, PatternID};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::OnceLock;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc;
 use std::time::Duration;
 use std::vec;
 
@@ -158,105 +158,107 @@ impl ProcessServer {
 
         self.update_custom_detectables();
 
-        std::thread::spawn(move || loop {
-            let detected = match clone.scan_for_processes() {
-                Ok(detected) => detected,
-                Err(err) => {
-                    error!("Error while scanning processes: {}", err);
-                    std::thread::sleep(wait_time);
-                    continue;
-                }
-            };
-
-            if !detected.is_empty() {
-                let send = {
-                    let detected_list = clone
-                        .detected_list
-                        .lock()
-                        .unwrap_or_else(|p| p.into_inner());
-                    if detected_list.is_empty() {
-                        true
-                    } else {
-                        detected[0].id != detected_list[0].id
+        std::thread::spawn(move || {
+            loop {
+                let detected = match clone.scan_for_processes() {
+                    Ok(detected) => detected,
+                    Err(err) => {
+                        error!("Error while scanning processes: {}", err);
+                        std::thread::sleep(wait_time);
+                        continue;
                     }
                 };
-                if send {
+
+                if !detected.is_empty() {
+                    let send = {
+                        let detected_list = clone
+                            .detected_list
+                            .lock()
+                            .unwrap_or_else(|p| p.into_inner());
+                        if detected_list.is_empty() {
+                            true
+                        } else {
+                            detected[0].id != detected_list[0].id
+                        }
+                    };
+                    if send {
+                        clone
+                            .event_sender
+                            .send(ProcessDetectedEvent {
+                                activity: detected[0].clone(),
+                            })
+                            .ok();
+                    }
+                }
+
+                if detected.is_empty() {
+                    let null = NULL_ACTIVITY.get_or_init(|| {
+                        Arc::new(DetectableActivity {
+                            bot_public: None,
+                            bot_require_code_grant: None,
+                            cover_image: None,
+                            description: None,
+                            developers: None,
+                            executables: None,
+                            flags: None,
+                            guild_id: None,
+                            hook: false,
+                            icon: None,
+                            id: "null".to_string(),
+                            name: "".to_string(),
+                            publishers: None,
+                            rpc_origins: None,
+                            splash: None,
+                            third_party_skus: None,
+                            type_field: None,
+                            verify_key: None,
+                            primary_sku_id: None,
+                            slug: None,
+                            aliases: None,
+                            overlay: None,
+                            overlay_compatibility_hook: None,
+                            privacy_policy_url: None,
+                            terms_of_service_url: None,
+                            eula_id: None,
+                            deeplink_uri: None,
+                            tags: None,
+                            pid: None,
+                            timestamp: None,
+                            details: None,
+                            state: None,
+                        })
+                    });
                     clone
                         .event_sender
                         .send(ProcessDetectedEvent {
-                            activity: detected[0].clone(),
+                            activity: null.clone(),
                         })
                         .ok();
                 }
-            }
 
-            if detected.is_empty() {
-                let null = NULL_ACTIVITY.get_or_init(|| {
-                    Arc::new(DetectableActivity {
-                        bot_public: None,
-                        bot_require_code_grant: None,
-                        cover_image: None,
-                        description: None,
-                        developers: None,
-                        executables: None,
-                        flags: None,
-                        guild_id: None,
-                        hook: false,
-                        icon: None,
-                        id: "null".to_string(),
-                        name: "".to_string(),
-                        publishers: None,
-                        rpc_origins: None,
-                        splash: None,
-                        third_party_skus: None,
-                        type_field: None,
-                        verify_key: None,
-                        primary_sku_id: None,
-                        slug: None,
-                        aliases: None,
-                        overlay: None,
-                        overlay_compatibility_hook: None,
-                        privacy_policy_url: None,
-                        terms_of_service_url: None,
-                        eula_id: None,
-                        deeplink_uri: None,
-                        tags: None,
-                        pid: None,
-                        timestamp: None,
-                        details: None,
-                        state: None,
-                    })
-                });
-                clone
-                    .event_sender
-                    .send(ProcessDetectedEvent {
-                        activity: null.clone(),
-                    })
-                    .ok();
-            }
-
-            if !detected.is_empty() {
-                let send = {
-                    let detected_list = clone
-                        .detected_list
-                        .lock()
-                        .unwrap_or_else(|p| p.into_inner());
-                    detected_list.is_empty() || detected[0].id != detected_list[0].id
-                };
-                if send {
+                if !detected.is_empty() {
+                    let send = {
+                        let detected_list = clone
+                            .detected_list
+                            .lock()
+                            .unwrap_or_else(|p| p.into_inner());
+                        detected_list.is_empty() || detected[0].id != detected_list[0].id
+                    };
+                    if send {
+                        *clone
+                            .detected_list
+                            .lock()
+                            .unwrap_or_else(|p| p.into_inner()) = detected;
+                    }
+                } else {
                     *clone
                         .detected_list
                         .lock()
                         .unwrap_or_else(|p| p.into_inner()) = detected;
                 }
-            } else {
-                *clone
-                    .detected_list
-                    .lock()
-                    .unwrap_or_else(|p| p.into_inner()) = detected;
-            }
 
-            std::thread::sleep(wait_time);
+                std::thread::sleep(wait_time);
+            }
         });
     }
 

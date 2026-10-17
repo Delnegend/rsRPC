@@ -143,11 +143,8 @@ jobs:
           # non-conventional chore(release) commit and reports none — but the
           # manifests are ahead of the latest tag, so there IS work to do.
           LATEST_TAG="$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1 || true)"
-          LIB_VER="$(grep -m1 '^version = ' crates/lib/Cargo.toml | cut -d'"' -f2)"
-          CLI_VER="$(grep -m1 '^version = ' crates/cli/Cargo.toml | cut -d'"' -f2)"
-          [ -n "$LIB_VER" ] || { echo "::error::No version in crates/lib/Cargo.toml"; exit 1; }
-          [ "$LIB_VER" = "$CLI_VER" ] || { echo "::error::crates/lib/Cargo.toml ($LIB_VER) != crates/cli/Cargo.toml ($CLI_VER)"; exit 1; }
-          MANIFEST_VER="$LIB_VER"
+          MANIFEST_VER="$(grep -m1 '^version = ' Cargo.toml | cut -d'"' -f2)"
+          [ -n "$MANIFEST_VER" ] || { echo "::error::No version in Cargo.toml"; exit 1; }
           if [ -n "$LATEST_TAG" ] && [ "v$MANIFEST_VER" != "$LATEST_TAG" ] && [ "$(printf '%s\n%s\n' "v$MANIFEST_VER" "$LATEST_TAG" | sort -V | head -n1)" = "$LATEST_TAG" ]; then
             echo "Manifests ($MANIFEST_VER) are ahead of latest tag ($LATEST_TAG); tagging the stranded commit."
             git config user.name "github-actions[bot]"

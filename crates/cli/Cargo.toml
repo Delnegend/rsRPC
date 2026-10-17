@@ -1,18 +1,18 @@
 [package]
 name = "rsrpc-cli"
-version = "0.28.0"
-edition = "2021"
-rust-version = "1.85"
-authors = ["spikehd"]
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors = ["spikehd", "Delnegend"]
 
 [lints]
 workspace = true
 
 [dependencies]
 rsrpc = { path = "../lib" }
-clap = { version = "4.5", features = ["derive", "std", "help", "usage"], default-features = false }
+clap = { version = "4.6.7", features = ["derive", "std", "help", "usage"], default-features = false }
 # charset dropped: CLI only reads Discord JSON (UTF-8 fallback is enough).
-ureq = { version = "3.3", default-features = false, features = ["rustls"] }
-ctrlc = "3.4"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", default-features = false, features = ["env-filter", "fmt", "ansi"] }
+ureq = { version = "3.4.2", default-features = false, features = ["rustls"] }
+ctrlc = "3.5.2"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", default-features = false, features = ["env-filter", "fmt", "ansi"] }

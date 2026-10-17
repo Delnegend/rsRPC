@@ -72,10 +72,10 @@ impl ThreadNameFilter {
 
 impl ActivityMiddleware for ThreadNameFilter {
     fn process(&self, activity: &mut Activity) {
-        if let Some(details) = &activity.details {
-            if Self::is_generic_thread(details) {
-                activity.details = None;
-            }
+        if let Some(details) = &activity.details
+            && Self::is_generic_thread(details)
+        {
+            activity.details = None;
         }
         if let Some(state) = &activity.state {
             if Self::is_generic_thread(state) {

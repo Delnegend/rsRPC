@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use rsrpc::{ProcessEventListeners, ProcessServer};
 use std::sync::mpsc;
 

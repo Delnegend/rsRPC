@@ -3,7 +3,7 @@ use std::net::TcpStream;
 use std::sync::mpsc;
 use std::time::Duration;
 
-use rsrpc::{gsi_payload_to_activity, GsiMap, GsiPayload, GsiServer, GsiTeam};
+use rsrpc::{GsiMap, GsiPayload, GsiServer, GsiTeam, gsi_payload_to_activity};
 
 #[test]
 fn gsi_payload_mapping_to_activity() {
@@ -41,9 +41,9 @@ fn gsi_server_http_post_dispatches_activity() {
     let mut stream = TcpStream::connect(("127.0.0.1", port)).expect("should connect to GSI server");
     let body = r#"{"provider":{"name":"Counter-Strike 2","appid":730},"map":{"mode":"Premier","name":"de_inferno","team_ct":{"score":11},"team_t":{"score":9}}}"#;
     let request = format!(
-    "POST /gsi HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nContent-Length: {}\r\nContent-Type: application/json\r\n\r\n{body}",
-    body.len()
-  );
+        "POST /gsi HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nContent-Length: {}\r\nContent-Type: application/json\r\n\r\n{body}",
+        body.len()
+    );
 
     stream.write_all(request.as_bytes()).expect("write request");
     let mut response = [0u8; 128];

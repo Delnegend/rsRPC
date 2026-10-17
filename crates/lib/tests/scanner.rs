@@ -1,8 +1,8 @@
 use rsrpc::detection::DetectableActivity;
 use rsrpc::{ProcessEventListeners, ProcessScanState, ProcessServer};
-use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::mpsc;
 
 fn empty_server() -> ProcessServer {
     let (tx, _rx) = mpsc::channel();

@@ -19,7 +19,7 @@ use std::sync::mpsc;
 use std::time::Duration;
 
 use common::{next_free_socket_dir, read_frame, write_frame};
-use rsrpc::{cmd::ActivityCmd, IpcConnector, IpcFacilitator};
+use rsrpc::{IpcConnector, IpcFacilitator, cmd::ActivityCmd};
 
 const OPCODE_HANDSHAKE: u32 = 0;
 const OPCODE_CLOSE: u32 = 2;
@@ -46,9 +46,11 @@ fn valid_handshake_body() -> Vec<u8> {
 /// Spins up a live `IpcConnector` in `dir` and returns it plus the channel
 /// the server reports activity on.
 fn spawn_connector(dir: &std::path::Path) -> (IpcConnector, mpsc::Receiver<ActivityCmd>) {
-    // This test binary serializes env mutation via `#[serial]`; no other
+    // SAFETY: This test binary serializes env mutation via `#[serial]`; no other
     // test thread touches the environment concurrently.
-    std::env::set_var("XDG_RUNTIME_DIR", dir);
+    unsafe {
+        std::env::set_var("XDG_RUNTIME_DIR", dir);
+    }
     let (tx, rx) = mpsc::channel();
     let mut conn = IpcConnector::new(tx);
     IpcFacilitator::start(&mut conn);

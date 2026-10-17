@@ -1,7 +1,7 @@
 use detection::DetectableActivity;
 use std::{
     path::Path,
-    sync::{mpsc, Arc, Mutex, MutexGuard},
+    sync::{Arc, Mutex, MutexGuard, mpsc},
 };
 
 pub mod cmd;
@@ -25,8 +25,8 @@ pub use plugins::{
     GameEnrichment, GameStatusPlugin, LeagueOfLegendsPlugin, PluginRegistry, VrChatPlugin,
 };
 #[doc(hidden)]
-pub use server::gsi::{gsi_payload_to_activity, GsiMap, GsiPayload, GsiServer, GsiTeam};
-pub use server::ipc_utils::{encode, encode_into, PacketType, MAX_FRAME};
+pub use server::gsi::{GsiMap, GsiPayload, GsiServer, GsiTeam, gsi_payload_to_activity};
+pub use server::ipc_utils::{MAX_FRAME, PacketType, encode, encode_into};
 #[doc(hidden)]
 pub use server::process::{ProcessEventListeners, ProcessScanState, ProcessServer};
 pub use server::{
@@ -34,7 +34,7 @@ pub use server::{
     websocket::WebsocketConnector,
 };
 #[doc(hidden)]
-pub use url_params::{get_url_params, UrlParams};
+pub use url_params::{UrlParams, get_url_params};
 
 #[derive(Clone, Debug)]
 pub struct RPCConfig {

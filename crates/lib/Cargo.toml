@@ -1,29 +1,30 @@
 [package]
 name = "rsrpc"
-version = "0.28.0"
-edition = "2021"
-rust-version = "1.85"
-authors = ["spikehd"]
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors = ["spikehd", "Delnegend"]
 
 [lints]
 workspace = true
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-serde_with = { version = "3.24", default-features = false, features = ["macros"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+serde_with = { version = "3.24.0", default-features = false, features = ["macros"] }
 simple-websockets = { git = "https://github.com/SpikeHD/simple-websockets.git", rev = "13de011d97654edead82069f37ddf8aec6594e7d" }
-chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
-interprocess = "2.2"
-aho-corasick = "1.1"
-tracing = "0.1"
+chrono = { version = "0.4.45", default-features = false, features = ["clock", "serde"] }
+interprocess = "2.4.6"
+aho-corasick = "1.1.5"
+tracing = "0.1.44"
 
 [target.'cfg(not(target_os = "linux"))'.dependencies]
-sysinfo = { version = "0.38", default-features = false, features = ["system"] }
+sysinfo = { version = "0.38.4", default-features = false, features = ["system"] }
 
 [dev-dependencies]
-criterion = "0.8"
-serial_test = "2"
+criterion = "0.8.2"
+serial_test = "2.0.0"
+
 [[bench]]
 name = "scan"
 harness = false
