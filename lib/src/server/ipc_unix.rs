@@ -1,23 +1,25 @@
 use interprocess::local_socket::traits::{Listener as _, Stream as _};
-use interprocess::local_socket::{
-  GenericFilePath, Listener, ListenerNonblockingMode, ListenerOptions, Stream, ToFsName,
-};
+use interprocess::local_socket::{GenericFilePath, Listener, ListenerOptions, Stream, ToFsName};
 use std::env;
 use std::io::ErrorKind;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
-use std::time::Duration;
 
 use crate::cmd::ActivityCmd;
 use crate::log;
 
 use super::ipc_utils::{handle_stream, IpcFacilitator};
 
-fn get_socket_path() -> String {
-  let xdg_runtime_dir = env::var("XDG_RUNTIME_DIR").unwrap_or_default();
-  let tmpdir = env::var("TMPDIR").unwrap_or_default();
-  let tmp = env::var("TMP").unwrap_or_default();
-  let temp = env::var("TEMP").unwrap_or_default();
+/// First set env dir wins; falls back to `/tmp`.
+fn env_dir(key: &str) -> String {
+  env::var(key).unwrap_or_default()
+}
+
+pub(crate) fn get_socket_path() -> String {
+  let xdg_runtime_dir = env_dir("XDG_RUNTIME_DIR");
+  let tmpdir = env_dir("TMPDIR");
+  let tmp = env_dir("TMP");
+  let temp = env_dir("TEMP");
   let tmp_dir = if !xdg_runtime_dir.is_empty() {
     xdg_runtime_dir
   } else if !tmpdir.is_empty() {
@@ -72,8 +74,8 @@ impl IpcFacilitator for IpcConnector {
     self.did_handshake = handshake;
   }
 
-  fn client_id(&self) -> String {
-    self.client_id.clone()
+  fn client_id(&self) -> &str {
+    &self.client_id
   }
 
   fn set_client_id(&mut self, client_id: String) {
@@ -88,51 +90,34 @@ impl IpcFacilitator for IpcConnector {
     self.pid = pid;
   }
 
-  fn nonce(&self) -> String {
-    self.nonce.clone()
+  fn nonce(&self) -> &str {
+    &self.nonce
   }
 
   fn set_nonce(&mut self, nonce: String) {
     self.nonce = nonce;
   }
 
-  fn recreate_socket(&mut self) {
-    // Delete the socket, then create a new one
-    let (socket, path) = Self::create_socket(None);
-    *self.socket.lock().unwrap() = BoundListener { socket, path };
-  }
-
   /**
    * Create a new thread that will recieve messages from the socket
    */
   fn start(&mut self) {
-    let weak_socket = Arc::downgrade(&self.socket);
+    let socket_arc = Arc::clone(&self.socket);
     let event_sender = self.event_sender.clone();
-    let client_id = self.client_id.clone();
-    let pid = self.pid;
-    let nonce = self.nonce.clone();
-    let did_handshake = self.did_handshake;
 
     thread::spawn(move || {
-      if let Some(socket_arc) = weak_socket.upgrade() {
-        let socket_guard = socket_arc.lock().unwrap();
-        if let Err(err) = socket_guard
-          .socket
-          .set_nonblocking(ListenerNonblockingMode::Accept)
-        {
-          log!("[IPC] Failed to set socket to non-blocking: {}", err);
-          return;
-        }
-      }
-
       loop {
-        let socket_arc = match weak_socket.upgrade() {
-          Some(arc) => arc,
-          None => break,
-        };
-
+        // Scope the guard to the accept() call only: a blocking accept
+        // holds the mutex while no connection is arriving, and any handler
+        // thread that needs the listener must not stall behind it.
         let stream = {
-          let socket_guard = socket_arc.lock().unwrap();
+          let socket_guard = match socket_arc.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => {
+              log!("[IPC] Listener lock poisoned, recovering");
+              poisoned.into_inner()
+            }
+          };
           socket_guard.socket.accept()
         };
 
@@ -140,21 +125,21 @@ impl IpcFacilitator for IpcConnector {
           Ok(mut stream) => {
             log!("[IPC] Incoming stream...");
 
-            let mut clone = IpcConnector {
-              socket: socket_arc.clone(),
-              did_handshake,
-              client_id: client_id.clone(),
-              pid,
-              nonce: nonce.clone(),
+            // Fresh per-connection state: handshake/client/pid/nonce always
+            // start empty. Nothing leaks from a previous connection, and no
+            // snapshot of the parent's state is shared.
+            let mut conn = IpcConnector {
+              socket: Arc::clone(&socket_arc),
+              did_handshake: false,
+              client_id: String::new(),
+              pid: 0,
+              nonce: String::new(),
               event_sender: event_sender.clone(),
             };
-            thread::spawn(move || handle_stream(&mut clone, &mut stream));
-          }
-          Err(err) if err.kind() == ErrorKind::WouldBlock => {
-            thread::sleep(Duration::from_millis(50));
+            thread::spawn(move || handle_stream(&mut conn, &mut stream));
           }
           Err(err) => {
-            log!("[IPC] Error: {}", err);
+            log!("[IPC] Accept error: {}", err);
             break;
           }
         }
@@ -169,32 +154,49 @@ impl IpcFacilitator for IpcConnector {
 
 impl IpcConnector {
   /**
-   * Create a socket and return a new IpcConnector
+   * Create a socket and return a new IpcConnector.
+   *
+   * Fatal when no socket can be bound: without a listener the bridge is
+   * deaf, so exiting loudly beats serving nothing.
    */
   pub fn new(event_sender: mpsc::Sender<ActivityCmd>) -> Self {
-    let (socket, path) = Self::create_socket(None);
+    let (socket, path) = match Self::create_socket(None) {
+      Ok(bound) => bound,
+      Err(err) => {
+        log!("[IPC] Failed to create socket: {}, exiting", err);
+        std::process::exit(1);
+      }
+    };
 
     Self {
       socket: Arc::new(Mutex::new(BoundListener { socket, path })),
       did_handshake: false,
-      client_id: "".to_string(),
+      client_id: String::new(),
       pid: 0,
-      nonce: "".to_string(),
+      nonce: String::new(),
       event_sender,
     }
   }
 
   /**
-   * ACTUALLY create a socket, and return the handle
+   * ACTUALLY create a socket, and return the handle.
+   *
+   * Returns an `io::Error` (NOT a domain error type) so this backend stays
+   * independent of other slices' error enums; callers map it as needed.
    */
-  fn create_socket(tries: Option<u8>) -> (Listener, String) {
+  fn create_socket(tries: Option<u8>) -> std::io::Result<(Listener, String)> {
     let socket_path = get_socket_path();
-    let tries = tries.unwrap_or(0);
+    let tries = tries.unwrap_or_default();
     let socket_path = format!("{socket_path}-{tries}");
 
     log!("[IPC] Creating socket: {}", socket_path);
 
-    let name = socket_path.clone().to_fs_name::<GenericFilePath>().unwrap();
+    // `to_fs_name` failures (bad path chars) surface as `io::Error` with a
+    // descriptive message instead of aborting.
+    let name = socket_path
+      .clone()
+      .to_fs_name::<GenericFilePath>()
+      .map_err(|err| std::io::Error::new(err.kind(), format!("invalid socket path: {err}")))?;
     let listener_options = ListenerOptions::new().name(name.clone());
 
     let socket = match listener_options.create_sync() {
@@ -215,14 +217,19 @@ impl IpcConnector {
                 socket_path
               );
               let _ = std::fs::remove_file(&socket_path);
-              let listener_options = ListenerOptions::new()
-                .name(socket_path.clone().to_fs_name::<GenericFilePath>().unwrap());
+              let name = socket_path
+                .clone()
+                .to_fs_name::<GenericFilePath>()
+                .map_err(|err| {
+                  std::io::Error::new(err.kind(), format!("invalid socket path: {err}"))
+                })?;
+              let listener_options = ListenerOptions::new().name(name);
               if let Ok(socket) = listener_options.create_sync() {
                 log!(
                   "[IPC] Created IPC socket after cleaning stale: {}",
                   socket_path
                 );
-                return (socket, socket_path);
+                return Ok((socket, socket_path));
               }
             }
           }
@@ -232,14 +239,13 @@ impl IpcConnector {
 
         if tries < 9 {
           return Self::create_socket(Some(tries + 1));
-        } else {
-          panic!("[IPC] Failed to create socket: {}", err);
         }
+        return Err(err);
       }
     };
 
     log!("[IPC] Created IPC socket: {}", socket_path);
 
-    (socket, socket_path)
+    Ok((socket, socket_path))
   }
 }
