@@ -38,7 +38,7 @@ Enable with `systemctl --user enable --now rsrpc`.
 ## Health checks
 
 - **Logs:** run with `RSRPC_LOGS_ENABLED=1` and look for
-  `[RPC Server] Done! Watching for activity...`.
+  `Done! Watching for activity...`.
 - **Socket:** `ls "$XDG_RUNTIME_DIR"/discord-ipc-0` exists while running.
 - **Status:** launch a detectable game and confirm your Discord status updates.
 

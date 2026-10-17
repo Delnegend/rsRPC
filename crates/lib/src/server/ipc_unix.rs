@@ -49,7 +49,7 @@ struct BoundListener {
 
 impl Drop for BoundListener {
     fn drop(&mut self) {
-        debug!("[IPC] Cleaning up socket: {}", self.path);
+        debug!("Cleaning up socket: {}", self.path);
         let _ = std::fs::remove_file(&self.path);
     }
 }
@@ -114,7 +114,7 @@ impl IpcFacilitator for IpcConnector {
                     let socket_guard = match socket_arc.lock() {
                         Ok(guard) => guard,
                         Err(poisoned) => {
-                            warn!("[IPC] Listener lock poisoned, recovering");
+                            warn!("Listener lock poisoned, recovering");
                             poisoned.into_inner()
                         }
                     };
@@ -123,7 +123,7 @@ impl IpcFacilitator for IpcConnector {
 
                 match stream {
                     Ok(mut stream) => {
-                        info!("[IPC] Incoming stream...");
+                        info!("Incoming stream...");
 
                         // Fresh per-connection state: handshake/client/pid/nonce always
                         // start empty. Nothing leaks from a previous connection, and no
@@ -139,7 +139,7 @@ impl IpcFacilitator for IpcConnector {
                         thread::spawn(move || handle_stream(&mut conn, &mut stream));
                     }
                     Err(err) => {
-                        error!("[IPC] Accept error: {}", err);
+                        error!("Accept error: {}", err);
                         break;
                     }
                 }
@@ -163,7 +163,7 @@ impl IpcConnector {
         let (socket, path) = match Self::create_socket(None) {
             Ok(bound) => bound,
             Err(err) => {
-                error!("[IPC] Failed to create socket: {}, exiting", err);
+                error!("Failed to create socket: {}, exiting", err);
                 std::process::exit(1);
             }
         };
@@ -189,7 +189,7 @@ impl IpcConnector {
         let tries = tries.unwrap_or_default();
         let socket_path = format!("{socket_path}-{tries}");
 
-        info!("[IPC] Creating socket: {}", socket_path);
+        info!("Creating socket: {}", socket_path);
 
         // `to_fs_name` failures (bad path chars) surface as `io::Error` with a
         // descriptive message instead of aborting.
@@ -206,18 +206,15 @@ impl IpcConnector {
             Err(err) => {
                 if err.kind() == ErrorKind::AddrInUse {
                     info!(
-                        "[IPC] Socket {} already in use, checking if stale...",
+                        "Socket {} already in use, checking if stale...",
                         socket_path
                     );
                     match Stream::connect(name) {
                         Ok(_) => {
-                            warn!("[IPC] Socket {} is in use by another process", socket_path);
+                            warn!("Socket {} is in use by another process", socket_path);
                         }
                         Err(_) => {
-                            info!(
-                                "[IPC] Socket {} is stale, removing and retrying...",
-                                socket_path
-                            );
+                            info!("Socket {} is stale, removing and retrying...", socket_path);
                             let _ = std::fs::remove_file(&socket_path);
                             let name = socket_path
                                 .clone()
@@ -230,17 +227,14 @@ impl IpcConnector {
                                 })?;
                             let listener_options = ListenerOptions::new().name(name);
                             if let Ok(socket) = listener_options.create_sync() {
-                                info!(
-                                    "[IPC] Created IPC socket after cleaning stale: {}",
-                                    socket_path
-                                );
+                                info!("Created IPC socket after cleaning stale: {}", socket_path);
                                 return Ok((socket, socket_path));
                             }
                         }
                     }
                 }
 
-                warn!("[IPC] Failed to create IPC socket: {}", err);
+                warn!("Failed to create IPC socket: {}", err);
 
                 if tries < 9 {
                     return Self::create_socket(Some(tries + 1));
@@ -249,7 +243,7 @@ impl IpcConnector {
             }
         };
 
-        info!("[IPC] Created IPC socket: {}", socket_path);
+        info!("Created IPC socket: {}", socket_path);
 
         Ok((socket, socket_path))
     }

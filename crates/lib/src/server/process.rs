@@ -82,11 +82,9 @@ impl ProcessServer {
         event_sender: mpsc::Sender<ProcessDetectedEvent>,
         event_listeners: ProcessEventListeners,
     ) -> Self {
-        debug!(
-            "[Process Scanner] Building Aho-Corasick patterns for main detectable activities..."
-        );
+        debug!("Building Aho-Corasick patterns for main detectable activities...");
         let (ac, idx) = build_ac_patterns(&detectable).unwrap_or_else(|_| (empty_ac(), Vec::new()));
-        debug!("[Process Scanner] Done!");
+        debug!("Done building Aho-Corasick patterns for main detectable activities");
 
         ProcessServer {
             scanning: Arc::new(AtomicBool::new(false)),
@@ -113,9 +111,7 @@ impl ProcessServer {
     }
 
     fn update_custom_detectables(&self) {
-        debug!(
-            "[Process Scanner] Updating Aho-Corasick patterns for custom detectable activities..."
-        );
+        debug!("Updating Aho-Corasick patterns for custom detectable activities...");
         let cd = self
             .custom_detectables
             .lock()
@@ -137,7 +133,7 @@ impl ProcessServer {
             .custom_detectable_indexes
             .lock()
             .unwrap_or_else(|p| p.into_inner()) = idx;
-        debug!("[Process Scanner] Done!");
+        debug!("Done updating Aho-Corasick patterns for custom detectable activities");
     }
 
     pub fn append_detectables(&mut self, detectable: Vec<DetectableActivity>) {
@@ -166,7 +162,7 @@ impl ProcessServer {
             let detected = match clone.scan_for_processes() {
                 Ok(detected) => detected,
                 Err(err) => {
-                    error!("[Process Scanner] Error while scanning processes: {}", err);
+                    error!("Error while scanning processes: {}", err);
                     std::thread::sleep(wait_time);
                     continue;
                 }
@@ -371,7 +367,7 @@ impl ProcessServer {
         #[cfg(target_os = "linux")]
         let processes = ProcessServer::process_list()?;
 
-        debug!("[Process Scanner] Process scan triggered");
+        debug!("Process scan triggered");
 
         let detectable_ac = self
             .detectable_ac
@@ -492,7 +488,7 @@ impl ProcessServer {
 
         detected_list.shrink_to_fit();
 
-        debug!("[Process Scanner] Process scan complete");
+        debug!("Process scan complete");
 
         Ok(detected_list)
     }

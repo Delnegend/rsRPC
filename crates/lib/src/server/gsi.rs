@@ -184,7 +184,7 @@ impl GsiServer {
             }
         });
 
-        tracing::info!("[GSI] Listening on 127.0.0.1:{}", self.port);
+        tracing::info!("Listening on 127.0.0.1:{}", self.port);
         Ok(())
     }
 

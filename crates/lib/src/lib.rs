@@ -267,7 +267,7 @@ impl RPCServer {
         let process_server = lock_or_poison(&connectors.process_server)?;
 
         if let Err(err) = process_server.scan_for_processes() {
-            tracing::error!("[RPC Server] Error while scanning processes: {}", err);
+            tracing::error!("Error while scanning processes: {}", err);
         }
 
         Ok(())
@@ -295,7 +295,9 @@ impl RPCServer {
         callback: impl FnMut(ProcessScanState) + Send + Sync + 'static,
     ) -> Result<(), RpcError> {
         if self.connectors.is_some() {
-            tracing::warn!("[RPC Server] Cannot set on_process_scan_complete, connectors are already initialized");
+            tracing::warn!(
+                "Cannot set on_process_scan_complete, connectors are already initialized"
+            );
             return Err(RpcError::AlreadyStarted);
         }
 
@@ -305,7 +307,7 @@ impl RPCServer {
 
     fn connectors(&mut self) -> Result<&mut Connectors, RpcError> {
         if self.connectors.is_none() {
-            tracing::error!("[RPC Server] Connectors are not initialized, call start() first");
+            tracing::error!("Connectors are not initialized, call start() first");
             return Err(RpcError::NotStarted);
         }
 
@@ -349,14 +351,14 @@ impl RPCServer {
         ) {
             Ok(connector) => connector,
             Err(err) => {
-                tracing::error!("[RPC Server] Client connector failed: {}", err);
+                tracing::error!("Client connector failed: {}", err);
                 return;
             }
         };
         let ws_connector = match WebsocketConnector::new(ws_event_sender) {
             Ok(connector) => connector,
             Err(err) => {
-                tracing::error!("[RPC Server] Websocket connector failed: {}", err);
+                tracing::error!("Websocket connector failed: {}", err);
                 return;
             }
         };
@@ -377,7 +379,7 @@ impl RPCServer {
             Ok(guard) => guard.port,
             Err(_) => return,
         };
-        tracing::info!("[RPC Server] Starting client connector on port {}...", port);
+        tracing::info!("Starting client connector on port {}...", port);
         if let Ok(mut guard) = lock_or_poison(&connectors.client_connector) {
             guard.start();
         }
@@ -385,21 +387,21 @@ impl RPCServer {
         let config = self.config.clone();
 
         if config.enable_ipc_connector {
-            tracing::info!("[RPC Server] Starting IPC connector...");
+            tracing::info!("Starting IPC connector...");
             if let Ok(mut guard) = lock_or_poison(&connectors.ipc_connector) {
                 guard.start();
             }
         }
 
         if config.enable_process_scanner {
-            tracing::info!("[RPC Server] Starting process server...");
+            tracing::info!("Starting process server...");
             if let Ok(guard) = lock_or_poison(&connectors.process_server) {
                 guard.start();
             }
         }
 
         if config.enable_websocket_connector || config.enable_secondary_events {
-            tracing::info!("[RPC Server] Starting websocket connector...");
+            tracing::info!("Starting websocket connector...");
             if let Ok(mut guard) = lock_or_poison(&connectors.ws_connector) {
                 guard.start(
                     config.enable_websocket_connector,
@@ -409,17 +411,14 @@ impl RPCServer {
         }
 
         if config.enable_gsi {
-            tracing::info!(
-                "[RPC Server] Starting GSI listener on port {}...",
-                config.gsi_port
-            );
+            tracing::info!("Starting GSI listener on port {}...", config.gsi_port);
             let gsi_server = server::gsi::GsiServer::new(config.gsi_port);
             if let Err(err) = gsi_server.start(ipc_event_sender) {
-                tracing::error!("[RPC Server] Failed to start GSI listener: {}", err);
+                tracing::error!("Failed to start GSI listener: {}", err);
             }
         }
 
-        tracing::info!("[RPC Server] Done! Watching for activity...");
+        tracing::info!("Done! Watching for activity...");
         self.connectors = Some(connectors);
     }
 }
@@ -433,7 +432,7 @@ fn lock_or_poison<T>(mutex: &Mutex<T>) -> Result<MutexGuard<'_, T>, RpcError> {
     match mutex.lock() {
         Ok(guard) => Ok(guard),
         Err(poisoned) => {
-            tracing::warn!("[RPC Server] Recovering from poisoned mutex");
+            tracing::warn!("Recovering from poisoned mutex");
             Ok(poisoned.into_inner())
         }
     }

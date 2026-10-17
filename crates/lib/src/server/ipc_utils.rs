@@ -104,7 +104,7 @@ pub(crate) fn send_empty(
     event_sender: &mut mpsc::Sender<ActivityCmd>,
     pid: u64,
 ) -> Result<(), mpsc::SendError<ActivityCmd>> {
-    info!("[IPC] Sending empty activity");
+    info!("Sending empty activity");
 
     let activity = ActivityCmd {
         args: Some(ActivityCmdArgs {
@@ -119,7 +119,7 @@ pub(crate) fn send_empty(
 
 fn send_empty_log<T: IpcFacilitator>(ipc: &mut T, pid: u64) {
     if let Err(err) = send_empty(ipc.event_sender(), pid) {
-        error!("[IPC] Error sending empty activity: {}", err);
+        error!("Error sending empty activity: {}", err);
     }
 }
 
@@ -130,10 +130,7 @@ fn read_header(reader: &mut BufReader<&mut Stream>) -> Option<(u32, u32)> {
     match reader.read_exact(&mut header) {
         Ok(()) => (),
         Err(err) => {
-            debug!(
-                "[IPC] Error reading frame header, socket likely closed: {}",
-                err
-            );
+            debug!("Error reading frame header, socket likely closed: {}", err);
             return None;
         }
     }
@@ -148,7 +145,7 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
     // bytes; this also keeps ONE mutable borrow of `stream` for the loop.)
     fn write_frame(reader: &mut BufReader<&mut Stream>, bytes: &[u8], what: &str) {
         if let Err(err) = reader.get_mut().write_all(bytes) {
-            error!("[IPC] Error sending {}: {}", what, err);
+            error!("Error sending {}: {}", what, err);
         }
     }
 
@@ -182,7 +179,7 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
 
         if len > MAX_FRAME {
             warn!(
-                "[IPC] Frame length {} exceeds cap {}, closing connection",
+                "Frame length {} exceeds cap {}, closing connection",
                 len, MAX_FRAME
             );
             send_empty_log(ipc, current_pid);
@@ -190,7 +187,7 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
         }
 
         let Some(r_type) = PacketType::from_u32(opcode) else {
-            warn!("[IPC] Unknown opcode {}, skipping frame body", opcode);
+            warn!("Unknown opcode {}, skipping frame body", opcode);
             // Drain the body (bounded by the MAX_FRAME check above) so the next
             // read starts on a frame boundary, then wait for the next frame.
             body.resize(len as usize, 0);
@@ -204,23 +201,23 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
         body.clear();
         body.resize(len as usize, 0);
         if let Err(err) = reader.read_exact(&mut body) {
-            debug!("[IPC] Error reading frame body: {}", err);
+            debug!("Error reading frame body: {}", err);
             send_empty_log(ipc, current_pid);
             break;
         }
 
-        debug!("[IPC] Recieved frame, opcode {}", opcode);
+        debug!("Received frame, opcode {}", opcode);
 
         match r_type {
             PacketType::Handshake => {
-                debug!("[IPC] Recieved handshake");
+                debug!("Received handshake");
                 let Ok(data) = serde_json::from_slice::<Handshake>(&body) else {
-                    warn!("[IPC] Error parsing handshake");
+                    warn!("Error parsing handshake");
                     continue;
                 };
 
                 if data.v != 1 {
-                    warn!("[IPC] Invalid version: {}", data.v);
+                    warn!("Invalid version: {}", data.v);
                     continue;
                 }
 
@@ -232,14 +229,14 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
             }
             PacketType::Frame => {
                 if !ipc.handshake() {
-                    warn!("[IPC] Did not handshake yet, ignoring frame");
+                    warn!("Did not handshake yet, ignoring frame");
                     continue;
                 }
 
                 let mut activity_cmd = match serde_json::from_slice::<ActivityCmd>(&body) {
                     Ok(cmd) => cmd,
                     Err(err) => {
-                        error!("[IPC] Error parsing activity command: {}", err);
+                        error!("Error parsing activity command: {}", err);
                         continue;
                     }
                 };
@@ -247,7 +244,7 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
                 let args = match &activity_cmd.args {
                     Some(args) => args,
                     None => {
-                        warn!("[IPC] Invalid activity command, skipping");
+                        warn!("Invalid activity command, skipping");
 
                         // Send empty activity
                         send_empty_log(ipc, current_pid);
@@ -262,7 +259,7 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
                 ipc.set_nonce(activity_cmd.nonce_str().into_owned());
 
                 if let Err(err) = ipc.event_sender().send(activity_cmd) {
-                    error!("[IPC] Error sending activity command: {}", err);
+                    error!("Error sending activity command: {}", err);
                 }
 
                 // "IPC will echo back every command you send as a response.
@@ -275,7 +272,7 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
                 write_frame(&mut reader, &resp, "connection response");
             }
             PacketType::Close => {
-                info!("[IPC] Recieved close");
+                info!("Received close");
 
                 // Send message with an empty activity
                 let activity_cmd = ActivityCmd {
@@ -292,7 +289,7 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
                 };
 
                 if let Err(err) = ipc.event_sender().send(activity_cmd) {
-                    error!("[IPC] Error sending activity command: {}", err);
+                    error!("Error sending activity command: {}", err);
                 }
 
                 // Reset per-connection state and exit; the listener keeps accepting
@@ -304,7 +301,7 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
                 break;
             }
             PacketType::Ping => {
-                debug!("[IPC] Recieved ping");
+                debug!("Received ping");
 
                 // Send a pong
                 let mut resp = Vec::with_capacity(8 + body.len());
@@ -313,7 +310,7 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
                 write_frame(&mut reader, &resp, "pong");
             }
             PacketType::Pong => {
-                debug!("[IPC] Recieved pong");
+                debug!("Received pong");
             }
         }
     }

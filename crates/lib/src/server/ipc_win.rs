@@ -71,7 +71,7 @@ impl IpcFacilitator for IpcConnector {
                     let socket_guard = match socket_arc.lock() {
                         Ok(guard) => guard,
                         Err(poisoned) => {
-                            warn!("[IPC] Listener lock poisoned, recovering");
+                            warn!("Listener lock poisoned, recovering");
                             poisoned.into_inner()
                         }
                     };
@@ -80,7 +80,7 @@ impl IpcFacilitator for IpcConnector {
 
                 match stream {
                     Ok(mut stream) => {
-                        info!("[IPC] Incoming stream...");
+                        info!("Incoming stream...");
 
                         // Fresh per-connection state (see unix backend).
                         let mut conn = IpcConnector {
@@ -94,7 +94,7 @@ impl IpcFacilitator for IpcConnector {
                         std::thread::spawn(move || handle_stream(&mut conn, &mut stream));
                     }
                     Err(err) => {
-                        error!("[IPC] Accept error: {}", err);
+                        error!("Accept error: {}", err);
                         break;
                     }
                 }
@@ -117,7 +117,7 @@ impl IpcConnector {
         let socket = match Self::create_socket(None) {
             Ok(bound) => bound,
             Err(err) => {
-                error!("[IPC] Failed to create socket: {}, exiting", err);
+                error!("Failed to create socket: {}, exiting", err);
                 std::process::exit(1);
             }
         };
@@ -155,7 +155,7 @@ impl IpcConnector {
         let socket = match listener.create_sync() {
             Ok(socket) => socket,
             Err(err) => {
-                warn!("[IPC] Failed to create IPC socket: {}", err);
+                warn!("Failed to create IPC socket: {}", err);
 
                 if tries < 9 {
                     return Self::create_socket(Some(tries + 1));
@@ -164,7 +164,7 @@ impl IpcConnector {
             }
         };
 
-        info!("[IPC] Created IPC socket: {}", pipe_path);
+        info!("Created IPC socket: {}", pipe_path);
 
         Ok(socket)
     }

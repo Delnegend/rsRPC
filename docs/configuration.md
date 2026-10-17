@@ -19,7 +19,7 @@ connect over the socket or websocket are reported.
 
 | Variable | Default | Description |
 |---|---|---|
-| `RSRPC_LOGS_ENABLED` | `0` (`1` when run as the CLI binary) | Set to `1` to print `[RPC Server]` log lines |
+| `RSRPC_LOGS_ENABLED` | `0` (`1` when run as the CLI binary) | Set to `1` to enable log lines |
 | `XDG_RUNTIME_DIR` | — | First choice for the IPC socket directory on Linux |
 | `TMPDIR` / `TMP` / `TEMP` | — | Fallback socket directories, in order |
 

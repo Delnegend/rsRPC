@@ -49,7 +49,7 @@ impl WebsocketConnector {
         for port in 6463..6472 {
             match simple_websockets::launch(port) {
                 Ok(server) => {
-                    info!("[Websocket] Server started on port {}", port);
+                    info!("Server started on port {}", port);
                     return Ok(Self {
                         server: Arc::new(Mutex::new(Some(server))),
                         clients: Arc::new(Mutex::new(HashMap::new())),
@@ -57,12 +57,12 @@ impl WebsocketConnector {
                     });
                 }
                 Err(_) => {
-                    warn!("[Websocket] Failed to start server on port {}", port);
+                    warn!("Failed to start server on port {}", port);
                 }
             }
         }
 
-        error!("[Websocket] Failed to start server on any port");
+        error!("Failed to start server on any port");
         Err(io::Error::new(
             io::ErrorKind::AddrInUse,
             "websocket server: all ports 6463..6472 in use",
@@ -74,12 +74,12 @@ impl WebsocketConnector {
             Ok(mut guard) => match guard.take() {
                 Some(server) => server,
                 None => {
-                    warn!("[Websocket] Server already started");
+                    warn!("Server already started");
                     return;
                 }
             },
             Err(err) => {
-                error!("[Websocket] Server lock poisoned: {}", err);
+                error!("Server lock poisoned: {}", err);
                 return;
             }
         };
@@ -88,7 +88,7 @@ impl WebsocketConnector {
 
         std::thread::spawn(move || {
             loop {
-                trace!("[Websocket] Polling for events...");
+                trace!("Polling for events...");
 
                 match server.poll_event() {
                     Event::Connect(client_id, responder) => {
@@ -97,15 +97,15 @@ impl WebsocketConnector {
                         let version = url_params.v.as_deref().unwrap_or("0");
                         let encoding = url_params.encoding.as_deref().unwrap_or("json");
 
-                        info!("[Websocket] Client {} connected", client_id);
+                        info!("Client {} connected", client_id);
 
                         if version != "1" || encoding != "json" {
-                            warn!("[Websocket] Invalid connection from client {}", client_id);
+                            warn!("Invalid connection from client {}", client_id);
                             continue;
                         }
 
                         if !responder.send(Message::Text(CONNECTION_RESPONSE.to_string())) {
-                            error!("[Websocket] Failed to send READY to client {}", client_id);
+                            error!("Failed to send READY to client {}", client_id);
                             continue;
                         }
 
@@ -114,16 +114,16 @@ impl WebsocketConnector {
                                 guard.insert(client_id, (None, responder));
                             }
                             Err(err) => {
-                                error!("[Websocket] Clients lock poisoned: {}", err);
+                                error!("Clients lock poisoned: {}", err);
                             }
                         }
                     }
                     Event::Disconnect(client_id) => {
-                        info!("[Websocket] Client {} disconnected", client_id);
+                        info!("Client {} disconnected", client_id);
                         let removed = match clients.lock() {
                             Ok(mut guard) => guard.remove(&client_id),
                             Err(err) => {
-                                error!("[Websocket] Clients lock poisoned: {}", err);
+                                error!("Clients lock poisoned: {}", err);
                                 continue;
                             }
                         };
@@ -132,17 +132,11 @@ impl WebsocketConnector {
                             Some(responder) => {
                                 handle_disconnect(client_id, &event_sender, &responder)
                             }
-                            None => warn!(
-                                "[Websocket] Disconnect from unknown client {}, ignoring",
-                                client_id
-                            ),
+                            None => warn!("Disconnect from unknown client {}, ignoring", client_id),
                         }
                     }
                     Event::Message(client_id, message) => {
-                        debug!(
-                            "[Websocket] Received message from client {}: {:?}",
-                            client_id, message
-                        );
+                        debug!("Received message from client {}: {:?}", client_id, message);
 
                         let text = match message {
                             Message::Text(text) => text,
@@ -153,17 +147,14 @@ impl WebsocketConnector {
                         let responder = match clients.lock() {
                             Ok(guard) => guard.get(&client_id).map(|(_, r)| r.clone()),
                             Err(err) => {
-                                error!("[Websocket] Clients lock poisoned: {}", err);
+                                error!("Clients lock poisoned: {}", err);
                                 continue;
                             }
                         };
                         let responder = match responder {
                             Some(responder) => responder,
                             None => {
-                                warn!(
-                                    "[Websocket] Message from unknown client {}, ignoring",
-                                    client_id
-                                );
+                                warn!("Message from unknown client {}, ignoring", client_id);
                                 continue;
                             }
                         };
@@ -172,7 +163,7 @@ impl WebsocketConnector {
                         if let Some(origin) = responder.connection_details().headers.get("origin") {
                             let value = origin.to_str().unwrap_or_default();
                             if !VALID_ORIGINS.contains(&value) {
-                                warn!("[Websocket] Invalid origin from client {}", client_id);
+                                warn!("Invalid origin from client {}", client_id);
                                 continue;
                             }
                         }
@@ -181,21 +172,18 @@ impl WebsocketConnector {
                         let probe = match serde_json::from_str::<CmdProbe>(&text) {
                             Ok(probe) => probe,
                             Err(err) => {
-                                warn!(
-                                    "[Websocket] Invalid message from client {}: {}",
-                                    client_id, err
-                                );
+                                warn!("Invalid message from client {}: {}", client_id, err);
                                 continue;
                             }
                         };
                         match probe.cmd.as_str() {
                             "INVITE_BROWSER" | "SET_ACTIVITY" => {}
                             "DEEP_LINK" => {
-                                warn!("[Websocket] Deep link unimplemented. PRs are open!");
+                                warn!("Deep link unimplemented. PRs are open!");
                                 continue;
                             }
                             other => {
-                                warn!("[Websocket] Unknown command: {}", other);
+                                warn!("Unknown command: {}", other);
                                 continue;
                             }
                         }
@@ -204,10 +192,7 @@ impl WebsocketConnector {
                         let event: ActivityCmd = match serde_json::from_str(&text) {
                             Ok(event) => event,
                             Err(err) => {
-                                warn!(
-                                    "[Websocket] Invalid message from client {}: {}",
-                                    client_id, err
-                                );
+                                warn!("Invalid message from client {}: {}", client_id, err);
                                 continue;
                             }
                         };
@@ -230,10 +215,10 @@ impl WebsocketConnector {
                             // Re-checked after the full parse; the probe above already
                             // filtered anything else, so these are unreachable in practice.
                             "DEEP_LINK" => {
-                                warn!("[Websocket] Deep link unimplemented. PRs are open!");
+                                warn!("Deep link unimplemented. PRs are open!");
                             }
                             _ => {
-                                warn!("[Websocket] Unknown command: {}", event.cmd);
+                                warn!("Unknown command: {}", event.cmd);
                             }
                         }
                     }
@@ -273,17 +258,17 @@ fn handle_invite(
 
     // Send the event away!
     if let Err(err) = event_sender.send(event.clone()) {
-        error!("[Websocket] Failed to forward invite event: {}", err);
+        error!("Failed to forward invite event: {}", err);
     }
 
     // Respond
     match serde_json::to_string(&response) {
         Ok(text) => {
             if !responder.send(Message::Text(text)) {
-                error!("[Websocket] Failed to send invite response");
+                error!("Failed to send invite response");
             }
         }
-        Err(err) => error!("[Websocket] Failed to serialize invite response: {}", err),
+        Err(err) => error!("Failed to serialize invite response: {}", err),
     }
 }
 
@@ -300,16 +285,16 @@ fn handle_set_activity(
                 responder.0 = Some(event.clone());
             } else {
                 warn!(
-                    "[Websocket] SET_ACTIVITY from unknown client {}, ignoring store",
+                    "SET_ACTIVITY from unknown client {}, ignoring store",
                     client_id
                 );
             }
         }
-        Err(err) => error!("[Websocket] Clients lock poisoned: {}", err),
+        Err(err) => error!("Clients lock poisoned: {}", err),
     }
 
     if let Err(err) = event_sender.send(event.clone()) {
-        error!("[Websocket] Failed to forward activity event: {}", err);
+        error!("Failed to forward activity event: {}", err);
     }
 }
 
@@ -339,7 +324,7 @@ fn handle_disconnect(
         };
 
         if let Err(err) = event_sender.send(activity_cmd) {
-            error!("[Websocket] Failed to forward disconnect event: {}", err);
+            error!("Failed to forward disconnect event: {}", err);
         }
     }
 }
