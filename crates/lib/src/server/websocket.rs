@@ -38,15 +38,40 @@ pub struct WebsocketConnector {
     event_sender: mpsc::Sender<ActivityCmd>,
 }
 
+/// Candidate listen ports for the websocket facade.
+///
+/// `RSRPC_WS_PORTS` overrides the default `6463..6472` (inclusive) range:
+/// use `"6463"` for a single port or `"6463-6472"` for a range. Malformed
+/// input and ports below 1024 fall back to the default range.
+///
+/// Returns `(start, end)` with an exclusive `end`, ready for `start..end`.
+fn ws_ports() -> (u16, u16) {
+    const DEFAULT: (u16, u16) = (6463, 6473);
+
+    let range = std::env::var("RSRPC_WS_PORTS").unwrap_or_default();
+    let ports: Vec<u16> = range
+        .split('-')
+        .map(|part| part.trim().parse::<u16>().unwrap_or(0))
+        .collect();
+
+    match ports.as_slice() {
+        [port] if *port >= 1024 => (*port, port.saturating_add(1)),
+        [start, end] if *start >= 1024 && end >= start => (*start, end.saturating_add(1)),
+        _ => DEFAULT,
+    }
+}
+
 impl WebsocketConnector {
-    /// Try starting the websocket server on ports 6463..6472.
+    /// Try starting the websocket server on the `ws_ports` range (default
+    /// `6463..6472`, overridable via `RSRPC_WS_PORTS`).
     ///
     /// # Errors
-    /// Returns an `io::Error` with kind `AddrInUse` when every port is taken
-    /// (or the listener thread fails to spawn).
+    /// Returns an `io::Error` with kind `AddrInUse` when every candidate port
+    /// is taken (or the listener thread fails to spawn).
     pub fn new(event_sender: mpsc::Sender<ActivityCmd>) -> io::Result<Self> {
-        // Try starting websocket server on ports 6463 - 6472
-        for port in 6463..6472 {
+        let (start, end) = ws_ports();
+
+        for port in start..end {
             match simple_websockets::launch(port) {
                 Ok(server) => {
                     info!("Server started on port {}", port);
@@ -62,10 +87,10 @@ impl WebsocketConnector {
             }
         }
 
-        error!("Failed to start server on any port");
+        error!("Failed to start server on any port in {}..{}", start, end);
         Err(io::Error::new(
             io::ErrorKind::AddrInUse,
-            "websocket server: all ports 6463..6472 in use",
+            format!("websocket server: all ports {start}..{end} in use"),
         ))
     }
 

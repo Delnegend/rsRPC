@@ -161,7 +161,7 @@ fn start_server() -> (WebsocketConnector, mpsc::Receiver<rsrpc::cmd::ActivityCmd
 
 /// The port the test server actually bound (first connectable in range).
 fn live_port() -> u16 {
-    for p in 6463..6472 {
+    for p in 6463..6473 {
         if TcpStream::connect(("127.0.0.1", p)).is_ok() {
             return p;
         }
