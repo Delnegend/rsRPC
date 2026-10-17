@@ -3,9 +3,6 @@ type: architecture
 title: Architecture Overview
 description: Core architecture, component responsibilities, event flow, and invariants of the rsRPC daemon.
 tags: [architecture, design, connectors, process-scanner, ipc]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-10-17T15:02:42.014Z
 sources:
   - id: openwiki-source-e430ec08b28d5acbe6a1a38f
     resource: repo://crates/lib/src/server/client_connector.rs
@@ -16,6 +13,9 @@ sources:
   - id: openwiki-source-0da527745131e25b52757419
     resource: repo://crates/lib/src/server/websocket.rs
 generated: { by: "openwiki", at: "2026-10-17T15:02:42.014Z" }
+verified:
+  - by: openwiki/0.7.2
+    at: 2026-10-17T15:23:46.177Z
 ---
 
 # Architecture Overview

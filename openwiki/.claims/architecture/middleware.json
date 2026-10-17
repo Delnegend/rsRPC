@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:597105fcc68b80b2d55db799bd0d9ff055431a23ca80a86eeaaab27891614426",
+  "pageVersion": "sha256:d800959b59ee92a9f1d26d74cb7a81da18dbe97de4f20b226b1a843b3b83199a",
   "claims": [
     {
       "id": "claim_2d7f0365d5334a328ada314a03bc7b55",
@@ -17,7 +17,7 @@
       "statement": "ThreadNameFilter clears generic engine thread names including GameThread and RenderThread from activity details and state.",
       "evidence": [
         {
-          "resource": "repo://crates/lib/src/middleware.rs#L55-L85",
+          "resource": "repo://crates/lib/src/middleware.rs#L50-L80",
           "version": "repo-lines-v1:sha256:3132e2ed3f8f0cad2c40c3c0b1c3d3d331a01045b9d71456f94631572279c917:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY0MjZlOWM3MWEyMzMwNjk2ZDI5OTdlMmU0NTlmMWYxMmQ4NDU5YWM3NDg0MzRlOTlkNDZlNGVkYzFlNjY0ZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYyNTExZTc3MDcyMDljY2IxZDA4NTllODlkNmE5YzliODBlODU1NTRjZmNhNWYxNmY4ODM4ZGUzMmI4NGE1ODMifQ"
         }
       ]
@@ -27,7 +27,7 @@
       "statement": "ModWatermarkFilter resets promotional mod watermarks starting with DiscordRichPresence or discord-rpc in asset text to None.",
       "evidence": [
         {
-          "resource": "repo://crates/lib/src/middleware.rs#L95-L119",
+          "resource": "repo://crates/lib/src/middleware.rs#L90-L114",
           "version": "repo-lines-v1:sha256:9c78c698c5275fe6e9fbda1dd1bf944331e1f4bac80996fa93f1c1329f579fbe:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4ZWYxZjYxODYyYzAyYzkzNTA0MjlmNTFjYTgxZGJhM2FhOTQ1MzY4NDU0OTA1MWEyNWQ3ZGE5OGY1YTBlNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExYzBiNWFjMjY2OTQ5OTQ4OGJjYzdmNDY5NDllMTkwNWFiMWJhMjhmZmEyNDgzMmM0OGNkNzZiN2JhNDMxMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
         }
       ]
@@ -53,6 +53,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.2",
-    "at": "2026-10-17T15:02:42.014Z"
+    "at": "2026-10-17T15:23:46.177Z"
   }
 }

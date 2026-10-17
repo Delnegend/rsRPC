@@ -3,15 +3,15 @@ type: operations
 title: Deployment & Operations
 description: Deployment guide covering installation, systemd user service setup, Flatpak permissions, and operational health checks.
 tags: [deployment, systemd, operations, service, flatpak]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-10-17T15:02:42.014Z
 sources:
   - id: openwiki-source-58783f5f62c54fb0c3ee36cf
     resource: repo://crates/cli/src/main.rs
   - id: openwiki-source-c59fe4336a371ea1052a01dd
     resource: repo://justfile
 generated: { by: "openwiki", at: "2026-10-17T15:02:42.014Z" }
+verified:
+  - by: openwiki/0.7.2
+    at: 2026-10-17T15:23:46.177Z
 ---
 
 # Deployment & Operations

@@ -3,9 +3,6 @@ type: reference
 title: Configuration Reference
 description: Complete configuration reference for rsrpc-cli command-line flags, environment variables, and RPCConfig options.
 tags: [configuration, cli, environment-variables, rpcconfig, reference]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-10-17T15:02:42.014Z
 sources:
   - id: openwiki-source-58783f5f62c54fb0c3ee36cf
     resource: repo://crates/cli/src/main.rs
@@ -14,6 +11,9 @@ sources:
   - id: openwiki-source-bae660b604dcb34e4ca17d93
     resource: repo://crates/lib/src/server/ipc_unix.rs
 generated: { by: "openwiki", at: "2026-10-17T15:02:42.014Z" }
+verified:
+  - by: openwiki/0.7.2
+    at: 2026-10-17T15:23:46.177Z
 ---
 
 # Configuration Reference

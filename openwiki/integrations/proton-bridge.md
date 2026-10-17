@@ -3,15 +3,15 @@ type: integration
 title: Wine & Proton IPC Bridge
 description: Technical guide and setup for bridging Windows named pipe RPC to Linux Unix domain sockets under Steam Proton and Wine.
 tags: [proton, wine, bridge, steam, named-pipe]
-verified:
-  - by: openwiki/0.7.2
-    at: 2026-10-17T15:02:42.014Z
 sources:
   - id: openwiki-source-125fd31acef08c140d0a0374
     resource: repo://crates/bridge/scripts/bridge.sh
   - id: openwiki-source-2ccf483099a881b4999f2ea1
     resource: repo://crates/bridge/src/main.rs
 generated: { by: "openwiki", at: "2026-10-17T15:02:42.014Z" }
+verified:
+  - by: openwiki/0.7.2
+    at: 2026-10-17T15:23:46.177Z
 ---
 
 # Wine & Proton IPC Bridge
