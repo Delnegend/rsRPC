@@ -1,4 +1,10 @@
-#![allow(clippy::assertions_on_constants)]
+#![allow(
+  clippy::assertions_on_constants,
+  clippy::unreachable,
+  clippy::panic,
+  clippy::unwrap_used,
+  clippy::expect_used
+)]
 //! Behavior tests for `WebsocketConnector` over real TCP sockets.
 //!
 //! A minimal stdlib-only websocket client (hand-written HTTP upgrade +

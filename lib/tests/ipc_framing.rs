@@ -1,4 +1,10 @@
-#![allow(clippy::assertions_on_constants)]
+#![allow(
+  clippy::assertions_on_constants,
+  clippy::unreachable,
+  clippy::panic,
+  clippy::unwrap_used,
+  clippy::expect_used
+)]
 //! Behavior tests for the Unix IPC framing layer.
 //!
 //! All tests speak the real wire protocol over a real socket: they assert

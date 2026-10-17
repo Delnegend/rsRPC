@@ -7,6 +7,7 @@ use std::{
 pub mod cmd;
 pub mod detection;
 pub mod logger;
+pub mod plugins;
 mod server;
 pub mod url_params;
 
@@ -15,8 +16,12 @@ pub mod url_params;
 /// Prefer the crate-root [`ProcessScanState`] re-export in new code.
 pub type ProcessCallback = Box<dyn FnMut(ProcessScanState) + Send + Sync>;
 
+pub use plugins::{
+  GameEnrichment, GameStatusPlugin, LeagueOfLegendsPlugin, PluginRegistry, VrChatPlugin,
+};
 #[doc(hidden)]
-pub use server::ipc_utils::{encode, encode_into, PacketType};
+pub use server::gsi::{gsi_payload_to_activity, GsiMap, GsiPayload, GsiServer, GsiTeam};
+pub use server::ipc_utils::{encode, encode_into, PacketType, MAX_FRAME};
 #[doc(hidden)]
 pub use server::process::{ProcessEventListeners, ProcessScanState, ProcessServer};
 pub use server::{
@@ -32,6 +37,8 @@ pub struct RPCConfig {
   pub enable_ipc_connector: bool,
   pub enable_websocket_connector: bool,
   pub enable_secondary_events: bool,
+  pub enable_gsi: bool,
+  pub gsi_port: u16,
   pub port: u16,
 }
 
@@ -42,6 +49,8 @@ impl Default for RPCConfig {
       enable_ipc_connector: true,
       enable_websocket_connector: true,
       enable_secondary_events: true,
+      enable_gsi: false,
+      gsi_port: 3000,
       port: 1337,
     }
   }
@@ -358,7 +367,7 @@ impl RPCServer {
         },
       ))),
       client_connector: Arc::new(Mutex::new(client_connector)),
-      ipc_connector: Arc::new(Mutex::new(IpcConnector::new(ipc_event_sender))),
+      ipc_connector: Arc::new(Mutex::new(IpcConnector::new(ipc_event_sender.clone()))),
       ws_connector: Arc::new(Mutex::new(ws_connector)),
     };
 
@@ -394,6 +403,17 @@ impl RPCServer {
           config.enable_websocket_connector,
           config.enable_secondary_events,
         );
+      }
+    }
+
+    if config.enable_gsi {
+      log!(
+        "[RPC Server] Starting GSI listener on port {}...",
+        config.gsi_port
+      );
+      let gsi_server = server::gsi::GsiServer::new(config.gsi_port);
+      if let Err(err) = gsi_server.start(ipc_event_sender) {
+        log!("[RPC Server] Failed to start GSI listener: {}", err);
       }
     }
 

@@ -1,3 +1,9 @@
+#![allow(
+  clippy::unreachable,
+  clippy::panic,
+  clippy::unwrap_used,
+  clippy::expect_used
+)]
 use rsrpc::cmd::{Activity, ActivityCmd, ActivityCmdArgs, TimeoutValue, Timestamps};
 use rsrpc::{RPCConfig, RPCServer, RpcError};
 use serde_json::{json, Value};
@@ -74,6 +80,7 @@ fn registering_callback_after_start_reports_already_started() {
       enable_ipc_connector: false,
       enable_websocket_connector: false,
       enable_secondary_events: false,
+      ..Default::default()
     },
   ) {
     Ok(server) => server,
