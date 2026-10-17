@@ -1,7 +1,17 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_with::skip_serializing_none;
+use std::borrow::Cow;
 use std::collections::HashMap;
+
+/// Cutoff used by [`ActivityCmd::fix`] to decide whether a timestamp is
+/// already in milliseconds: values above "now + 100 years (in seconds)" are
+/// treated as milliseconds, anything smaller as seconds.
+const TIMESTAMP_ALREADY_MS_CUTOFF_OFFSET_SECS: i64 = 100 * 365 * 24 * 3600;
+
+/// Flag value set by [`ActivityCmd::fix`] when `instance` is true but no
+/// explicit `flags` value is present.
+const INSTANCE_FLAG_DEFAULT: u32 = 1;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct ActivityPayload {
@@ -41,40 +51,49 @@ impl ActivityCmd {
     self.fix_flags();
   }
 
-  pub fn fix_timestamps(&mut self) {
+  /// The command nonce as plain text.
+  ///
+  /// String nonces are returned unquoted (`Value::String("abc")` yields
+  /// `abc`); every other JSON value falls back to its JSON rendering.
+  pub fn nonce_str(&self) -> Cow<'_, str> {
+    match &self.nonce {
+      Value::String(inner) => Cow::Borrowed(inner.as_str()),
+      other => Cow::Owned(other.to_string()),
+    }
+  }
+
+  fn fix_timestamps(&mut self) {
     if let Some(timestamps) = self
-      .args
-      .as_mut()
-      .and_then(|args| args.activity.as_mut())
+      .activity_mut()
       .and_then(|activity| activity.timestamps.as_mut())
     {
-      let cur = chrono::Utc::now().timestamp() + (100 * 365 * 24 * 3600);
+      let cur = chrono::Utc::now().timestamp() + TIMESTAMP_ALREADY_MS_CUTOFF_OFFSET_SECS;
 
       // convert starting timestamp
       if let Some(start) = timestamps.start.as_mut() {
         // convert timestamp if in seconds
-        if start.0 > cur {
-          *start = TimeoutValue(start.0);
+        if start.as_millis() > cur {
+          *start = TimeoutValue::new(start.as_millis());
         } else {
-          *start = TimeoutValue(start.0 * 1000);
+          *start = TimeoutValue::new(start.as_millis() * 1000);
         }
       }
 
       // convert ending timestamp
       if let Some(end) = timestamps.end.as_mut() {
         // convert timestamp if in seconds
-        if end.0 > cur {
-          *end = TimeoutValue(end.0);
+        if end.as_millis() > cur {
+          *end = TimeoutValue::new(end.as_millis());
         } else {
-          *end = TimeoutValue(end.0 * 1000);
+          *end = TimeoutValue::new(end.as_millis() * 1000);
         }
       }
     }
   }
 
-  pub fn fix_buttons(&mut self) {
+  fn fix_buttons(&mut self) {
     // If `buttons` are an array of objects, we need to map the labels to `buttons` (as a string array) and the urls to `metadata.button_urls` (as an array of strings)
-    if let Some(activity) = self.args.as_mut().and_then(|args| args.activity.as_mut()) {
+    if let Some(activity) = self.activity_mut() {
       if let Some(buttons) = activity.buttons.as_mut() {
         let mut button_urls: Vec<String> = vec![];
         let mut button_labels: Vec<Value> = vec![];
@@ -85,26 +104,31 @@ impl ActivityCmd {
             button_labels.push(label.clone());
           }
           if let Some(url) = b.get("url") {
-            button_urls.push(url.as_str().unwrap_or("").to_string());
+            let text = match url.as_str() {
+              Some(text) => text.to_string(),
+              None => String::new(),
+            };
+            button_urls.push(text);
           }
         }
 
-        activity.metadata = Some(Metadata {
-          button_urls: Some(button_urls),
-          ..activity.metadata.clone().unwrap_or_default()
-        });
+        activity.metadata.get_or_insert_default().button_urls = Some(button_urls);
 
         activity.buttons = Some(button_labels);
       }
     }
   }
 
-  pub fn fix_flags(&mut self) {
-    if let Some(activity) = self.args.as_mut().and_then(|args| args.activity.as_mut()) {
-      if activity.instance.unwrap_or(false) && activity.flags.is_none() {
-        activity.flags = Some(1);
+  fn fix_flags(&mut self) {
+    if let Some(activity) = self.activity_mut() {
+      if matches!(activity.instance, Some(true)) && activity.flags.is_none() {
+        activity.flags = Some(INSTANCE_FLAG_DEFAULT);
       }
     }
+  }
+
+  fn activity_mut(&mut self) -> Option<&mut Activity> {
+    self.args.as_mut().and_then(|args| args.activity.as_mut())
   }
 }
 
@@ -191,6 +215,23 @@ pub struct Activity {
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct TimeoutValue(i64);
 
+impl TimeoutValue {
+  /// Wrap a millisecond timestamp.
+  pub fn new(millis: i64) -> Self {
+    Self(millis)
+  }
+
+  /// Read the wrapped millisecond timestamp.
+  pub fn as_millis(&self) -> i64 {
+    self.0
+  }
+
+  /// Read the wrapped millisecond timestamp.
+  pub fn get(&self) -> i64 {
+    self.0
+  }
+}
+
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Timestamps {
@@ -198,11 +239,4 @@ pub struct Timestamps {
   pub start: Option<TimeoutValue>,
   #[serde(default)]
   pub end: Option<TimeoutValue>,
-}
-
-#[skip_serializing_none]
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct Button {
-  pub label: String,
-  pub url: String,
 }
