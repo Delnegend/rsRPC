@@ -8,6 +8,7 @@ use serde_with::skip_serializing_none;
 use simple_websockets::{Event, EventHub, Message, Responder};
 
 use crate::cmd::{Activity, ActivityCmd, ActivityPayload};
+use crate::detection::NULL_ACTIVITY_ID;
 use crate::middleware::MiddlewarePipeline;
 use tracing::{debug, error, info, warn};
 
@@ -254,7 +255,7 @@ impl ClientConnector {
             while let Ok(proc_event) = proc_event_rec.recv() {
                 let proc_activity = proc_event.activity;
 
-                if proc_activity.id == "null" {
+                if proc_activity.id == NULL_ACTIVITY_ID {
                     // If our last socket id is empty, skip
                     let active_socket = match proc_clone.active_socket.clone() {
                         Some(socket) => socket,

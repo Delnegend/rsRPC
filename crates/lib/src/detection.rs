@@ -60,6 +60,52 @@ pub struct DetectableActivity {
     pub state: Option<String>,
 }
 
+/// Activity id used by synthetic "no activity" markers: the process scanner
+/// forwards one when nothing is detected, and connectors treat it as "clear
+/// the current presence".
+pub const NULL_ACTIVITY_ID: &str = "null";
+
+/// Build the synthetic "no activity" [`DetectableActivity`].
+///
+/// Every optional field is `None`, `hook` is `false`, the id is
+/// [`NULL_ACTIVITY_ID`], and `name` is empty.
+pub fn null_activity() -> DetectableActivity {
+    DetectableActivity {
+        bot_public: None,
+        bot_require_code_grant: None,
+        cover_image: None,
+        description: None,
+        developers: None,
+        executables: None,
+        flags: None,
+        guild_id: None,
+        hook: false,
+        icon: None,
+        id: NULL_ACTIVITY_ID.to_string(),
+        name: String::new(),
+        publishers: None,
+        rpc_origins: None,
+        splash: None,
+        third_party_skus: None,
+        type_field: None,
+        verify_key: None,
+        primary_sku_id: None,
+        slug: None,
+        aliases: None,
+        overlay: None,
+        overlay_compatibility_hook: None,
+        privacy_policy_url: None,
+        terms_of_service_url: None,
+        eula_id: None,
+        deeplink_uri: None,
+        tags: None,
+        pid: None,
+        timestamp: None,
+        details: None,
+        state: None,
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Developer {
     pub id: String,
