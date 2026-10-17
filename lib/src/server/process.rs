@@ -1,18 +1,18 @@
 use aho_corasick::{AhoCorasick, PatternID};
-use std::sync::atomic::AtomicBool;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::OnceLock;
 use std::time::Duration;
 use std::vec;
 
 #[cfg(not(target_os = "linux"))]
 use sysinfo::System;
 
+use super::super::DetectableActivity;
 use crate::log;
 use crate::ProcessCallback;
-
-use super::super::DetectableActivity;
 
 #[derive(Default, Clone)]
 pub struct ProcessScanState {
@@ -26,14 +26,23 @@ pub struct ProcessEventListeners {
 
 #[derive(Clone)]
 pub struct Exec {
-  pid: u64,
-  path: String,
-  arguments: Option<String>,
+  pub pid: u64,
+  pub path: String,
+  pub arguments: Option<String>,
 }
 
 #[derive(Clone)]
 pub struct ProcessDetectedEvent {
   pub activity: Arc<DetectableActivity>,
+}
+
+struct ScanGuard {
+  flag: Arc<AtomicBool>,
+}
+impl Drop for ScanGuard {
+  fn drop(&mut self) {
+    self.flag.store(false, Ordering::Release);
+  }
 }
 
 #[derive(Clone)]
@@ -59,6 +68,8 @@ pub struct ProcessServer {
 
 unsafe impl Sync for ProcessServer {}
 
+static NULL_ACTIVITY: OnceLock<Arc<DetectableActivity>> = OnceLock::new();
+
 impl ProcessServer {
   pub fn new(
     detectable: Vec<Arc<DetectableActivity>>,
@@ -66,7 +77,7 @@ impl ProcessServer {
     event_listeners: ProcessEventListeners,
   ) -> Self {
     log!("[Process Scanner] Building Aho-Corasick patterns for main detectable activities...");
-    let (ac, idx) = build_ac_patterns(&detectable);
+    let (ac, idx) = build_ac_patterns(&detectable).expect("failed to build AC patterns");
     log!("[Process Scanner] Done!");
 
     ProcessServer {
@@ -76,16 +87,13 @@ impl ProcessServer {
       detectable_list: detectable,
       event_sender,
 
-      // Aho-Corasick matching with detectables mapping
       detectable_indexes: Arc::new(Mutex::new(idx)),
       detectable_ac: Arc::new(Mutex::new(ac)),
       custom_detectable_indexes: Arc::new(Mutex::new(vec![])),
       custom_detectable_ac: Arc::new(Mutex::new(None)),
 
-      // Event listeners
       event_listeners: Arc::new(Mutex::new(event_listeners)),
 
-      // sysinfo System
       #[cfg(not(target_os = "linux"))]
       sysinfo: Arc::new(Mutex::new(System::new())),
     }
@@ -93,7 +101,8 @@ impl ProcessServer {
 
   fn update_custom_detectables(&self) {
     log!("[Process Scanner] Updating Aho-Corasick patterns for custom detectable activities...");
-    let (ac, idx) = build_ac_patterns(&self.custom_detectables.lock().unwrap());
+    let cd = self.custom_detectables.lock().unwrap().clone();
+    let (ac, idx) = build_ac_patterns(&cd).expect("failed to build AC patterns");
     if !idx.is_empty() {
       *self.custom_detectable_ac.lock().unwrap() = Some(ac);
     } else {
@@ -104,7 +113,6 @@ impl ProcessServer {
   }
 
   pub fn append_detectables(&mut self, detectable: Vec<DetectableActivity>) {
-    // Append to detectable chunks, since that's what is actually scanned
     self
       .custom_detectables
       .lock()
@@ -128,95 +136,91 @@ impl ProcessServer {
 
     self.update_custom_detectables();
 
-    std::thread::spawn(move || {
-      // Run the process scan repeatedly (every 3 seconds)
-      loop {
-        let detected = match clone.scan_for_processes() {
-          Ok(detected) => detected,
-          Err(err) => {
-            log!("[Process Scanner] Error while scanning processes: {}", err);
-            std::thread::sleep(wait_time);
-            continue;
+    std::thread::spawn(move || loop {
+      let detected = match clone.scan_for_processes() {
+        Ok(detected) => detected,
+        Err(err) => {
+          log!("[Process Scanner] Error while scanning processes: {}", err);
+          std::thread::sleep(wait_time);
+          continue;
+        }
+      };
+
+      if !detected.is_empty() {
+        let send = {
+          let detected_list = clone.detected_list.lock().unwrap();
+          if detected_list.is_empty() {
+            true
+          } else {
+            detected[0].id != detected_list[0].id
           }
         };
-        let mut new_game_detected = false;
-
-        // If the detected list has changed, send only the first element
-        if !detected.is_empty() {
-          let detected_list = clone.detected_list.lock().unwrap();
-
-          // If the detected list is empty, send the first element
-          if detected_list.is_empty() {
-            new_game_detected = true;
-            clone
-              .event_sender
-              .send(ProcessDetectedEvent {
-                activity: detected[0].clone(),
-              })
-              .unwrap();
-          } else {
-            // If the detected list is not empty, check if the first element is different
-            if detected[0].id != detected_list[0].id {
-              new_game_detected = true;
-            }
-
-            clone
-              .event_sender
-              .send(ProcessDetectedEvent {
-                activity: detected[0].clone(),
-              })
-              .unwrap();
-          }
-        }
-
-        // If there are no detected processes, send an empty message
-        if detected.is_empty() {
+        if send {
           clone
             .event_sender
             .send(ProcessDetectedEvent {
-              activity: Arc::new(DetectableActivity {
-                bot_public: None,
-                bot_require_code_grant: None,
-                cover_image: None,
-                description: None,
-                developers: None,
-                executables: None,
-                flags: None,
-                guild_id: None,
-                hook: false,
-                icon: None,
-                id: "null".to_string(),
-                name: "".to_string(),
-                publishers: None,
-                rpc_origins: None,
-                splash: None,
-                third_party_skus: None,
-                type_field: None,
-                verify_key: None,
-                primary_sku_id: None,
-                slug: None,
-                aliases: None,
-                overlay: None,
-                overlay_compatibility_hook: None,
-                privacy_policy_url: None,
-                terms_of_service_url: None,
-                eula_id: None,
-                deeplink_uri: None,
-                tags: None,
-                pid: None,
-                timestamp: None,
-              }),
+              activity: detected[0].clone(),
             })
             .unwrap();
         }
+      }
 
-        if new_game_detected {
-          // Set the detected list to the new list
+      if detected.is_empty() {
+        let null = NULL_ACTIVITY.get_or_init(|| {
+          Arc::new(DetectableActivity {
+            bot_public: None,
+            bot_require_code_grant: None,
+            cover_image: None,
+            description: None,
+            developers: None,
+            executables: None,
+            flags: None,
+            guild_id: None,
+            hook: false,
+            icon: None,
+            id: "null".to_string(),
+            name: "".to_string(),
+            publishers: None,
+            rpc_origins: None,
+            splash: None,
+            third_party_skus: None,
+            type_field: None,
+            verify_key: None,
+            primary_sku_id: None,
+            slug: None,
+            aliases: None,
+            overlay: None,
+            overlay_compatibility_hook: None,
+            privacy_policy_url: None,
+            terms_of_service_url: None,
+            eula_id: None,
+            deeplink_uri: None,
+            tags: None,
+            pid: None,
+            timestamp: None,
+          })
+        });
+        clone
+          .event_sender
+          .send(ProcessDetectedEvent {
+            activity: null.clone(),
+          })
+          .unwrap();
+      }
+
+      if !detected.is_empty() {
+        let send = {
+          let detected_list = clone.detected_list.lock().unwrap();
+          detected_list.is_empty() || detected[0].id != detected_list[0].id
+        };
+        if send {
           *clone.detected_list.lock().unwrap() = detected;
         }
-
-        std::thread::sleep(wait_time);
+      } else {
+        *clone.detected_list.lock().unwrap() = detected;
       }
+
+      std::thread::sleep(wait_time);
     });
   }
 
@@ -258,13 +262,16 @@ impl ProcessServer {
 
     let proc_list = fs::read_dir("/proc")?.filter(|e| {
       if let Ok(entry) = e {
-        // Only if we can parse this as a number
-        return entry.file_name().to_str().unwrap().parse::<u64>().is_ok();
+        return entry
+          .file_name()
+          .to_str()
+          .unwrap_or("")
+          .parse::<u64>()
+          .is_ok();
       }
-
       false
     });
-    let mut processes = Vec::new();
+    let mut processes = Vec::with_capacity(256);
 
     for entry in proc_list {
       let entry = entry?;
@@ -272,24 +279,24 @@ impl ProcessServer {
 
       if let Ok(cmdline) = fs::read_to_string(path.join("cmdline")) {
         if !cmdline.is_empty() {
+          let pid: u64 = path
+            .file_name()
+            .ok_or("Invalid path")?
+            .to_str()
+            .ok_or("Invalid path")?
+            .parse()?;
           let mut cmd_iter = cmdline.split('\0');
-          let (cmd_path, cmd_args) = (
-            cmd_iter.next().unwrap_or("").to_string(),
-            cmd_iter.collect::<Vec<_>>().join(" "),
-          );
+          let cmd_path = cmd_iter.next().unwrap_or("").to_string();
+          let rest: Vec<&str> = cmd_iter.collect();
+          let cmd_args = if rest.is_empty() {
+            None
+          } else {
+            Some(rest.join(" "))
+          };
           processes.push(Exec {
-            pid: path
-              .file_name()
-              .ok_or("Invalid path")?
-              .to_str()
-              .ok_or("Invalid path")?
-              .parse::<u64>()?,
+            pid,
             path: cmd_path,
-            arguments: if cmd_args.is_empty() {
-              None
-            } else {
-              Some(cmd_args)
-            },
+            arguments: cmd_args,
           });
         }
       }
@@ -301,6 +308,19 @@ impl ProcessServer {
   pub fn scan_for_processes(
     &self,
   ) -> Result<Vec<Arc<DetectableActivity>>, Box<dyn std::error::Error>> {
+    let _guard = {
+      if self
+        .scanning
+        .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
+        .is_err()
+      {
+        return Err("already in progress".into());
+      }
+      ScanGuard {
+        flag: self.scanning.clone(),
+      }
+    };
+
     #[cfg(not(target_os = "linux"))]
     let processes = self.process_list()?;
     #[cfg(target_os = "linux")]
@@ -308,64 +328,54 @@ impl ProcessServer {
 
     log!("[Process Scanner] Process scan triggered");
 
-    if self.scanning.load(std::sync::atomic::Ordering::Relaxed) {
-      log!("[Process Scanner] Scanning already in progress");
-      return Err("Scanning already in progress".into());
-    }
+    let detectable_ac = self.detectable_ac.lock().unwrap().clone();
+    let custom_ac = self.custom_detectable_ac.lock().unwrap().clone();
+    let detectable_indexes = self.detectable_indexes.lock().unwrap().clone();
+    let custom_detectable_indexes = self.custom_detectable_indexes.lock().unwrap().clone();
+    let custom_detectables = self.custom_detectables.lock().unwrap().clone();
+    let detectable_list = self.detectable_list.clone();
 
     let mut obs_open = false;
 
-    let ac = self.detectable_ac.lock().unwrap();
-    let custom_ac = self.custom_detectable_ac.lock().unwrap();
-
+    let mut process_path = String::with_capacity(256);
     let mut reversed_path = String::with_capacity(256);
 
     let mut detected_list: Vec<Arc<DetectableActivity>> = processes
       .iter()
       .filter_map(|process| {
-        // Process path (but consistent slashes, so we can compare properly)
-        let mut process_path = process.path.to_ascii_lowercase();
-
+        process_path.clear();
+        process_path.extend(process.path.chars().flat_map(|c| c.to_lowercase()));
         if process_path.contains('\\') {
           process_path = process_path.replace('\\', "/");
         }
-
+        // single pass slash fix already done via replace; ensure leading slash
         if !process_path.starts_with('/') {
           process_path.insert(0, '/');
         }
-
+        // OBS substring check on normalized path
         if !obs_open && (process_path.contains("obs64") || process_path.contains("streamlabs")) {
           obs_open = true;
         }
 
-        // Aho-Corasick matching
         reversed_path.clear();
         reversed_path.extend(process_path.chars().rev());
 
-        let (obj, exe_index) = if let Some(mat) = ac.find(&reversed_path) {
+        let (obj, exe_index) = if let Some(mat) = detectable_ac.find(&reversed_path) {
           let pattern_id: PatternID = mat.pattern();
-          let exe_index = self.detectable_indexes.lock().unwrap()[pattern_id.as_usize()];
-          (&self.detectable_list[exe_index[0]], exe_index[1])
+          let exe_index = detectable_indexes[pattern_id.as_usize()];
+          (&detectable_list[exe_index[0]], exe_index[1])
         } else {
           let mat = custom_ac
             .as_ref()
             .and_then(|custom| custom.find(&reversed_path))?;
           let pattern_id: PatternID = mat.pattern();
-          let exe_index = self.custom_detectable_indexes.lock().unwrap()[pattern_id.as_usize()];
-          (
-            &self.custom_detectables.lock().unwrap()[exe_index[0]],
-            exe_index[1],
-          )
+          let exe_index = custom_detectable_indexes[pattern_id.as_usize()];
+          (&custom_detectables[exe_index[0]], exe_index[1])
         };
 
-        // Argument checks
         let executable = &obj.executables.as_ref().unwrap()[exe_index];
 
         if let Some(exec_args) = &executable.arguments {
-          // Only require argument checks if executable starts with '>'
-          // like Minecraft: { arguments: "net.minecraft.client.main.Main", is_launcher: false, name: ">java", … }
-          // Other games might provide arguments but not necessary be checked
-          // like Left 4 Dead 2: { arguments: "-game left4dead2", is_launcher: false, name: "left 4 dead 2/left4dead2.exe", … }
           if executable.name.starts_with(">")
             && !process
               .arguments
@@ -407,7 +417,10 @@ impl ProcessServer {
   }
 }
 
-fn build_ac_patterns(detectables: &[Arc<DetectableActivity>]) -> (AhoCorasick, Vec<[usize; 2]>) {
+#[allow(clippy::type_complexity)]
+fn build_ac_patterns(
+  detectables: &[Arc<DetectableActivity>],
+) -> Result<(AhoCorasick, Vec<[usize; 2]>), Box<dyn std::error::Error>> {
   let mut exe_patterns: Vec<String> = Vec::new();
   let mut exe_indexes: Vec<[usize; 2]> = Vec::new();
 
@@ -418,10 +431,8 @@ fn build_ac_patterns(detectables: &[Arc<DetectableActivity>]) -> (AhoCorasick, V
           continue;
         }
 
-        // Make paths consistent, and fix some additional checks
         let mut exec_name = executable.name.replace('\\', "/").to_lowercase();
 
-        // Checks adapted from arrpc, remain the '>' in DetectableActivity for later argument checks
         if exec_name.starts_with(">") {
           exec_name.replace_range(0..1, "/");
         } else if !exec_name.starts_with("/") {
@@ -434,16 +445,6 @@ fn build_ac_patterns(detectables: &[Arc<DetectableActivity>]) -> (AhoCorasick, V
     }
   }
 
-  (AhoCorasick::new(exe_patterns).unwrap(), exe_indexes)
+  let ac = AhoCorasick::new(exe_patterns).map_err(|e| format!("...: {e}"))?;
+  Ok((ac, exe_indexes))
 }
-
-// pub fn name_no_ext(name: &String) -> String {
-//   if name.contains('.') {
-//     // Split the name by the dot
-//     let split: Vec<&str> = name.split('.').collect();
-
-//     return split[0].to_string();
-//   }
-
-//   name.to_owned()
-// }
