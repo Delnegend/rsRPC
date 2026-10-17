@@ -5,9 +5,9 @@ Guide for Linux users running Windows games via Steam Proton, Lutris, or Wine wi
 ```mermaid
 flowchart LR
     subgraph Proton[Proton / Wine Sandbox]
-        Game[Windows Game] -->|Named Pipe\n\\.\pipe\discord-ipc-0| Bridge[bridge.exe]
+        Game[Windows Game] -->|Named Pipe\n\\.\pipe\discord-ipc-0| Bridge[rsrpc-bridge.exe]
     end
-    Bridge -->|Forwarded Socket| HostSocket["/run/user/1000/discord-ipc-0"]
+    Bridge -->|Linux Syscall| HostSocket["/run/user/1000/discord-ipc-0"]
     subgraph Linux[Linux Host]
         HostSocket --> RSRPC[rsRPC Daemon]
         RSRPC -->|ws://127.0.0.1:1337| Discord[Discord Client]
@@ -20,20 +20,21 @@ flowchart LR
 
 Windows games communicate with Discord using a Windows named pipe (`\\.\pipe\discord-ipc-0`). On Linux, native Discord clients and `rsrpc` listen on a Unix domain socket located at `/run/user/<UID>/discord-ipc-0` (or `$XDG_RUNTIME_DIR/discord-ipc-0`).
 
-Because Steam Proton isolates games inside container sandboxes (Pressure Vessel), Windows named pipes cannot reach host Linux sockets directly. A lightweight bridge utility (`rpc-bridge`) runs inside the game prefix and forwards the packets across the sandbox boundary to `rsrpc`.
+Because Steam Proton isolates games inside container sandboxes (Pressure Vessel), Windows named pipes cannot reach host Linux sockets directly. The `rsrpc-bridge` executable runs inside the game prefix and forwards packets across the sandbox boundary to `rsrpc` using direct Linux system calls.
 
 ---
 
 ## 3. Steam Proton setup
 
 ### Step 1: Install the bridge files
+The bridge is included with `rsrpc` releases, or can be built locally using `just bridge`.
 
-Download the latest release of `rpc-bridge` and install `bridge.sh` and `bridge.exe` to a local folder:
+Install `bridge.sh` and `rsrpc-bridge.exe` to `~/.local/share/rpc-bridge/`:
 
 ```bash
 mkdir -p ~/.local/share/rpc-bridge
-curl -fSL -o ~/.local/share/rpc-bridge/winediscordipcbridge.exe https://github.com/0e4ef622/wine-discord-ipc-bridge/releases/download/v0.0.3/winediscordipcbridge.exe
-curl -fSL -o ~/.local/share/rpc-bridge/bridge.sh https://raw.githubusercontent.com/0e4ef622/wine-discord-ipc-bridge/master/winediscordipcbridge-steam.sh
+cp target/x86_64-pc-windows-gnu/release/rsrpc-bridge.exe ~/.local/share/rpc-bridge/
+cp crates/bridge/scripts/bridge.sh ~/.local/share/rpc-bridge/
 chmod +x ~/.local/share/rpc-bridge/bridge.sh
 ```
 

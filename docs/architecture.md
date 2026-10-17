@@ -19,7 +19,7 @@ flowchart TD
     CC --> Discord[Discord client]
 ```
 
-## Core components (`lib/src/`)
+## Core components (`crates/lib/src/`)
 
 - **Process scanner** (`server/process.rs`): polls the OS process list and
   matches executable paths against the detectable list with an Aho-Corasick

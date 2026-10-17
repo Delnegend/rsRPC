@@ -1167,6 +1167,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rsrpc-bridge"
+version = "0.28.0"
+dependencies = [
+ "windows-sys 0.52.0",
+]
+
+[[package]]
 name = "rsrpc-cli"
 version = "0.28.0"
 dependencies = [

@@ -1,5 +1,6 @@
 [workspace]
-members = ["lib", "cli"]
+members = ["crates/lib", "crates/cli", "crates/bridge"]
+default-members = ["crates/lib", "crates/cli"]
 resolver = "2"
 
 [workspace.lints.rust]
