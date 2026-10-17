@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:d4148ef090cdadac80fd511e20bb5519af26c9b4d74e53699463683915165dbb",
+  "claims": [
+    {
+      "id": "claim_4b8356b482bf40a9be5e5bbd859a96ad",
+      "statement": "rsrpc-cli defines CLI flags for custom detectable files and disabling process scanning.",
+      "evidence": [
+        {
+          "resource": "repo://crates/cli/src/main.rs#L8-L15",
+          "version": "repo-lines-v1:sha256:1f0189dec9a32987a05db90c6f5ac42ba38cc0873670f297b386e71263632d53:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEwYzQ1MWMxOTIwNjg2ZWVlMmQyZGNmMzBjZjM2MzA3ZTQ0NTRlNGRiM2Y5ZTA1ZDUyYTdmNWNhMjUwNGM5NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjBiZTA4MGRkZTE1NDJiMDAxNmFmZDBjOGRkYmVhMzk4Yjg4NTI0NTkyZjIxNDZmMjdhYzMwNjUxOTMzMmQ2YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzEwZWVhZDQ1NzMzMGRmMDAzNzQ4NmYzN2Y2ZTAwMzMwOTI4ZmRjOWIxNTkxOWRkZTRiODJjY2VlNmVkODhlYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_627eeefa3fbd4b738d11c36d4b8c1fcb",
+      "statement": "rsrpc-cli configures tracing_subscriber using RUST_LOG with fallback to RSRPC_LOGS_ENABLED.",
+      "evidence": [
+        {
+          "resource": "repo://crates/cli/src/main.rs#L40-L50",
+          "version": "repo-lines-v1:sha256:f316bf9d62e22f5ba9e07a756dc6391c5404d67c080632e944226139ca3f0da3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhMjQ2MjlkMTcwODdlMTlkMDY1MWUwZTNiYWYzNWUzMzNkOTg2OWMzNGRjMTA5ODNjMTYzZGE5NzI5NTkwODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhNjVjZjk1NDgwYTE5YzA0NDRiNGMyNmYwMDhlZWRjNTc1NjQ0YWM5MTkzZmM5NjcyMGFiMGQ1MGMyMjljMTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkMWJjZjNiNmE5Njk1MWRiM2Q5OTZiZjMzOTFlOTc3ODllMTQzYjAwMWI3OTM4OTRhNzdkZTMxNmI5Yjc1ODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2MzQ2YmFiNWU3N2M4ZGJhYjdkNmU5YzlkODgxYzQwMDEwNjdhODExZWZkNjAwYjA0M2I0ZjJmNmNhZGY5ZjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_801dd19703714f79a8d2c67c8d879833",
+      "statement": "RPCConfig provides defaults enabling scanner, IPC, websocket, and secondary events on client port 1337.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/lib.rs#L34-L58",
+          "version": "repo-lines-v1:sha256:359ba2dddc25f3eb84787309de19742c3f510c2e1b069b789a185dd5936c25d4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyN2NlYzBiNmE1NjY3Yzk1YjY5NzA1YTUwNmM5YjdmNDgzZWRmMjc5MDFiNTJlMWUyYjQzMTMxZGY3MTU5ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwZmJlNThhZDcyNDY4ZTcwNTQ1NDU2YTI5M2VhMjc5YWMzOGM1ZjBkZGU4YzgzZTgzZmZjOWY1MTJlYzI4OGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzZmEzZjI4MWM4YzVmMTczNjdkNTBlYjRmOGI0YWM4YWM5NzVmZTk5ZDUwMGQwMzRhOTVlNWZjZGZiY2EzN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkODliZTZiMjhjYzQ2NGMzMWM1NTFkZDJiZTgyNzE5NDBjMTU3ZDI5ZjUyZDFhYjJlYjcxMzEwOTQwZGJlNmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_25d968cd8d824806a1595b5bf0968582",
+      "statement": "get_socket_path probes XDG_RUNTIME_DIR, TMPDIR, TMP, and TEMP in order falling back to /tmp.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/server/ipc_unix.rs#L13-L35",
+          "version": "repo-lines-v1:sha256:fbe8d80bfd19b1beef2f4369253b83b0e35eec73302f5191915d4afb0082b19f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1YWY4ZGU5NWFhNGQ3NzdkNDhmMDM0MWMxNTcwMGVjNDhmNzZiODRmMDY5OTE0NDNjYmFhYjE4ZDRkMDY0NGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkZDUxZTk2NTRkNWM2ZDNmNjg2ZGU2MTkyMTExMDFiNGM3OTA2MGNjYzU5OTI5MmE3NGMzMWU5MTc5MjAzNTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA5NmIxOWQ5MjFmMDcwMGExYWE0NzQ5ODhjODY2MDJiZDJkNWRjMjk5ZjgzZjYwNTdmYTc4MTlmZDBkODgyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3MWM5YTg4NjAwYTZlMGMyYTc5ZTMwYTBiYzBiNDBmMDVlYzJlZGI1NWZmOGRkNTMwOWJjOTNiMmE3NDdlMTkifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-17T15:02:42.014Z"
+  }
+}

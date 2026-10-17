@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "pages": {
+    "/openwiki/architecture/middleware.md": {
+      "pageVersion": "sha256:597105fcc68b80b2d55db799bd0d9ff055431a23ca80a86eeaaab27891614426",
+      "completedBy": "openwiki",
+      "completedRunId": "9761dd71-e2a7-4dba-beec-72a45c57d250",
+      "gitHead": "ef0b7e164bf229e1fa797f4b6bb00b2c6c1fe7a6",
+      "sourceFingerprint": "sha256:b33d6cbbb0019a0596f81ab528e1d5b14cd71fa4150e41602d89d79cb036a7b8"
+    },
+    "/openwiki/architecture/overview.md": {
+      "pageVersion": "sha256:2f843ab516bbf9ad902ce7c0ea4770ad2cf7471720b1f833d536d35b14930873",
+      "completedBy": "openwiki",
+      "completedRunId": "9761dd71-e2a7-4dba-beec-72a45c57d250",
+      "gitHead": "ef0b7e164bf229e1fa797f4b6bb00b2c6c1fe7a6",
+      "sourceFingerprint": "sha256:b33d6cbbb0019a0596f81ab528e1d5b14cd71fa4150e41602d89d79cb036a7b8"
+    },
+    "/openwiki/integrations/proton-bridge.md": {
+      "pageVersion": "sha256:2a408a9d21c2f0f6dcda839bb0a41471d1e5528d78ae1e9df61394745666edef",
+      "completedBy": "openwiki",
+      "completedRunId": "9761dd71-e2a7-4dba-beec-72a45c57d250",
+      "gitHead": "ef0b7e164bf229e1fa797f4b6bb00b2c6c1fe7a6",
+      "sourceFingerprint": "sha256:b33d6cbbb0019a0596f81ab528e1d5b14cd71fa4150e41602d89d79cb036a7b8"
+    },
+    "/openwiki/operations/configuration.md": {
+      "pageVersion": "sha256:d4148ef090cdadac80fd511e20bb5519af26c9b4d74e53699463683915165dbb",
+      "completedBy": "openwiki",
+      "completedRunId": "9761dd71-e2a7-4dba-beec-72a45c57d250",
+      "gitHead": "ef0b7e164bf229e1fa797f4b6bb00b2c6c1fe7a6",
+      "sourceFingerprint": "sha256:b33d6cbbb0019a0596f81ab528e1d5b14cd71fa4150e41602d89d79cb036a7b8"
+    },
+    "/openwiki/operations/deployment.md": {
+      "pageVersion": "sha256:9241e4ee3799260b8160ddcdc7c8d6202e360efa7c25fa010cc1d3dc87f6da5f",
+      "completedBy": "openwiki",
+      "completedRunId": "9761dd71-e2a7-4dba-beec-72a45c57d250",
+      "gitHead": "ef0b7e164bf229e1fa797f4b6bb00b2c6c1fe7a6",
+      "sourceFingerprint": "sha256:b33d6cbbb0019a0596f81ab528e1d5b14cd71fa4150e41602d89d79cb036a7b8"
+    },
+    "/openwiki/quickstart.md": {
+      "pageVersion": "sha256:ccc43eb430bf2659420912b33cd8c97ccadd7b3583d98f957ce1a78e8cfa442f",
+      "completedBy": "openwiki",
+      "completedRunId": "9761dd71-e2a7-4dba-beec-72a45c57d250",
+      "gitHead": "ef0b7e164bf229e1fa797f4b6bb00b2c6c1fe7a6",
+      "sourceFingerprint": "sha256:b33d6cbbb0019a0596f81ab528e1d5b14cd71fa4150e41602d89d79cb036a7b8"
+    }
+  }
+}

@@ -45,7 +45,7 @@ Open Discord and launch a game: your status updates. Press `Ctrl+C` to stop.
 | `-d, --detectable-file <file>` | Discord's list | Path to a custom `detectable.json` game list |
 | `-n, --no-process-scan` | `false` | Skip the running-process scan (socket + websocket only) |
 
-For the library API, `RPCConfig` fields, and `RSRPC_LOGS_ENABLED`, see **[Configuration Reference](docs/configuration.md)**.
+For the library API, `RPCConfig` fields, and `RSRPC_LOGS_ENABLED`, see **[Configuration Reference](openwiki/operations/configuration.md)**.
 
 ## Architecture
 
@@ -60,15 +60,16 @@ flowchart LR
     Hub --> Discord[Discord client]
 ```
 
-For connectors, event flow, and design notes, see **[Architecture Guide](docs/architecture.md)**.
+For connectors, event flow, and design notes, see **[Architecture Overview](openwiki/architecture/overview.md)**.
 
-## Documentation
+## Documentation (OpenWiki)
 
-- **[Configuration](docs/configuration.md)** — CLI flags, `RPCConfig`, env vars, and the Rust API.
-- **[Architecture](docs/architecture.md)** — Connectors, event flow, and invariants.
-- **[Deployment](docs/deployment.md)** — Install from releases and run under systemd.
-- **[Development](docs/development.md)** — Dev container, build, `just check`, releases.
-- **[Proton & Wine Bridge](docs/proton-bridge.md)** — Connect Windows games running in Steam Proton, Lutris, or Wine.
+- **[Quickstart](openwiki/quickstart.md)** — Get running in under 60 seconds with CLI, Docker, or systemd.
+- **[Architecture Overview](openwiki/architecture/overview.md)** — Connectors, event flow, and invariants.
+- **[Activity Middleware](openwiki/architecture/middleware.md)** — Sanitization pipeline for thread names and mod watermarks.
+- **[Proton & Wine Bridge](openwiki/integrations/proton-bridge.md)** — Connect Windows games running in Steam Proton, Lutris, or Wine.
+- **[Configuration](openwiki/operations/configuration.md)** — CLI flags, `RPCConfig`, env vars, and the Rust API.
+- **[Deployment & Operations](openwiki/operations/deployment.md)** — Install from releases and run under systemd.
 
 ## License
 

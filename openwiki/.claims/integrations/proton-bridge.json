@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:2a408a9d21c2f0f6dcda839bb0a41471d1e5528d78ae1e9df61394745666edef",
+  "claims": [
+    {
+      "id": "claim_37894be2a57c4659a035a0d189408758",
+      "statement": "rsrpc-bridge creates a Win32 named pipe on \\\\.\\pipe\\discord-ipc-0 inside Wine to accept game connections.",
+      "evidence": [
+        {
+          "resource": "repo://crates/bridge/src/main.rs#L210-L245",
+          "version": "repo-lines-v1:sha256:2c5cac787402353be90301ab53b49f570df16bdedb04cbaa3eab98e89384528d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlZTVlZjg0NWI0MmU0NWE0ZWU0MjJjOWY0YjM2NjgwZmJmZjFlZTgzNTQ2NmUzN2VhOTY3Y2M3YjI5MjVlODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkZWQ1N2NkZjYyOGU3YmNmYjdkNzY2MzJhOGQ3MTQ4NzM0YzA0MWJjNjUwMjBkZDg5NmJlZjE4OGE3YTIyMTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkYTY1NjliOGM0MDNkMTAyN2E1ZjQ3MjY2YzJiZjE5NDZhYTU1NjNhMzRiNTM3MmU0YjAzMjhiMWU4ODA4NjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_563b03843a36407995e571e375a6dd5d",
+      "statement": "rsrpc-bridge communicates with the host Linux Unix socket using direct raw kernel syscalls to bypass Wine Winsock limitations.",
+      "evidence": [
+        {
+          "resource": "repo://crates/bridge/src/main.rs#L55-L85",
+          "version": "repo-lines-v1:sha256:7cc0ac21d5fcd67f222e3d18bd2c7953c03519ba626907eb0d552b7931754f2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4NzRkZDcwYWVlNGNlNDRhMmY4Yjk0NWUyZDA5YWZjYjcxNDNmN2FlYWQ1M2UxZTM2ZjE2YTk5YzEwMmU4ODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5YmQyMjRmOWYyNjVkOTBmZjdkYjVhNWU3MTcwOGJlZTA3NjkzNGQ2NDgxNDA3MGFhZWIwY2Q1MjA2MThmMTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ4MDU4OGQ0ODE4NjMxNDQzMjk3ZTRlMjZhZDg4NDkyZGNlMDIzODFjMDkxYzFiODI2M2UzMTYwOGE1MjBjYzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM1NTU2NzIwN2E1Mjg1NDYyNzM5NDI4NjNiYzljMTZkZTFkOTg1YzZhYTkyNjNiYmNjMThjNDQ3OGQ5ZTc4OGQifQ"
+        },
+        {
+          "resource": "repo://crates/bridge/src/main.rs#L90-L130",
+          "version": "repo-lines-v1:sha256:caa5d64e69f4401b6f30448229d8f5d5b084fe6aab6ed2a02922261d3a7ca551:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3ZWY2MzhkYzlmNTZhNjFlMzZjZjRlNmNhZjBjZTQ5ZmRlNzQyNDU2NmVjZmY1YjQ1N2JjOWU3MzAyNzkyMmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0MmIyNmJlYTAxMDdjODA0ZmE2ZDM1NGQ2ODIzMTc1NWJiYjU0NTM0NjIxMjI5ZmYxZWU4MzAzYTcxYWY1ODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAwZGVkNGJmMzBlMWQ0MmEwMzVhNmNhMmJlMmFmNmM3Nzc5NTEwZmI2NDIyNGEzNDZmMmM4YjQ5YjlhYmE4ZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_117e4f2adc29437f881a0dd00fae161e",
+      "statement": "bridge.sh discovers active discord-ipc sockets and binds them into PRESSURE_VESSEL_FILESYSTEMS_RW alongside PROTON_REMOTE_DEBUG_CMD.",
+      "evidence": [
+        {
+          "resource": "repo://crates/bridge/scripts/bridge.sh#L1-L30",
+          "version": "repo-lines-v1:sha256:77986bcf96f030850be4f2779042dd8ecf566f8dbd0bac3a565f384e979e1b5d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4NzVmOTI4NTQ2YWVlNzg1NWNiMWRiOWFmYzhhYjNmMWE4YTM0ZDQzZGU1YmJkNjJmNzA3NmQ3YmE5ZjM5MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4ZjIxODFiOWIzNDA0OTRjNzljYzBiNmNiNTUxYjJiMjY0NDFiYWZlMTRlYzc3ZDhjNzc3MDIyMWE2MWE0ZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzMDFhZTk3NDgxMjI5ZDlkYTg0MGE3ZDg1YjhiZjk1ZGQ4YzMzNzg2Njk2Y2Y5NTc5ZjRlYmRhZDM5ZGNmMDcifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-17T15:02:42.014Z"
+  }
+}

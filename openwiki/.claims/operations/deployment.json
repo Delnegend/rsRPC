@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:9241e4ee3799260b8160ddcdc7c8d6202e360efa7c25fa010cc1d3dc87f6da5f",
+  "claims": [
+    {
+      "id": "claim_d73dcf35bdc9431dbac786a275cf3244",
+      "statement": "rsrpc-cli handles SIGINT signals gracefully to drop listeners and exit cleanly.",
+      "evidence": [
+        {
+          "resource": "repo://crates/cli/src/main.rs#L58-L67",
+          "version": "repo-lines-v1:sha256:5ace97b6a03b44b4fb51ae618ecfec3670f5f94d8ff8c3dbeaa846a0e4ed429d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzNWIxYzc4M2Q5OGZlYjI2N2FiMWExOGUyYThmYTY1ZGJjMWFkNGUxNDEyYTMxZmIyMjFiNzc3NzMyZTE5YzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2NjVmNTIzMmI0NTRmMzA3MWU0MTBkYWM4Y2Q5NWZiNzQyMDA4ZGU2YzhiMjhjYjA3NDVlYWIyNTdhYWViM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhMmFmMTAxMGQ5NzUyNmNjNDFiNGRhMzJkZGMzYTcwZjAzY2JkMjkwZjYxMGFkNGNhY2RhYjdjMzU1ZWE1NWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7164ee9c8db143f586740a031c331c75",
+      "statement": "justfile defines a check recipe executing format, clippy, tests, and documentation gates.",
+      "evidence": [
+        {
+          "resource": "repo://justfile#L4-L10",
+          "version": "repo-lines-v1:sha256:f08c4c5e09f758d98c08fc963f4332d7b6a1125cd82c9b536ad3dbd6171a828a:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWVhNzBhZmUzYTY1OWYxODAzZDhkOWU1YTlkOTUwOGJjMDllY2E2YjAyYWM3YjI4YTEzZjNlMjhiZjBiMjEwYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmVkN2U2YzNjNTBjNDZhNTdiMjFjN2ExMmEzMDhiYTU1MGI2Y2NkNDQxYTQ5NmFkNTgxOWFmNmUxMzA5MzY4YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzQ2MWY0NzZkYWZhOTU1MzM1OWY0MGM2NDQ1ZjM0MzZmMTUwODIxYzMxNjI1ODJjYWVhMzRhNzdjZDNmYmMyZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmRlZTQwYWMzM2MxZTZkNjc2ZTBmNDIzMWQwYzlmZDk0ZjU1ODE3MWE0MmI0MzJiNzJjMzZiYzZiZjFhMzJiZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d9e7e9cb4bf64a2d905872799a06b7ad",
+      "statement": "justfile defines a containerized bridge recipe targeting x86_64-pc-windows-gnu.",
+      "evidence": [
+        {
+          "resource": "repo://justfile#L21-L28",
+          "version": "repo-lines-v1:sha256:7e15dd2166eed19436c2cb11ffd54ddff10f7d4d13687e92ca7539300eaf0649:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzM4YjQ2MzI0MjBmMjA4ZGIzYmZiOGMyOGEzMmZmNThmM2M1MWNjNWY5NjFiYzRmZTQ4YzI4NjAzOTUwNDk1YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVlZDdiOTcyYWY1MzE4MTFmNDIxYTM3ZDAxYjgwNzEwMWU0NDg1MDBkY2U1OTE4NDllYmY5MzFhYjU3NjAyNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDY1YmEwNDI1MzAzZTI5N2NhYTE4ZTYyMzc5NjBjZjFjZjJjNGU3ZTQwMDQ2ZGE4NzhjNTA2OTU4YjE0NDJhOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-17T15:02:42.014Z"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:2f843ab516bbf9ad902ce7c0ea4770ad2cf7471720b1f833d536d35b14930873",
+  "claims": [
+    {
+      "id": "claim_eccb22c725c0487f994f911cfdb26b0b",
+      "statement": "ProcessServer performs suffix matching against detectable activities using an Aho-Corasick automaton over reversed executable paths.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/server/process.rs#L425-L439",
+          "version": "repo-lines-v1:sha256:822cd83abe0d87c76cf8b9400785e609316fd3950cdea4a85e407a412f3970a9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwYzFjZTQ2ZTMxN2NmZmRkMWQwMmU2Njk4ZWM4MjM2NDUyOTQ5MGZhMTlhYjhlNGM0OGZkYWYwMTU4YmU3NzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4ZjMwODEwZjg3NTdiZGU0MTkyYmFhNmQ3OGVkYjkzNWZhYTNlMGYwZTk3NDU0MDFjNzUyNjUwMGJmYmI4MmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU1ODJhNThhYThjM2RmNTgwNGExMTAwNWFiZjY4MGRhOGM3ZDFkMDNiZDI1OTkxNWZkNDMxMDM5NzI3NWNlOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjNDJmY2E0MTkzOTJiNjc5NTg5ODIwZmQ1Y2EyOWQwMmYyMjIxM2NjYTQ2MTlkNGQ2YjgwYjM1OThlY2IwNTUifQ"
+        },
+        {
+          "resource": "repo://crates/lib/src/server/process.rs#L80-L100",
+          "version": "repo-lines-v1:sha256:80b542d813427cd7af2c65c5ab01522d4a34bf45505e4c70d2130ec89efd9801:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyN2NlY2U5M2NhZWNkN2UxYTE5OWFiODc0MTI4ZWEwNTZiODdkMzZhOGY4N2YxYTYyMGM2ZWIwYmJkMDRiYjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0MDE5NmVmNmViZmM2OGMwODc2ZGEzZjA4NmY1MDM5MWU1NGMxZTk0MjRiZWJhNzRkZGNlZDc1ZGFlYTMzYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4ZTZlMTQzN2Q1ZjMwNWY5YzkwOTg0MDNhMGQ1ZDdlYzBjMTQ1MjA3MzNiMzZlYjU5MGMzYjZkYjRkMDQyZDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d9fb0b6609a24ee0bf81f44a10e5d2fa",
+      "statement": "IPCConnector recovers from stale sockets on startup by attempting connection before unlinking and re-binding.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/server/ipc_unix.rs#L205-L240",
+          "version": "repo-lines-v1:sha256:f8d0dd129e2f0397e69fa8d46743b49c0d434901d18146bd248747f6cb98acb4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjZTA2MzVhNDhlNGQ0YTAwZTIzYmJjZDY4ZDlhNDBhMjJjMzNiZGE2NTJlNjNkMDI1OGY3MmVkZTRiYzA2ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1YjJkNGFlYzNkYjdjYThlNWQ5ODBkNWZiNWQ0MDgyOTU2ZGE3NDFjNTI2MGRmMTlmNzEyM2U2YzkyOGZkOGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxOWVkZTVhOGQ1ZjUzMmU1ZGRkNjE0MmY0MWMyYzM4NjQ3MzQ2NTFhNWQwNjM0NzZjYTUzOTYyOTY4M2E1N2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3MGZlNGFmYzRmNzIzYWNkNjUxOTRiMzkyMWIyOWI0NzkyNDdmZjNkOWNjOWExYmZjZDgzNDNiYzBlZjg5NzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ba9153bb38194f9697bfc0bcf447852c",
+      "statement": "WebsocketConnector searches ports 6463 through 6472 sequentially and validates origin headers against permitted Discord origins.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/server/websocket.rs#L170-L180",
+          "version": "repo-lines-v1:sha256:87a5b8d886dda63057f4d552b5084bb12fcc63d3300631b521a8bf80bc8e3448:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MmNkMWI0ZWEwYWM0ZjM0Y2Q5MjAxNzY0NjMxZjA2NGQ3NTM2MDU5OTY1ODY1YjFlOWM1ZmY1NjEzODU4ZTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhMWI5Nzk5MDRiNjU5NGJiMGFjMWFiZDc4NmM5OThiNjZjNTg1MzViYmY0N2MzM2Y4YWM0OGZiZDg2YWUxODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk0NDdkYmRjNjc5OGRjYmM4ZmQzOWExMGM2NjY3NGVhZWNhMDQ1ZDY1YjQzZmZhNjU4Y2U3N2Y3ZTZlNWZlNmQifQ"
+        },
+        {
+          "resource": "repo://crates/lib/src/server/websocket.rs#L48-L64",
+          "version": "repo-lines-v1:sha256:f4a3d2c02c84904b2dc0731b02c97f3f9ca5d07b1623b71ef3227c556b843c45:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3N2UzMzJlZjQ4YjAwMjU1OTQzYTEzMDM0YzBiMGRjYWI5MmFhNmI1MDYxNzEzYmI0MTNkMDFhODA5OTA3NjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3ZGNhZWRmOWNhYjI0MzdmMjg3ZGY0MmJlNjE5NTA0NDdjMjk4YjE0YWU2NDkwMWFkNDY0YWYzNGYyMDY4MTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ0MjZjNmVhNjc3YWZlZjQ1ODU3M2Y2ZWYyNDg5ZGRmMDNkYWQ4YjZlOTZlNDQ5NzM1NTM2MzFkOTM1MTdmODEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d602f75b144a42108bfae8c6cce3ff25",
+      "statement": "ClientConnector caches the active activity payload and replays it to newly connecting Discord clients following the READY handshake.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/server/client_connector.rs#L134-L151",
+          "version": "repo-lines-v1:sha256:d0632ebf05a99e5fe0173cbe070be463ad1e2bef9e3563c6c2bcbbc122fd3a1d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyMWY1NDVhNzRiOWJkOTA4N2M2NjA2MmE4NWZhYzc3MGFlMjdiYjljODE4MGY5NTJkYjVhMjc1Njg5ODI2MDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3YTVmZmEzZTA5NWRmMDViNmIzMzMzODcxYWJhMWMxYjNlMjVhYjNkYmYxZDQ5MmYxNTRjMmNjMmIxMjJmNTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllODNjZDk0NGQ2NTdiNGMxNTQyYzMxMDk5MjQ1NWUzMmI4M2U1YzZjZjY0YmEyYmQ3MzM3MGRjYjY2N2VmMGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5MWE5YTQ5MjZjZDdkZTYyNzE1MTZhNDEyOGFkNWEyNTAxNWRiOTRiMTYwODBkMDRmOTU2MzExMmRiOTNjZTUifQ"
+        },
+        {
+          "resource": "repo://crates/lib/src/server/client_connector.rs#L420-L434",
+          "version": "repo-lines-v1:sha256:ae8decd87cd78e0fcc5b93b6e85f7a5ed160392404683c623adfcbaab4008582:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNDUwMDRmNWM2NzU3MzJlZDM0YWY3NDI0ODM3NDE3YTNiN2Y1NDIzYWYxZWNiNmVkZDc5NTE5YTZlNzFmM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlNTdhYjJiMzU3MmIyYTVjOTNjZGVjMjNlMDY0YTYwODk5N2Y4ZWZhMzNiNzIzZjdmYjEzNDc3NzQ4ODRhOTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxMjI4YjhjODZhMTBlNTM4NWY1NjAzMTEzY2RlZGI0NDQxZWE2NWNlMmE1OWJlM2ExZDVmOTA2NTAxYTg1MjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmZTc0YzllZTE4NmM5MTViZTllNzRiMzRjNzg3NTYxZTA4ZmRlZjM0ZTE2YWMzNDg5ZjA5NDA5MWVlZTI3ZDgifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.2",
+    "at": "2026-10-17T15:02:42.014Z"
+  }
+}
