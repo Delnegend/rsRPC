@@ -1,4 +1,10 @@
-pub static CONNECTION_REPONSE: &str = r#"
+/// Payload sent to clients right after a successful handshake.
+///
+/// The `data.user` block is a fixed placeholder (arRPC); per-connection
+/// fields are filled in by the client connector when forwarding activity.
+/// Keep this string byte-stable: `ipc_framing` asserts the READY reply
+/// contains `"READY"` and the pre-encoded frame in `ipc_utils` must match.
+pub static CONNECTION_RESPONSE: &str = r#"
 {
   "cmd": "DISPATCH",
   "evt": "READY",
@@ -20,3 +26,10 @@ pub static CONNECTION_REPONSE: &str = r#"
   }
 }
 "#;
+
+/// Historical misspelling of [`CONNECTION_RESPONSE`], kept so out-of-slice
+/// callers (`lib.rs`, `websocket.rs`) keep compiling until they migrate.
+/// New code MUST use [`CONNECTION_RESPONSE`].
+#[deprecated(since = "0.28.0", note = "use CONNECTION_RESPONSE instead")]
+#[allow(dead_code)]
+pub static CONNECTION_REPONSE: &str = CONNECTION_RESPONSE;
