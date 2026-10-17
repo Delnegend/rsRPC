@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e606893ca3ec498f0456113744c5ea91bf78e3b296e3138e9e9f71a9a41ffc6c",
+  "pageVersion": "sha256:d619b3368e0021396fc7dedafaa73c59143c11587910c5a230e0dca91f386f66",
   "claims": [
     {
       "id": "claim_eccb22c725c0487f994f911cfdb26b0b",
       "statement": "ProcessServer performs suffix matching against detectable activities using an Aho-Corasick automaton over reversed executable paths.",
       "evidence": [
         {
-          "resource": "repo://crates/lib/src/server/process.rs#L425-L439",
-          "version": "repo-lines-v1:sha256:822cd83abe0d87c76cf8b9400785e609316fd3950cdea4a85e407a412f3970a9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwYzFjZTQ2ZTMxN2NmZmRkMWQwMmU2Njk4ZWM4MjM2NDUyOTQ5MGZhMTlhYjhlNGM0OGZkYWYwMTU4YmU3NzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4ZjMwODEwZjg3NTdiZGU0MTkyYmFhNmQ3OGVkYjkzNWZhYTNlMGYwZTk3NDU0MDFjNzUyNjUwMGJmYmI4MmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU1ODJhNThhYThjM2RmNTgwNGExMTAwNWFiZjY4MGRhOGM3ZDFkMDNiZDI1OTkxNWZkNDMxMDM5NzI3NWNlOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjNDJmY2E0MTkzOTJiNjc5NTg5ODIwZmQ1Y2EyOWQwMmYyMjIxM2NjYTQ2MTlkNGQ2YjgwYjM1OThlY2IwNTUifQ"
+          "resource": "repo://crates/lib/src/server/process.rs#L379-L384",
+          "version": "repo-lines-v1:sha256:4e8e8cb8e4af5ada694dc3c9094db9f64f28f7bda73998b9228e69cda586c0de:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTBjMWNlNDZlMzE3Y2ZmZGQxZDAyZTY2OThlYzgyMzY0NTI5NDkwZmExOWFiOGU0YzQ4ZmRhZjAxNThiZTc3NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTRmNDJiOTA1NzA1YjJhZTcxNWNjMzU5NjFmN2QxYzQ1NjA5YzE5MzhkNmMzMmFhYzFmOTBjZjBlZGE2MTA1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTU4MmE1OGFhOGMzZGY1ODA0YTExMDA1YWJmNjgwZGE4YzdkMWQwM2JkMjU5OTE1ZmQ0MzEwMzk3Mjc1Y2U5NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGY4YjBlOWE3MDViMGVkMTIyMzkzNWZlNzRlY2JlMTQ5MjY2NjVmYmY4ZWZiODg0MTYzZmYwOGQ5MjMwZWUxMyJ9"
         },
         {
-          "resource": "repo://crates/lib/src/server/process.rs#L80-L100",
-          "version": "repo-lines-v1:sha256:80b542d813427cd7af2c65c5ab01522d4a34bf45505e4c70d2130ec89efd9801:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyN2NlY2U5M2NhZWNkN2UxYTE5OWFiODc0MTI4ZWEwNTZiODdkMzZhOGY4N2YxYTYyMGM2ZWIwYmJkMDRiYjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0MDE5NmVmNmViZmM2OGMwODc2ZGEzZjA4NmY1MDM5MWU1NGMxZTk0MjRiZWJhNzRkZGNlZDc1ZGFlYTMzYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4ZTZlMTQzN2Q1ZjMwNWY5YzkwOTg0MDNhMGQ1ZDdlYzBjMTQ1MjA3MzNiMzZlYjU5MGMzYjZkYjRkMDQyZDYifQ"
+          "resource": "repo://crates/lib/src/server/process.rs#L90-L99",
+          "version": "repo-lines-v1:sha256:d72f8c75269127da24cd6f61688ef765fc7f15f41031861ba500941a468c3bcd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkY2VkYmUwMjNiZmE1NjVjMWY3ZGQ2Mzk3NGJmZTJhMGNiNTJmODBiYzdiODEyNzhjZWRmMjExN2NkZjMyYzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkY2M5ZTAwMzdiYmI1NGJlZTdmNGIyNGZkZDMyNDk5YTA2OWVmNTY1NjMzODMwZjg4M2IyNDgxZGI0MmRmMGIifQ"
         }
       ]
     },
@@ -21,22 +21,26 @@
       "statement": "IPCConnector recovers from stale sockets on startup by attempting connection before unlinking and re-binding.",
       "evidence": [
         {
-          "resource": "repo://crates/lib/src/server/ipc_unix.rs#L205-L240",
+          "resource": "repo://crates/lib/src/server/ipc_unix.rs#L212-L247",
           "version": "repo-lines-v1:sha256:f8d0dd129e2f0397e69fa8d46743b49c0d434901d18146bd248747f6cb98acb4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjZTA2MzVhNDhlNGQ0YTAwZTIzYmJjZDY4ZDlhNDBhMjJjMzNiZGE2NTJlNjNkMDI1OGY3MmVkZTRiYzA2ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1YjJkNGFlYzNkYjdjYThlNWQ5ODBkNWZiNWQ0MDgyOTU2ZGE3NDFjNTI2MGRmMTlmNzEyM2U2YzkyOGZkOGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxOWVkZTVhOGQ1ZjUzMmU1ZGRkNjE0MmY0MWMyYzM4NjQ3MzQ2NTFhNWQwNjM0NzZjYTUzOTYyOTY4M2E1N2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3MGZlNGFmYzRmNzIzYWNkNjUxOTRiMzkyMWIyOWI0NzkyNDdmZjNkOWNjOWExYmZjZDgzNDNiYzBlZjg5NzkifQ"
         }
       ]
     },
     {
       "id": "claim_ba9153bb38194f9697bfc0bcf447852c",
-      "statement": "WebsocketConnector searches ports 6463 through 6472 sequentially and validates origin headers against permitted Discord origins.",
+      "statement": "WebsocketConnector searches its candidate port range sequentially — `6463` through `6472` inclusive by default, overridable via the `RSRPC_WS_PORTS` environment variable — and validates origin headers against permitted Discord origins.",
       "evidence": [
         {
-          "resource": "repo://crates/lib/src/server/websocket.rs#L170-L180",
-          "version": "repo-lines-v1:sha256:87a5b8d886dda63057f4d552b5084bb12fcc63d3300631b521a8bf80bc8e3448:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MmNkMWI0ZWEwYWM0ZjM0Y2Q5MjAxNzY0NjMxZjA2NGQ3NTM2MDU5OTY1ODY1YjFlOWM1ZmY1NjEzODU4ZTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhMWI5Nzk5MDRiNjU5NGJiMGFjMWFiZDc4NmM5OThiNjZjNTg1MzViYmY0N2MzM2Y4YWM0OGZiZDg2YWUxODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk0NDdkYmRjNjc5OGRjYmM4ZmQzOWExMGM2NjY3NGVhZWNhMDQ1ZDY1YjQzZmZhNjU4Y2U3N2Y3ZTZlNWZlNmQifQ"
+          "resource": "repo://crates/lib/src/server/websocket.rs#L198-L205",
+          "version": "repo-lines-v1:sha256:48850f111a393aebc68e4e0d073982409188ef3f74ab0031769f84a131d879b9:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JkN2YwOGIzMzgyYjI5MmE0ZWExODZlN2JjOTczZGY4OGZhNWNkZjBmNmQzMGVmYTNlNzM0MjIzNzBlODg2NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTdhNWZmYTNlMDk1ZGYwNWI2YjMzMzM4NzFhYmExYzFiM2UyNWFiM2RiZjFkNDkyZjE1NGMyY2MyYjEyMmY1NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDgzNjdkZGJlODI4Y2FhYzY3OGRiZWRkODdhZDk3ZTBiNzU4NGYyMzM4ZDYzY2E4Y2M4MTJmNWM3ZmVmNWQzZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWI4Zjc3ZGFlMzQ3ZWZiMjlkMDE2NTkyNGE1NTViZDQ3ZWMzNTlmYzQ0OWRjNTFlMDNhMTlmYWJjNWRjYzlkMyJ9"
         },
         {
-          "resource": "repo://crates/lib/src/server/websocket.rs#L48-L64",
-          "version": "repo-lines-v1:sha256:f4a3d2c02c84904b2dc0731b02c97f3f9ca5d07b1623b71ef3227c556b843c45:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3N2UzMzJlZjQ4YjAwMjU1OTQzYTEzMDM0YzBiMGRjYWI5MmFhNmI1MDYxNzEzYmI0MTNkMDFhODA5OTA3NjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3ZGNhZWRmOWNhYjI0MzdmMjg3ZGY0MmJlNjE5NTA0NDdjMjk4YjE0YWU2NDkwMWFkNDY0YWYzNGYyMDY4MTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ0MjZjNmVhNjc3YWZlZjQ1ODU3M2Y2ZWYyNDg5ZGRmMDNkYWQ4YjZlOTZlNDQ5NzM1NTM2MzFkOTM1MTdmODEifQ"
+          "resource": "repo://crates/lib/src/server/websocket.rs#L48-L61",
+          "version": "repo-lines-v1:sha256:c4fd3ea3f706c43b2158183b1820ad36c89e532e87c85bd6521fcf03ebf11359:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5NTkxMDdmNzYxMzg1MTEzZmQ1N2FkMWE5ZThjNTVjNTEyYjNkYTkxMGYwOWQ5MzhmOThhNDU1MGE5MWEwZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMyZGQ4OTRmZWFmMGZkMGM3MjNiNzgyMmIyOTUzYzczMmNhZGNjNDY3MDAzZDIxYmIxMTQzYTJmYWFhODY1OGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5MmNkNzQxOGQ2MTJhNjFmNzU3ZWViZjM5MDFkNzhhNDU1MTZkNmY0NjM1MWYwN2NkYmE2YWI0MGIyNjY2NzUifQ"
+        },
+        {
+          "resource": "repo://crates/lib/src/server/websocket.rs#L71-L95",
+          "version": "repo-lines-v1:sha256:d3edcccc06f308357ca9f5ad00ee4057cc81807142d5f7d37d354c861d968fbb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyMmNjZjQzZjM4MTE5YTlkYWE0M2Y1NmNjZTdjYWFhNGNjMzY4MjVjODAwM2UzODNjNTMyYWVjOWZkYmQzNzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzNmNlZmRlNzdmYTBlMmI4ODVjYWE5NzcxMjljMThjNDYwYmFkYzVhNjg0NTgxNGIxZjk4MWM2ZmI0MmM1YzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3ZDkyZTJhMGRhOWZjYjIzMjBkYWQ1ZWY2NjJmOTE5ZTgxMjk2NjE5ZGE3NjIxM2UxNGM1ZTRjMzM3ZGVhNmQifQ"
         }
       ]
     },
@@ -45,18 +49,106 @@
       "statement": "ClientConnector caches the active activity payload and replays it to newly connecting Discord clients following the READY handshake.",
       "evidence": [
         {
-          "resource": "repo://crates/lib/src/server/client_connector.rs#L134-L151",
+          "resource": "repo://crates/lib/src/server/client_connector.rs#L135-L152",
           "version": "repo-lines-v1:sha256:d0632ebf05a99e5fe0173cbe070be463ad1e2bef9e3563c6c2bcbbc122fd3a1d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyMWY1NDVhNzRiOWJkOTA4N2M2NjA2MmE4NWZhYzc3MGFlMjdiYjljODE4MGY5NTJkYjVhMjc1Njg5ODI2MDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3YTVmZmEzZTA5NWRmMDViNmIzMzMzODcxYWJhMWMxYjNlMjVhYjNkYmYxZDQ5MmYxNTRjMmNjMmIxMjJmNTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllODNjZDk0NGQ2NTdiNGMxNTQyYzMxMDk5MjQ1NWUzMmI4M2U1YzZjZjY0YmEyYmQ3MzM3MGRjYjY2N2VmMGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5MWE5YTQ5MjZjZDdkZTYyNzE1MTZhNDEyOGFkNWEyNTAxNWRiOTRiMTYwODBkMDRmOTU2MzExMmRiOTNjZTUifQ"
         },
         {
-          "resource": "repo://crates/lib/src/server/client_connector.rs#L420-L434",
+          "resource": "repo://crates/lib/src/server/client_connector.rs#L421-L435",
           "version": "repo-lines-v1:sha256:ae8decd87cd78e0fcc5b93b6e85f7a5ed160392404683c623adfcbaab4008582:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNDUwMDRmNWM2NzU3MzJlZDM0YWY3NDI0ODM3NDE3YTNiN2Y1NDIzYWYxZWNiNmVkZDc5NTE5YTZlNzFmM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlNTdhYjJiMzU3MmIyYTVjOTNjZGVjMjNlMDY0YTYwODk5N2Y4ZWZhMzNiNzIzZjdmYjEzNDc3NzQ4ODRhOTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxMjI4YjhjODZhMTBlNTM4NWY1NjAzMTEzY2RlZGI0NDQxZWE2NWNlMmE1OWJlM2ExZDVmOTA2NTAxYTg1MjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmZTc0YzllZTE4NmM5MTViZTllNzRiMzRjNzg3NTYxZTA4ZmRlZjM0ZTE2YWMzNDg5ZjA5NDA5MWVlZTI3ZDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2e29255690cc457cb16a7ef70df8fee5",
+      "statement": "The process scanner's Aho-Corasick automaton, its index table, and the activity list live behind a single mutex as one coherent `DetectState` snapshot taken per scan, so a rebuild cannot tear an in-flight match.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/server/process.rs#L344-L353",
+          "version": "repo-lines-v1:sha256:2f4af52fd43f1295e1ebaf011fad55c71e77de97de81f272e0a569bad5d3420e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYjhmM2RlNzQ1ZjcwNDQ5Y2VmNmM0MmYwMWY0ODFhNWIzNDg3MDM2OTRkY2E3YzRiOTZlMTZjMDFkOGI3ZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjOWQ1ODE5ZTBhNWIwMmFjZmJhMzI0OGViM2U5NTNhNzRhZjNhODMwYzYxZjI0ZmYyZTIyMGI5NDJkOGQ0N2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkyMWQzNjhlZWUwYzc0M2JiZWUzMmM2MWEyNWJhMjMwYTQ5NmRjZWU0MDk2ZWY5YjM2YzJhOTI1YzkwNDQ2Y2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmZjM4ZjJhMTRkMjM1ODFlNTBkYjhkOWFiZjI1MDRmMDcxYTU4ZjU0ZDcxNTdjOGY2NjFlYjdmZmFkNDQwYTMifQ"
+        },
+        {
+          "resource": "repo://crates/lib/src/server/process.rs#L41-L53",
+          "version": "repo-lines-v1:sha256:0f881d55a34b445b5c1452dd6ec5adada43bf928ed819cc8812a878f2bb15f90:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiOWNlZDBiNmVmZWUyNGQ3YTUzZDYzNGY2ZGRkOTc3OTQ3NWJhNDY3YWIxMzZmNWU5YTlkNTEyNjdhNGU1NTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY5MDI0NDI5NDI2NjA4YzExNWQ2MDFiOWIwOWI3NmRhNTM3NDMxZDJlMGUwNmIwOWUzYjk2ZGI1OTg4MzZiYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlZGE3M2FjMGUyMGYxZGIxZWYxYzlmYzE1MjdmMmNjZmVmOTFkNmY4NjUxNDkyZWMxZWIzZTcyNmQ4MWQ0MjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a335ad5cb62745e28501b1f7bfc6c418",
+      "statement": "DetectState matching is bounds-checked end to end, so a torn or stale snapshot yields no match instead of a panic.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/server/process.rs#L90-L99",
+          "version": "repo-lines-v1:sha256:d72f8c75269127da24cd6f61688ef765fc7f15f41031861ba500941a468c3bcd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkY2VkYmUwMjNiZmE1NjVjMWY3ZGQ2Mzk3NGJmZTJhMGNiNTJmODBiYzdiODEyNzhjZWRmMjExN2NkZjMyYzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkY2M5ZTAwMzdiYmI1NGJlZTdmNGIyNGZkZDMyNDk5YTA2OWVmNTY1NjMzODMwZjg4M2IyNDgxZGI0MmRmMGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e4577b4dfb1a46eb8c1a97c3a9ceab16",
+      "statement": "When no process is detected, the scanner forwards the synthetic `NULL_ACTIVITY_ID` (`\"null\"`) activity, which connectors treat as \"clear the current presence\".",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/detection.rs#L63-L66",
+          "version": "repo-lines-v1:sha256:926d0bd18ad0e5a0a309a6280f5b2e842a32692e001dca75dffe986eb5b1d258:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzE3ZTEyNDljYjk3YTYzYmNlNmQ4MTM5ZWEyZmU5ODM0YzA2ZWU1YTE1OWMyNzg3Y2U3N2E3ZmJlN2QyODg3MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmQ0MzExMTRlZGE0MWUzMWQ4YWE0OTk0MWExNGRlZDg1Y2M1YjY1OTliZTJiOTA0ZGVmMjg0MzlkYzBjMDQ0OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGU5MTQ5ZmM1ZTRhOWZmODdhYzlkMTVmODNjMDg0NWYxZDg2OTIxOTM4NjkwYzc3MzczM2UzNmMxOWRhYzQzNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWNiNzIyZmMzNTVmZDQ0MGNhZjFiYTE4ZmNkZTkyYTAzZTlkZDhmN2NiMTdkNTEyZDRlYmEwMjdjYmE2NzhlNSJ9"
+        },
+        {
+          "resource": "repo://crates/lib/src/server/client_connector.rs#L258-L260",
+          "version": "repo-lines-v1:sha256:70b91d58c1a5535ecc97e3180c046443e025dca27b9ed15328e80d88d0567b2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2MyZGM1YzQ0YzJmN2NlNTkwM2IwMzM5YTgyOTMzYTdhMDhiZmJkZmE0NmQ3NDQ0YWU2MjYyZDRjODlhZjY2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTIxMTRkMDAxOGUzMjBhNzMzOGU1ZGU4ZjhhMmQ2Y2E0ZWY3NTA2NDk0NDI3MTcwMjQ4MjI1NGI0OWIyNzJkNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWUyZDE1MDlmYzdjYThiZGVkZWVlOWJmMmE2YzhkYTNjNjlkZDUwMWRmOTM2NDkxMzBhOTY3YjRiMmU0M2I3ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGVmZTgxYTM4MzM5YmM0YzU3ZDhiNmYyZTk3MzdkZDY2YzQwMzg0MWQ1NzNjZTQwMThkNzkwNWQwOTc4MzdkMiJ9"
+        },
+        {
+          "resource": "repo://crates/lib/src/server/process.rs#L206-L216",
+          "version": "repo-lines-v1:sha256:3740a13c45fc14bdbcb1e79cdaa52ad257a789d2d66c056902e84fd468e0f869:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0NDVjMjdkNTg4YzdkMGQ2MWQ5YTBhY2RiYTJjZmI1MzM5MTI5NWE5NWNhNWE2MTFkMWI3YTI3OTYzOGI4ZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3MDIxMDQwMDU1NTI5ZTU4YmQ5YWRkZmYzYjAzOGM5NTAzZDdkNjEwM2NhZjNmYmNlOTI5MWM1MmE2MGY1NmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliMWI3ZjFmYzk2OGM5Y2E3MjJkODdmMGY2YmIzNzExODAxOTZlZDYyZTMxMTljODNhMTZmNTU3ZDVmZjJjMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyMjk0YjBiMTllMDNkOTFmNzQ2MmM5YWM3NTYxMDAwNDc2OGVkMDQyNzJjNzg4NTE5MWI2NGViZmQ1OTI5YzYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c9e8c3248c8a4584860905f67d8c4d84",
+      "statement": "The process scanner's scan loop stops when its event receiver is gone.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/server/process.rs#L206-L227",
+          "version": "repo-lines-v1:sha256:f9189ea9720e3aa4c3d01a8cf50b9f4af6589e7bdb7ac21ae1c740ac03c040e2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0NDVjMjdkNTg4YzdkMGQ2MWQ5YTBhY2RiYTJjZmI1MzM5MTI5NWE5NWNhNWE2MTFkMWI3YTI3OTYzOGI4ZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkYjMzOWMxN2Q0Y2M1NGU3MGM0ZmNmZWNiNjExYmI5ZTdkMzYzZjI1YjE4ZTA5MjNhMWQzMDZjYzk1OTI0ZTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliMWI3ZjFmYzk2OGM5Y2E3MjJkODdmMGY2YmIzNzExODAxOTZlZDYyZTMxMTljODNhMTZmNTU3ZDVmZjJjMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzMmFiZTJjN2VlMGRmMDg4NmMxZjk5MTY5ZDAzMjJkOGYwYTI3ODhhNGI0NDRjODVkZjEwZjRkZjM1NGE0MDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a75469d329664f2bb518fe11844bad85",
+      "statement": "When no IPC socket can be bound, IpcConnector is created disabled on both the Unix and Windows backends: `start` logs and returns without a listener or thread instead of exiting the host process.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/server/ipc_unix.rs#L104-L111",
+          "version": "repo-lines-v1:sha256:bdb872df8a9fba32810ca1747a4cd5c5794c1eb0c4ecc203cea70c1efaabec42:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTBlNTZhODFlOTM0NGNhYTVhOTk4YWVlOTFmZDJhOTI4MzhlODIyNTBhZTA0YTNjNTdmNDU4YjVjZjU1NjE1YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVjZGVmODA4NWFlNzRhYjYzNmQ2NDU5ZjVjNmQ1ZmJmYjBkYjI2NGYxYjBkNzViYWM1MTljOWIzZjY3MTdhYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDE4Yzc3NzEyMTE3OWRmM2YwMGM4YzVlZDI4YTAwZTEyZTM1NjkyMTYxNDE3NDEyZjdhMWI4Zjg2ZTlhYjQ4YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGQ0MmM4ZDlmMjYzMzJhOGVkZjdhNTJkNjJkNGI5NDZjNjlhNmRlMGQwMDA2NjA2Yjg3ZDg1YmI3MmVhZmM3NSJ9"
+        },
+        {
+          "resource": "repo://crates/lib/src/server/ipc_unix.rs#L169-L176",
+          "version": "repo-lines-v1:sha256:75b43204609d5970f1d343868a3820e4de2166ac3d8aa5b7e8be872d4504e4e7:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTBhNTc4YWMwODY5ZDk3YjVmM2QxYzdhNDMxODJhM2EwMjYzMGMzYjRhYjljOTE4NWQyMzYyMzAwNWNmMWY4NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVjZGVmODA4NWFlNzRhYjYzNmQ2NDU5ZjVjNmQ1ZmJmYjBkYjI2NGYxYjBkNzViYWM1MTljOWIzZjY3MTdhYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTM3YmY5ODVkYWJjODY3M2Y2NGI5MmVhNTgwOGRkZDZiNjdmNjJjMTMwZmE2YzRkMmNiODJmNTMwOGFmMTM5MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTk4YmVhZDJmMTFmMjBmY2RlZjk2Y2JjZTNkMjZhNmE1MzNlNTI5YWM1Nzk3NjEzMDI1ODI0ZTVjOGIyYTYwZCJ9"
+        },
+        {
+          "resource": "repo://crates/lib/src/server/ipc_win.rs#L124-L131",
+          "version": "repo-lines-v1:sha256:c4324cceba0072461cd8548d11b16b4531a737f3ec97c4d5126abc13d7cdd674:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTBhNTc4YWMwODY5ZDk3YjVmM2QxYzdhNDMxODJhM2EwMjYzMGMzYjRhYjljOTE4NWQyMzYyMzAwNWNmMWY4NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVjZGVmODA4NWFlNzRhYjYzNmQ2NDU5ZjVjNmQ1ZmJmYjBkYjI2NGYxYjBkNzViYWM1MTljOWIzZjY3MTdhYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTA1YzM3YjMxYjFlOGRlY2NhNWJmODY5ZDdkZTlkYjI0ZjAzMzEzOTNiOWU3OTUzNTVjZjA3ZTI2Njc2MGRjNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTk4YmVhZDJmMTFmMjBmY2RlZjk2Y2JjZTNkMjZhNmE1MzNlNTI5YWM1Nzk3NjEzMDI1ODI0ZTVjOGIyYTYwZCJ9"
+        },
+        {
+          "resource": "repo://crates/lib/src/server/ipc_win.rs#L60-L67",
+          "version": "repo-lines-v1:sha256:9b9b1662f22f7d77224d0df4bbf11c677dd0c44aa40ef5a27210441761fc205d:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTBlNTZhODFlOTM0NGNhYTVhOTk4YWVlOTFmZDJhOTI4MzhlODIyNTBhZTA0YTNjNTdmNDU4YjVjZjU1NjE1YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVjZGVmODA4NWFlNzRhYjYzNmQ2NDU5ZjVjNmQ1ZmJmYjBkYjI2NGYxYjBkNzViYWM1MTljOWIzZjY3MTdhYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDE4Yzc3NzEyMTE3OWRmM2YwMGM4YzVlZDI4YTAwZTEyZTM1NjkyMTYxNDE3NDEyZjdhMWI4Zjg2ZTlhYjQ4YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzY2NTQ1NzQwYjQyOTYxZDEyYjU2YzM2MWVmNDJhYTNjOTNiNjNlM2VjM2RmODNkYTA4ZTlhMTdmZTY0M2IyNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f2165030a72b4f0a95a809e1407f6642",
+      "statement": "When every candidate websocket port is taken, `RPCServer::start` continues with a disabled websocket facade (no listener) instead of failing to start.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/lib.rs#L362-L371",
+          "version": "repo-lines-v1:sha256:8e86b5b59c39130cba7d9e755b0e3acd89102e6c6bf1a1f3afe1d6b7fc2fd112:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2ZjIxYjAwMmM4NjYyYjllNTIzNjEzMGFjMzVmODI2ZDMxMzBlYTg3MDIzOWVlZTJiYjMyYzZlMjE5NWI1ZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1Y2RlZjgwODVhZTc0YWI2MzZkNjQ1OWY1YzZkNWZiZmIwZGIyNjRmMWIwZDc1YmFjNTE5YzliM2Y2NzE3YWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiNWY5ODNmYjAyOWU3OWE0OWViNjFiNGY5NmQ4NmJiMTQxYWJmYWY4ZTkyMTI1MTMxOWNmN2ExNTUxYzA3YTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1Y2QwN2ViOGNmNzEwOTYxZmM3YmRlZWI0ZTcwNzM4YTYwYzJiNGFjOTVjMDcyYWJiNmJmZTNiM2RkNjFmN2IifQ"
+        },
+        {
+          "resource": "repo://crates/lib/src/server/websocket.rs#L97-L106",
+          "version": "repo-lines-v1:sha256:d0805bb7bb1f5ad339c8ef6665db91711a7f299ff61509d75869354bb216f773:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViMGQxMTMxMmY3NTJlYjIwYTI1ZTdjMjMxZmQ0MmI5OGM5ZjdmMDY2N2Y5ZmRhMWEyZDhiMTc5MDRiMmIwMDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxNDBiZDFjODI0ZjllZDM2Nzk1M2I4OWIzNjYzMWU1Yjc1NDAzZTI3YTI4MmUzODg2NGQwMTdkYmRjYWFhMmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlZGFmNDY5NjliNTA5ODM2ODA4ZDU3MDU3MDliNzlmYjZkMGE0MTVlZmUyMDU0YjRjMmY3YzA2ZTY3Yzc3NjcifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.2",
-    "at": "2026-10-17T15:23:46.177Z"
+    "at": "2026-10-17T16:21:17.267Z"
   }
 }

@@ -2,46 +2,46 @@
   "schemaVersion": 1,
   "pages": {
     "/openwiki/architecture/middleware.md": {
+      "gitHead": "d232d484245d31aafdcc56e688eec8c78323c698",
+      "sourceFingerprint": "sha256:09c9d2e8072cc6d7dc47d0027725e349e07951c1bd67383e1331fb77cc503a09",
       "pageVersion": "sha256:d800959b59ee92a9f1d26d74cb7a81da18dbe97de4f20b226b1a843b3b83199a",
       "completedBy": "openwiki",
-      "completedRunId": "1ac7f0b7-d0e5-48e5-a84c-f215fa53f061",
-      "gitHead": "d232d484245d31aafdcc56e688eec8c78323c698",
-      "sourceFingerprint": "sha256:09c9d2e8072cc6d7dc47d0027725e349e07951c1bd67383e1331fb77cc503a09"
+      "completedRunId": "1ac7f0b7-d0e5-48e5-a84c-f215fa53f061"
     },
     "/openwiki/architecture/overview.md": {
-      "pageVersion": "sha256:e606893ca3ec498f0456113744c5ea91bf78e3b296e3138e9e9f71a9a41ffc6c",
-      "completedBy": "openwiki",
-      "completedRunId": "1ac7f0b7-d0e5-48e5-a84c-f215fa53f061",
-      "gitHead": "d232d484245d31aafdcc56e688eec8c78323c698",
-      "sourceFingerprint": "sha256:09c9d2e8072cc6d7dc47d0027725e349e07951c1bd67383e1331fb77cc503a09"
+      "pageVersion": "sha256:d619b3368e0021396fc7dedafaa73c59143c11587910c5a230e0dca91f386f66",
+      "completedBy": "omp",
+      "completedRunId": "a7a923b2-354e-4311-ab10-84d6949049ea",
+      "gitHead": "1a814a280c006dc41adc578375c1f1e01ebac65b",
+      "sourceFingerprint": "sha256:a41478c76f3cf5428ab1a247d7e84afc487ed433d0d89861fed8bab7f8f1fb3e"
     },
     "/openwiki/integrations/proton-bridge.md": {
+      "gitHead": "d232d484245d31aafdcc56e688eec8c78323c698",
+      "sourceFingerprint": "sha256:09c9d2e8072cc6d7dc47d0027725e349e07951c1bd67383e1331fb77cc503a09",
       "pageVersion": "sha256:f3ec8d02c58010a63a74f73b783a620e5f3028d6dc3a3e4c2ecb794945d1c0d2",
       "completedBy": "openwiki",
-      "completedRunId": "1ac7f0b7-d0e5-48e5-a84c-f215fa53f061",
-      "gitHead": "d232d484245d31aafdcc56e688eec8c78323c698",
-      "sourceFingerprint": "sha256:09c9d2e8072cc6d7dc47d0027725e349e07951c1bd67383e1331fb77cc503a09"
+      "completedRunId": "1ac7f0b7-d0e5-48e5-a84c-f215fa53f061"
     },
     "/openwiki/operations/configuration.md": {
-      "pageVersion": "sha256:9da8dee44a5b5083ab3dc2714c5b46e985c13e47818c554a87b11a21ff382975",
-      "completedBy": "openwiki",
-      "completedRunId": "1ac7f0b7-d0e5-48e5-a84c-f215fa53f061",
-      "gitHead": "d232d484245d31aafdcc56e688eec8c78323c698",
-      "sourceFingerprint": "sha256:09c9d2e8072cc6d7dc47d0027725e349e07951c1bd67383e1331fb77cc503a09"
+      "pageVersion": "sha256:c38446d797d9f197d286f9cfa89e0a7853f4571cf57073df0534adbdf9898a4e",
+      "completedBy": "omp",
+      "completedRunId": "a7a923b2-354e-4311-ab10-84d6949049ea",
+      "gitHead": "1a814a280c006dc41adc578375c1f1e01ebac65b",
+      "sourceFingerprint": "sha256:a41478c76f3cf5428ab1a247d7e84afc487ed433d0d89861fed8bab7f8f1fb3e"
     },
     "/openwiki/operations/deployment.md": {
+      "gitHead": "d232d484245d31aafdcc56e688eec8c78323c698",
+      "sourceFingerprint": "sha256:09c9d2e8072cc6d7dc47d0027725e349e07951c1bd67383e1331fb77cc503a09",
       "pageVersion": "sha256:65536d976543edf5c45cfd5cd618d33f6ea83d298b325bfccc537f1bb07b1323",
       "completedBy": "openwiki",
-      "completedRunId": "1ac7f0b7-d0e5-48e5-a84c-f215fa53f061",
-      "gitHead": "d232d484245d31aafdcc56e688eec8c78323c698",
-      "sourceFingerprint": "sha256:09c9d2e8072cc6d7dc47d0027725e349e07951c1bd67383e1331fb77cc503a09"
+      "completedRunId": "1ac7f0b7-d0e5-48e5-a84c-f215fa53f061"
     },
     "/openwiki/quickstart.md": {
+      "gitHead": "d232d484245d31aafdcc56e688eec8c78323c698",
+      "sourceFingerprint": "sha256:09c9d2e8072cc6d7dc47d0027725e349e07951c1bd67383e1331fb77cc503a09",
       "pageVersion": "sha256:7331031b2bdadb7e8c7889dee42a7d315fe462897a3f62b4a96eb0bedaa8bdee",
       "completedBy": "openwiki",
-      "completedRunId": "1ac7f0b7-d0e5-48e5-a84c-f215fa53f061",
-      "gitHead": "d232d484245d31aafdcc56e688eec8c78323c698",
-      "sourceFingerprint": "sha256:09c9d2e8072cc6d7dc47d0027725e349e07951c1bd67383e1331fb77cc503a09"
+      "completedRunId": "1ac7f0b7-d0e5-48e5-a84c-f215fa53f061"
     }
   }
 }

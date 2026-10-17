@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:9da8dee44a5b5083ab3dc2714c5b46e985c13e47818c554a87b11a21ff382975",
+  "pageVersion": "sha256:c38446d797d9f197d286f9cfa89e0a7853f4571cf57073df0534adbdf9898a4e",
   "claims": [
     {
       "id": "claim_4b8356b482bf40a9be5e5bbd859a96ad",
@@ -41,10 +41,34 @@
           "version": "repo-lines-v1:sha256:fbe8d80bfd19b1beef2f4369253b83b0e35eec73302f5191915d4afb0082b19f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1YWY4ZGU5NWFhNGQ3NzdkNDhmMDM0MWMxNTcwMGVjNDhmNzZiODRmMDY5OTE0NDNjYmFhYjE4ZDRkMDY0NGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkZDUxZTk2NTRkNWM2ZDNmNjg2ZGU2MTkyMTExMDFiNGM3OTA2MGNjYzU5OTI5MmE3NGMzMWU5MTc5MjAzNTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA5NmIxOWQ5MjFmMDcwMGExYWE0NzQ5ODhjODY2MDJiZDJkNWRjMjk5ZjgzZjYwNTdmYTc4MTlmZDBkODgyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3MWM5YTg4NjAwYTZlMGMyYTc5ZTMwYTBiYzBiNDBmMDVlYzJlZGI1NWZmOGRkNTMwOWJjOTNiMmE3NDdlMTkifQ"
         }
       ]
+    },
+    {
+      "id": "claim_1d580cf5bf5d4b5a926ffaf4389811ca",
+      "statement": "`RSRPC_WS_PORTS` overrides the websocket facade's candidate listen ports: a single port or an inclusive range; malformed values, ports below `1024`, and reversed ranges fall back to the default `6463-6472`.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/server/websocket.rs#L48-L61",
+          "version": "repo-lines-v1:sha256:c4fd3ea3f706c43b2158183b1820ad36c89e532e87c85bd6521fcf03ebf11359:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5NTkxMDdmNzYxMzg1MTEzZmQ1N2FkMWE5ZThjNTVjNTEyYjNkYTkxMGYwOWQ5MzhmOThhNDU1MGE5MWEwZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMyZGQ4OTRmZWFmMGZkMGM3MjNiNzgyMmIyOTUzYzczMmNhZGNjNDY3MDAzZDIxYmIxMTQzYTJmYWFhODY1OGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5MmNkNzQxOGQ2MTJhNjFmNzU3ZWViZjM5MDFkNzhhNDU1MTZkNmY0NjM1MWYwN2NkYmE2YWI0MGIyNjY2NzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1e64ebe642a44194b451a7043f23f066",
+      "statement": "`enable_websocket_connector` starts the local WebSocket listener on candidate ports `6463`–`6472` inclusive, overridable via `RSRPC_WS_PORTS`.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/lib.rs#L410-L417",
+          "version": "repo-lines-v1:sha256:3e3a81761ce10980523f600105f9f0dfa0b58ecd54075d7af4b622f061711109:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzI1YjRhZDBkYmYxZjVmYzJmYzE1ZGM1YTFkOWJkMzlkYjBkZGQzODNiZGJlZmU2NGY4NzNhZmU4OWZhNGU2NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTUyMmM0MmNkMTljNmQwM2Q4MDhjNDUyNzIwNTUyODI1YjdlYTFjNWI0OTFiMjE4NTExY2FjNzQxNWNmOWQ5YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGE5Zjg2ZDI4ZTc4NGY5ZmQzMWZiNzJkMTVmNjBjYmNlYWFmZGQ2NjljYmQ1YjZkYTc4ODhhMDIzMzIxZWJiOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWZlYjViNzkxYTU1YWZjMGIxYjA4ZjczYTM5MjZhZDQwNTY1MGNmMGM1YzdjN2EzYjRjMDIyNmJmZTUyOTRiYyJ9"
+        },
+        {
+          "resource": "repo://crates/lib/src/server/websocket.rs#L48-L61",
+          "version": "repo-lines-v1:sha256:c4fd3ea3f706c43b2158183b1820ad36c89e532e87c85bd6521fcf03ebf11359:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5NTkxMDdmNzYxMzg1MTEzZmQ1N2FkMWE5ZThjNTVjNTEyYjNkYTkxMGYwOWQ5MzhmOThhNDU1MGE5MWEwZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMyZGQ4OTRmZWFmMGZkMGM3MjNiNzgyMmIyOTUzYzczMmNhZGNjNDY3MDAzZDIxYmIxMTQzYTJmYWFhODY1OGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5MmNkNzQxOGQ2MTJhNjFmNzU3ZWViZjM5MDFkNzhhNDU1MTZkNmY0NjM1MWYwN2NkYmE2YWI0MGIyNjY2NzUifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.2",
-    "at": "2026-10-17T15:23:46.177Z"
+    "at": "2026-10-17T16:21:17.267Z"
   }
 }
