@@ -83,6 +83,7 @@ fn custom_detectable_greater_than_argument() {
 #[test]
 fn process_detected_details_from_window_title() {
     use std::process::Command;
+    use std::time::{Duration, Instant};
     // Spawn a real process with a distinct name/comm
     let mut child = Command::new("sleep").arg("9999").spawn().unwrap();
     let pid = child.id() as u64;
@@ -94,14 +95,21 @@ fn process_detected_details_from_window_title() {
 
     let mut s = empty_server();
     s.append_detectables(vec![da]);
-    let matches = s.scan_for_processes().unwrap();
 
-    let found = matches.iter().find(|m| m.pid == Some(pid));
-    assert!(
-        found.is_some(),
-        "spawned process should be detected by scan"
-    );
-    let detected = found.unwrap();
+    // The scan reads a live /proc; a freshly spawned process can be briefly
+    // invisible or mid-exec, so poll instead of a single immediate scan.
+    let deadline = Instant::now() + Duration::from_secs(10);
+    let detected = loop {
+        let matches = s.scan_for_processes().unwrap();
+        if let Some(found) = matches.iter().find(|m| m.pid == Some(pid)) {
+            break found.clone();
+        }
+        assert!(
+            Instant::now() < deadline,
+            "spawned process should be detected by scan"
+        );
+        std::thread::sleep(Duration::from_millis(20));
+    };
     assert!(
         detected.details.is_some(),
         "detected process should have details populated from window_title/comm"
