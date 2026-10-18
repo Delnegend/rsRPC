@@ -35,7 +35,7 @@ jobs:
         run: just check
 
   windows-check:
-    name: Windows Target Check (x86_64-pc-windows-msvc)
+    name: Windows Target Checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -46,9 +46,17 @@ jobs:
       # errors on windows-latest; type-check them on every push instead. The
       # CLI is skipped because its ring build script needs a real MSVC
       # toolchain — the library carries all windows-only code.
-      - name: Check the library for the Windows target
+      - name: Check the library for the Windows (msvc) target
         shell: bash
         run: cargo check -p rsrpc --lib --target x86_64-pc-windows-msvc
+      # The release ships the bridge as a windows-gnu exe; its windows-only
+      # code must compile too. `cargo check` needs the target's std, not the
+      # mingw linker.
+      - name: Check the bridge for the Windows (gnu) target
+        shell: bash
+        run: |
+          rustup target add x86_64-pc-windows-gnu
+          cargo check -p rsrpc-bridge --target x86_64-pc-windows-gnu
 
   secret-scan:
     name: Secret Scanning (Gitleaks)
