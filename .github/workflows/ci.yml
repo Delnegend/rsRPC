@@ -63,20 +63,11 @@ jobs:
           rustup target add x86_64-pc-windows-gnu
           cargo check -p rsrpc-bridge --target x86_64-pc-windows-gnu
 
-  secret-scan:
-    name: Secret Scanning (Gitleaks)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Run Gitleaks
-        shell: bash
-        run: docker run --rm -v "$GITHUB_WORKSPACE:/path" zricethezav/gitleaks:latest detect --source="/path" --verbose
-
   scan:
     name: Scan
-    uses: Delnegend/actions/.github/workflows/scan.yml@9770db26039f6566a5dbd0626c0de613ab75a5f9 # v1
+    uses: Delnegend/actions/.github/workflows/scan.yml@6b0ff42cc9e8937cd1b37faebccd093fc6c68a86 # v1
     permissions:
       contents: read
     with:
-      scans: actionlint semgrep trivy osv
+      scans: gitleaks actionlint semgrep trivy osv
       trivy-scanners: vuln,secret
