@@ -154,23 +154,11 @@ jobs:
       # Stamp the version into the artifact name, e.g.
       # `rsrpc-bridge-0.29.0-i686-pc-windows-gnu.zip`. The Homebrew tap bot
       # resolves a formula's next version by matching release assets against a
-      # version-stamped filename. Falls back to the tag when rebuilding one.
-      - name: Resolve artifact name
-        id: artifact
-        shell: bash
-        env:
-          REF: ${{ needs.prepare.outputs.ref }}
-          VERSION: ${{ needs.prepare.outputs.version }}
-          NAME: ${{ matrix.name }}
-          TARGET: ${{ matrix.target }}
-        run: |
-          set -euo pipefail
-          version="${VERSION:-${REF#v}}"
-          echo "name=${NAME}-${version}-${TARGET}" >> "$GITHUB_OUTPUT"
+      # version-stamped filename.
       - name: Upload build artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: ${{ steps.artifact.outputs.name }}
+          name: ${{ matrix.name }}-${{ needs.prepare.outputs.version }}-${{ matrix.target }}
           path: dist/
           if-no-files-found: error
 
