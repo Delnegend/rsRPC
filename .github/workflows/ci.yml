@@ -34,6 +34,22 @@ jobs:
         shell: bash
         run: just check
 
+  windows-check:
+    name: Windows Target Check (x86_64-pc-windows-msvc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
+        with:
+          targets: x86_64-pc-windows-msvc
+      # A release might only surface `#[cfg(target_os = "windows")]` compile
+      # errors on windows-latest; type-check them on every push instead. The
+      # CLI is skipped because its ring build script needs a real MSVC
+      # toolchain — the library carries all windows-only code.
+      - name: Check the library for the Windows target
+        shell: bash
+        run: cargo check -p rsrpc --lib --target x86_64-pc-windows-msvc
+
   secret-scan:
     name: Secret Scanning (Gitleaks)
     runs-on: ubuntu-latest
