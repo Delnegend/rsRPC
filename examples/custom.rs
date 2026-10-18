@@ -52,7 +52,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   // Starts the other threads (process detector, client connector, etc)
   if let Ok(mut guard) = client.lock() {
-    guard.start();
+    guard.start()?;
   }
 
   // let 'er run forever

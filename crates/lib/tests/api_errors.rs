@@ -4,6 +4,8 @@
     clippy::unwrap_used,
     clippy::expect_used
 )]
+use std::net::TcpListener;
+
 use rsrpc::cmd::{Activity, ActivityCmd, ActivityCmdArgs, TimeoutValue, Timestamps};
 use rsrpc::{RPCConfig, RPCServer, RpcError};
 use serde_json::{Value, json};
@@ -86,12 +88,67 @@ fn registering_callback_after_start_reports_already_started() {
         Ok(server) => server,
         Err(_) => unreachable!(),
     };
-    server.start();
+    server.start().unwrap();
 
     assert!(matches!(
         server.on_process_scan_complete(|_state| {}),
         Err(RpcError::AlreadyStarted)
     ));
+}
+
+/// Occupying the configured client port makes `start` report the bind
+/// failure instead of leaving a zombie server behind.
+#[test]
+fn start_reports_bind_failure_when_client_port_is_taken() {
+    let held = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+    let port = held.local_addr().unwrap().port();
+
+    let mut server = match RPCServer::from_json_str(
+        "[]",
+        RPCConfig {
+            port,
+            enable_process_scanner: false,
+            enable_ipc_connector: false,
+            enable_websocket_connector: false,
+            enable_secondary_events: false,
+            ..Default::default()
+        },
+    ) {
+        Ok(server) => server,
+        Err(_) => unreachable!(),
+    };
+
+    assert!(matches!(server.start(), Err(RpcError::Io(_))));
+
+    // The failure is not a half-started server: mutators still report
+    // NotStarted.
+    assert!(matches!(
+        server.append_detectables(Vec::new()),
+        Err(RpcError::NotStarted)
+    ));
+}
+
+/// Starting an already running server reports `AlreadyStarted` instead of
+/// silently initializing a second set of connectors.
+#[test]
+fn start_twice_reports_already_started() {
+    let mut server = match RPCServer::from_json_str(
+        "[]",
+        RPCConfig {
+            port: 0,
+            enable_process_scanner: false,
+            enable_ipc_connector: false,
+            enable_websocket_connector: false,
+            enable_secondary_events: false,
+            ..Default::default()
+        },
+    ) {
+        Ok(server) => server,
+        Err(_) => unreachable!(),
+    };
+    server.start().unwrap();
+
+    assert!(matches!(server.start(), Err(RpcError::AlreadyStarted)));
 }
 
 #[test]

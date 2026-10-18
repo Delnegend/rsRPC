@@ -167,7 +167,10 @@ fn rpc_server_starts_with_exhausted_websocket_range() {
         ..Default::default()
     };
     let mut server = must!(RPCServer::from_json_str("[]", config), "server builds");
-    server.start();
+    must!(
+        server.start(),
+        "server starts despite the exhausted websocket range"
+    );
 
     // The facade stayed disabled, but `start` completed: mutators reach the
     // initialized connectors instead of reporting `NotStarted`.

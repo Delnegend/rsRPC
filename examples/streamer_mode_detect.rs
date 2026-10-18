@@ -38,7 +38,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
   })?;
 
   // Starts the other threads (process detector, client connector, etc)
-  client.start();
+  client.start()?;
 
   // let 'er run forever
   std::thread::park();

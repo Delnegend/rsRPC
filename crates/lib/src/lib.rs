@@ -61,7 +61,8 @@ impl Default for RPCConfig {
     }
 }
 
-/// Errors returned by [`RPCServer`] construction and runtime mutation.
+/// Errors returned by [`RPCServer`] construction, startup, and runtime
+/// mutation.
 ///
 /// Ordering contract: build the server with [`RPCServer::from_json_str`] or
 /// [`RPCServer::from_file`], optionally register
@@ -86,7 +87,8 @@ impl Default for RPCConfig {
 #[derive(Debug)]
 #[non_exhaustive]
 pub enum RpcError {
-    /// Reading the detectable list (or another file) failed.
+    /// Reading a file failed, or the client connector could not bind its
+    /// port.
     Io(std::io::Error),
     /// The detectable list was not valid JSON.
     Json(serde_json::Error),
@@ -327,24 +329,33 @@ impl RPCServer {
     /// A poisoned internal lock is recovered instead of aborting; the
     /// recovered state is used as-is.
     ///
-    /// ```
+    /// # Errors
+    ///
+    /// Returns [`RpcError::AlreadyStarted`] when the server is already
+    /// running, and [`RpcError::Io`] when the client connector cannot bind
+    /// its port (for example when another instance owns it).
+    ///
+    /// ```no_run
     /// # fn main() -> Result<(), rsrpc::RpcError> {
     /// use rsrpc::{RPCConfig, RPCServer};
     ///
     /// let mut server = RPCServer::from_json_str("[]", RPCConfig::default())?;
     /// server.on_process_scan_complete(|_state| {})?;
+    /// server.start()?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn start(&mut self) {
+    pub fn start(&mut self) -> Result<(), RpcError> {
+        if self.connectors.is_some() {
+            tracing::warn!("Cannot start, server is already running");
+            return Err(RpcError::AlreadyStarted);
+        }
+
         let (proc_event_sender, proc_event_receiver) = mpsc::channel();
         let (ipc_event_sender, ipc_event_receiver) = mpsc::channel();
         let (ws_event_sender, ws_event_reciever) = mpsc::channel();
 
-        let detectable = match lock_or_poison(&self.detectable) {
-            Ok(guard) => guard.to_vec(),
-            Err(_) => return,
-        };
+        let detectable = lock_or_poison(&self.detectable)?.to_vec();
 
         let client_connector = match ClientConnector::new(
             self.config.port,
@@ -356,7 +367,7 @@ impl RPCServer {
             Ok(connector) => connector,
             Err(err) => {
                 tracing::error!("Client connector failed: {}", err);
-                return;
+                return Err(RpcError::Io(err));
             }
         };
         let ws_connector = match WebsocketConnector::new(ws_event_sender.clone()) {
@@ -382,12 +393,9 @@ impl RPCServer {
             ws_connector: Arc::new(Mutex::new(ws_connector)),
         };
 
-        let port = match lock_or_poison(&connectors.client_connector) {
-            Ok(guard) => guard.port,
-            Err(_) => return,
-        };
-        tracing::info!("Starting client connector on port {}...", port);
-        if let Ok(mut guard) = lock_or_poison(&connectors.client_connector) {
+        {
+            let mut guard = lock_or_poison(&connectors.client_connector)?;
+            tracing::info!("Starting client connector on port {}...", guard.port);
             guard.start();
         }
 
@@ -395,26 +403,20 @@ impl RPCServer {
 
         if config.enable_ipc_connector {
             tracing::info!("Starting IPC connector...");
-            if let Ok(mut guard) = lock_or_poison(&connectors.ipc_connector) {
-                guard.start();
-            }
+            lock_or_poison(&connectors.ipc_connector)?.start();
         }
 
         if config.enable_process_scanner {
             tracing::info!("Starting process server...");
-            if let Ok(guard) = lock_or_poison(&connectors.process_server) {
-                guard.start();
-            }
+            lock_or_poison(&connectors.process_server)?.start();
         }
 
         if config.enable_websocket_connector || config.enable_secondary_events {
             tracing::info!("Starting websocket connector...");
-            if let Ok(mut guard) = lock_or_poison(&connectors.ws_connector) {
-                guard.start(
-                    config.enable_websocket_connector,
-                    config.enable_secondary_events,
-                );
-            }
+            lock_or_poison(&connectors.ws_connector)?.start(
+                config.enable_websocket_connector,
+                config.enable_secondary_events,
+            );
         }
 
         if config.enable_gsi {
@@ -427,6 +429,7 @@ impl RPCServer {
 
         tracing::info!("Done! Watching for activity...");
         self.connectors = Some(connectors);
+        Ok(())
     }
 }
 

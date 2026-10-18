@@ -52,7 +52,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut client = build_client(&args)?;
 
     // Starts the other threads (process detector, client connector, etc)
-    client.start();
+    client.start()?;
 
     let (tx, rx) = std::sync::mpsc::channel();
     ctrlc::set_handler(move || {
