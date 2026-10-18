@@ -49,16 +49,16 @@ mod imp {
 
     /// Issue an i386 Linux syscall through the `int 0x80` gate.
     ///
-    /// The bridge must be built for `i686-pc-windows-gnu`. Wine intercepts the
-    /// x86-64 `syscall` instruction because it uses that instruction for its
-    /// own Unix calls, and decodes `rax` as a Wine unix-call id, so Linux
-    /// syscall numbers never reach the kernel. `int 0x80` is not intercepted:
-    /// the CPU traps straight into the kernel's i386 compat entry. This is the
-    /// same mechanism `wine-discord-ipc-bridge` uses.
+    /// `int 0x80` traps straight into the kernel's i386 compat entry, so the
+    /// call reaches the kernel under Wine. The x86-64 `syscall` instruction is
+    /// not usable here: Wine decodes `rax` as one of its own unix-call ids.
+    /// The bridge therefore targets `i686-pc-windows-gnu`.
     ///
     /// `ebx` cannot be an inline-asm operand because LLVM reserves it for PIC,
     /// so it is saved around the trap and the arguments are loaded from
     /// `edx`/`ecx`/`edi` into `ebx`/`ecx`/`edx` inside the block.
+    ///
+    /// Every return value is a raw Linux `errno`: negative on failure.
     #[inline]
     unsafe fn syscall(num: usize, a1: usize, a2: usize, a3: usize) -> isize {
         let ret: isize;
@@ -183,9 +183,9 @@ mod imp {
                     format!("{base}/snap.discord-canary/discord-ipc-{i}"),
                 ];
                 for candidate in &candidates {
-                    // No existence probe: under Wine `GetFileAttributes` never
-                    // reports a Unix socket, so checking would reject every
-                    // candidate. Connecting is the only reliable test.
+                    // No existence probe: `GetFileAttributes` never reports a Unix socket
+                    // under Wine, so a check would reject every candidate.
+                    // `connect` is the only reliable probe.
                     if let Some(sock) = LinuxSocket::open_unix(candidate) {
                         tracing::info!("Connected to Linux socket: {candidate}");
                         return Some(sock);

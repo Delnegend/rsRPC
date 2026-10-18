@@ -54,11 +54,9 @@ jobs:
       - name: Check the library for the Windows (msvc) target
         shell: bash
         run: cargo check -p rsrpc --lib --target x86_64-pc-windows-msvc
-      # The release ships the bridge as an i686 exe. It must be BUILT, not just
-      # `cargo check`ed: the inline-asm syscall wrappers are the one part of
-      # this repo the compiler accepts happily while the ABI is wrong, and a
-      # 64-bit build of this code silently compiles into a bridge that cannot
-      # open a socket at runtime.
+      # Build rather than `cargo check`: the bridge's inline-asm syscall
+      # wrappers compile cleanly even against the wrong ABI, so only a full
+      # build proves the mingw target and linker are wired up correctly.
       - name: Build the bridge for the Windows (i686 gnu) target
         shell: bash
         run: |

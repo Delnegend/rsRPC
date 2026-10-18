@@ -101,9 +101,9 @@ jobs:
             package: rsrpc-cli
             name: rsrpc
           # The Wine/Proton bridge: a 32-bit windows-gnu exe built on Linux,
-          # meant to run inside the game's prefix alongside bridge.sh. It
-          # must be i686: the bridge reaches the host through the i386
-          # `int 0x80` gate, which Wine does not intercept.
+          # meant to run inside the game's prefix alongside bridge.sh. i686 is
+          # required: the bridge reaches the host through the i386 `int 0x80`
+          # gate, which Wine does not intercept.
           - os: ubuntu-latest
             target: i686-pc-windows-gnu
             ext: ".exe"
@@ -151,11 +151,10 @@ jobs:
           else
             cp "target/$TARGET/release/$PACKAGE$EXT" "dist/$NAME-$TARGET$EXT"
           fi
-      # The version goes into the artifact name so the published zip is
-      # `rsrpc-bridge-0.29.0-i686-pc-windows-gnu.zip` rather than a bare
-      # `<name>-<target>.zip`. The Homebrew tap bot matches release assets by
-      # version-stamped filename, so a version-less name can never be tracked
-      # and drifts forever. Falls back to the tag when rebuilding one.
+      # Stamp the version into the artifact name, e.g.
+      # `rsrpc-bridge-0.29.0-i686-pc-windows-gnu.zip`. The Homebrew tap bot
+      # resolves a formula's next version by matching release assets against a
+      # version-stamped filename. Falls back to the tag when rebuilding one.
       - name: Resolve artifact name
         id: artifact
         shell: bash
