@@ -24,18 +24,39 @@ fn scan_twice_same_match_set() {
 #[test]
 fn scan_guard_concurrent() {
     use std::thread;
-    let s = Arc::new(empty_server());
-    let s1 = s.clone();
-    let s2 = s.clone();
-    let h1 = thread::spawn(move || s1.scan_for_processes().map_err(|e| e.to_string()));
-    let h2 = thread::spawn(move || s2.scan_for_processes().map_err(|e| e.to_string()));
-    let r1 = h1.join().unwrap();
-    let r2 = h2.join().unwrap();
-    let oks = [&r1, &r2].iter().filter(|x| x.is_ok()).count();
-    let errs: Vec<String> = [r1, r2].into_iter().filter_map(|r| r.err()).collect();
-    assert_eq!(oks, 1);
-    assert_eq!(errs.len(), 1);
-    assert!(errs[0].contains("already in progress"));
+    // The guard rejects a scan while another one is already running. Whether
+    // two spawned threads actually overlap is up to the scheduler, and a scan
+    // over an empty detectables list can finish before the second thread gets
+    // there, so repeat the race and require the guard to engage at least once
+    // across the attempts. Every attempt still has to satisfy the contract.
+    const ATTEMPTS: usize = 200;
+    let mut guard_engaged = false;
+
+    for _ in 0..ATTEMPTS {
+        let s = Arc::new(empty_server());
+        let s1 = s.clone();
+        let s2 = s.clone();
+        let h1 = thread::spawn(move || s1.scan_for_processes().map_err(|e| e.to_string()));
+        let h2 = thread::spawn(move || s2.scan_for_processes().map_err(|e| e.to_string()));
+        let r1 = h1.join().unwrap();
+        let r2 = h2.join().unwrap();
+
+        let oks = [&r1, &r2].iter().filter(|x| x.is_ok()).count();
+        let errs: Vec<String> = [r1, r2].into_iter().filter_map(|r| r.err()).collect();
+
+        assert_eq!(oks + errs.len(), 2, "every scan must return a result");
+        for err in &errs {
+            assert!(
+                err.contains("already in progress"),
+                "overlapping scans must fail with the guard, got: {err}"
+            );
+        }
+        if !errs.is_empty() {
+            guard_engaged = true;
+        }
+    }
+
+    assert!(guard_engaged, "guard never rejected an overlapping scan");
 }
 
 #[test]
