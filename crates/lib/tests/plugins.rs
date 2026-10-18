@@ -35,6 +35,7 @@ impl GameStatusPlugin for MockGamePlugin {
 
 #[test]
 fn plugin_enriches_detected_game_activity() {
+    use std::time::{Duration, Instant};
     // Spawn a real test process to match against
     let mut child = Command::new("sleep").arg("9998").spawn().unwrap();
     let pid = child.id() as u64;
@@ -54,10 +55,21 @@ fn plugin_enriches_detected_game_activity() {
         state: "Ranked 5v5 (Searching...)".to_string(),
     });
 
-    let matches = s.scan_for_processes().unwrap();
-    let found = matches.iter().find(|m| m.pid == Some(pid));
-    assert!(found.is_some(), "spawned game process should be detected");
-    let detected = found.unwrap();
+    // `spawn` can return while the child's execve is still settling — its
+    // cmdline briefly reads as empty or as the parent's — so a single
+    // immediate scan can miss it under load. Poll instead.
+    let deadline = Instant::now() + Duration::from_secs(10);
+    let detected = loop {
+        let matches = s.scan_for_processes().unwrap();
+        if let Some(found) = matches.iter().find(|m| m.pid == Some(pid)) {
+            break found.clone();
+        }
+        assert!(
+            Instant::now() < deadline,
+            "spawned game process should be detected"
+        );
+        std::thread::sleep(Duration::from_millis(20));
+    };
 
     assert_eq!(
         detected.details.as_deref(),
