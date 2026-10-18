@@ -151,10 +151,27 @@ jobs:
           else
             cp "target/$TARGET/release/$PACKAGE$EXT" "dist/$NAME-$TARGET$EXT"
           fi
+      # The version goes into the artifact name so the published zip is
+      # `rsrpc-bridge-0.29.0-i686-pc-windows-gnu.zip` rather than a bare
+      # `<name>-<target>.zip`. The Homebrew tap bot matches release assets by
+      # version-stamped filename, so a version-less name can never be tracked
+      # and drifts forever. Falls back to the tag when rebuilding one.
+      - name: Resolve artifact name
+        id: artifact
+        shell: bash
+        env:
+          REF: ${{ needs.prepare.outputs.ref }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          NAME: ${{ matrix.name }}
+          TARGET: ${{ matrix.target }}
+        run: |
+          set -euo pipefail
+          version="${VERSION:-${REF#v}}"
+          echo "name=${NAME}-${version}-${TARGET}" >> "$GITHUB_OUTPUT"
       - name: Upload build artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: ${{ matrix.name }}-${{ matrix.target }}
+          name: ${{ steps.artifact.outputs.name }}
           path: dist/
           if-no-files-found: error
 
