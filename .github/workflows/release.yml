@@ -90,25 +90,30 @@ jobs:
             ext: ""
             package: rsrpc-cli
             name: rsrpc
+            extra: ""
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             ext: ".exe"
             package: rsrpc-cli
             name: rsrpc
+            extra: ""
           - os: macos-latest
             target: aarch64-apple-darwin
             ext: ""
             package: rsrpc-cli
             name: rsrpc
+            extra: ""
           # The Wine/Proton bridge: a 32-bit windows-gnu exe built on Linux,
           # meant to run inside the game's prefix alongside bridge.sh. i686 is
           # required: the bridge reaches the host through the i386 `int 0x80`
-          # gate, which Wine does not intercept.
+          # gate, which Wine does not intercept. bridge.sh resolves the exe
+          # from its own directory, so the two ship side by side.
           - os: ubuntu-latest
             target: i686-pc-windows-gnu
             ext: ".exe"
             package: rsrpc-bridge
             name: rsrpc-bridge
+            extra: "crates/bridge/scripts/bridge.sh"
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -133,34 +138,23 @@ jobs:
           TARGET: ${{ matrix.target }}
           PACKAGE: ${{ matrix.package }}
         run: cargo build -p "$PACKAGE" --release --target "$TARGET"
-      - name: Stage artifact
-        env:
-          TARGET: ${{ matrix.target }}
-          EXT: ${{ matrix.ext }}
-          PACKAGE: ${{ matrix.package }}
-          NAME: ${{ matrix.name }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p dist
-          if [ "$PACKAGE" = "rsrpc-bridge" ]; then
-            # Keep the bare exe name: bridge.sh launches `rsrpc-bridge.exe`
-            # from its own directory inside the prefix.
-            cp "target/$TARGET/release/$PACKAGE$EXT" dist/rsrpc-bridge.exe
-            cp crates/bridge/scripts/bridge.sh dist/
-          else
-            cp "target/$TARGET/release/$PACKAGE$EXT" "dist/$NAME-$TARGET$EXT"
-          fi
-      # Stamp the version into the artifact name, e.g.
-      # `rsrpc-bridge-0.29.0-i686-pc-windows-gnu.zip`. The Homebrew tap bot
-      # resolves a formula's next version by matching release assets against a
-      # version-stamped filename.
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      # Names the archive `<name>-<version>-<target>.zip` and uploads it under
+      # that same name, so the run, the release and a formula all agree.
+      #
+      # format and layout are pinned rather than defaulted: zip keeps the
+      # existing asset names, and flat keeps a bare binary at the archive root,
+      # which is what the formulae install from. The executable bit is recorded
+      # inside the archive, so the publish job needs no chmod step.
+      - name: Package artifact
+        uses: Delnegend/actions/package-artifact@735208d8cdad6af9702f23661cc1e9e8c024558e # v1
         with:
-          name: ${{ matrix.name }}-${{ needs.prepare.outputs.version }}-${{ matrix.target }}
-          path: dist/
-          if-no-files-found: error
+          name: ${{ matrix.name }}
+          version: ${{ needs.prepare.outputs.version }}
+          target: ${{ matrix.target }}
+          source: target/${{ matrix.target }}/release/${{ matrix.package }}${{ matrix.ext }}
+          extra: ${{ matrix.extra }}
+          format: zip
+          layout: flat
 
   publish:
     name: Publish Consolidated Release
@@ -171,20 +165,13 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          path: artifacts
-      - name: Zip each artifact
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p dist
-          # actions/download-artifact does not preserve the executable bit,
-          # so the zips would ship non-executable binaries and scripts
-          # (bridge.sh is a Steam launch option). Restore it before zipping.
-          find artifacts -type f -exec chmod +x {} +
-          for dir in artifacts/*/; do
-            folder="$(basename "$dir")"
-            (cd "$dir" && zip -j -r "../../dist/${folder}.zip" .)
-          done
+          path: dist
+          # Each matrix entry uploads one archive; merge them into a single
+          # directory rather than one subdirectory per entry.
+          merge-multiple: true
+      # No re-zip and no chmod: the build job already produced the release
+      # archive, and the executable bit is recorded inside it rather than
+      # having been stripped by the download.
       - name: Publish release
         if: needs.prepare.outputs.publish == 'true'
         uses: softprops/action-gh-release@5113cdc90fd4d541c801c55356214017bf5ae34b # v3
