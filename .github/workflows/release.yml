@@ -100,10 +100,12 @@ jobs:
             ext: ""
             package: rsrpc-cli
             name: rsrpc
-          # The Wine/Proton bridge: a windows-gnu exe built on Linux, meant
-          # to run inside the game's prefix alongside bridge.sh.
+          # The Wine/Proton bridge: a 32-bit windows-gnu exe built on Linux,
+          # meant to run inside the game's prefix alongside bridge.sh. It
+          # must be i686: the bridge reaches the host through the i386
+          # `int 0x80` gate, which Wine does not intercept.
           - os: ubuntu-latest
-            target: x86_64-pc-windows-gnu
+            target: i686-pc-windows-gnu
             ext: ".exe"
             package: rsrpc-bridge
             name: rsrpc-bridge
@@ -116,14 +118,14 @@ jobs:
       - uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
         with:
           targets: ${{ matrix.target }}
-      # *-windows-gnu links through mingw-w64's x86_64-w64-mingw32-gcc.
+      # *-windows-gnu links through mingw-w64's i686-w64-mingw32-gcc.
       - name: Install the mingw-w64 linker
-        if: matrix.target == 'x86_64-pc-windows-gnu'
+        if: matrix.target == 'i686-pc-windows-gnu'
         shell: bash
         run: |
-          if ! command -v x86_64-w64-mingw32-gcc >/dev/null; then
+          if ! command -v i686-w64-mingw32-gcc >/dev/null; then
             sudo apt-get update -qq
-            sudo apt-get install -y -qq gcc-mingw-w64-x86-64
+            sudo apt-get install -y -qq gcc-mingw-w64-i686
           fi
       - name: Build release binary
         shell: bash

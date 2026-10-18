@@ -25,7 +25,6 @@ fn main() {
 mod imp {
     use std::ffi::OsStr;
     use std::os::windows::ffi::OsStrExt;
-    use std::path::Path;
     use std::sync::Arc;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::thread;
@@ -48,62 +47,71 @@ mod imp {
         sun_path: [u8; 108],
     }
 
+    /// Issue an i386 Linux syscall through the `int 0x80` gate.
+    ///
+    /// The bridge must be built for `i686-pc-windows-gnu`. Wine intercepts the
+    /// x86-64 `syscall` instruction because it uses that instruction for its
+    /// own Unix calls, and decodes `rax` as a Wine unix-call id, so Linux
+    /// syscall numbers never reach the kernel. `int 0x80` is not intercepted:
+    /// the CPU traps straight into the kernel's i386 compat entry. This is the
+    /// same mechanism `wine-discord-ipc-bridge` uses.
+    ///
+    /// `ebx` cannot be an inline-asm operand because LLVM reserves it for PIC,
+    /// so it is saved around the trap and the arguments are loaded from
+    /// `edx`/`ecx`/`edi` into `ebx`/`ecx`/`edx` inside the block.
+    #[inline]
+    unsafe fn syscall(num: usize, a1: usize, a2: usize, a3: usize) -> isize {
+        let ret: isize;
+        unsafe {
+            core::arch::asm!(
+                "push ebx",
+                "mov ebx, edx",
+                "mov edx, edi",
+                "int 0x80",
+                "pop ebx",
+                inlateout("eax") num as isize => ret,
+                in("edx") a1,
+                in("ecx") a2,
+                in("edi") a3,
+                options(preserves_flags)
+            );
+        }
+        ret
+    }
+
+    /// `socketcall(2)`: `eax` = `SYS_socketcall` (102), `ebx` = call number,
+    /// `ecx` = pointer to the argument block.
+    #[inline]
+    unsafe fn socketcall(call: usize, args: *const usize) -> isize {
+        let ret: isize;
+        unsafe {
+            core::arch::asm!(
+                "push ebx",
+                "mov ebx, edx",
+                "int 0x80",
+                "pop ebx",
+                inlateout("eax") 102isize => ret,
+                in("edx") call,
+                in("ecx") args as usize,
+                options(preserves_flags)
+            );
+        }
+        ret
+    }
+
+    /// A connected Unix stream to the host rsRPC socket.
     struct LinuxSocket(i32);
 
     impl LinuxSocket {
-        #[cfg(target_arch = "x86_64")]
-        unsafe fn syscall(num: usize, a1: usize, a2: usize, a3: usize) -> isize {
-            let ret: isize;
-            unsafe {
-                core::arch::asm!(
-                    "syscall",
-                    inlateout("rax") num as isize => ret,
-                    in("rdi") a1,
-                    in("rsi") a2,
-                    in("rdx") a3,
-                    out("rcx") _,
-                    out("r11") _,
-                    options(nostack, preserves_flags)
-                );
-            }
-            ret
-        }
-
-        #[cfg(target_arch = "x86")]
-        unsafe fn syscall(num: usize, a1: usize, a2: usize, a3: usize) -> isize {
-            let ret: isize;
-            unsafe {
-                core::arch::asm!(
-                    "push ebx",
-                    "mov ebx, edx",
-                    "int 0x80",
-                    "pop ebx",
-                    inlateout("eax") num as isize => ret,
-                    in("edx") a1,
-                    in("ecx") a2,
-                    in("esi") a3,
-                    options(preserves_flags)
-                );
-            }
-            ret
-        }
-
         fn open_unix(path: &str) -> Option<Self> {
             let path_bytes = path.as_bytes();
             if path_bytes.len() >= 108 {
                 return None;
             }
 
-            // SYS_socket = 41 on x86_64, AF_UNIX = 1, SOCK_STREAM = 1, protocol = 0
-            #[cfg(target_arch = "x86_64")]
-            let fd = unsafe { Self::syscall(41, 1, 1, 0) };
-            #[cfg(target_arch = "x86")]
-            let fd = {
-                // SYS_socketcall = 102, SYS_SOCKET = 1
-                let args = [1usize, 1, 0];
-                unsafe { Self::syscall(102, 1, args.as_ptr() as usize, 0) }
-            };
-
+            // socketcall(SYS_SOCKET = 1, { AF_UNIX, SOCK_STREAM, 0 })
+            let socket_args = [1usize, 1, 0];
+            let fd = unsafe { socketcall(1, socket_args.as_ptr()) };
             if fd < 0 {
                 return None;
             }
@@ -115,48 +123,27 @@ mod imp {
             };
             addr.sun_path[..path_bytes.len()].copy_from_slice(path_bytes);
 
-            // SYS_connect = 42 on x86_64
-            #[cfg(target_arch = "x86_64")]
-            let res = unsafe { Self::syscall(42, fd as usize, &addr as *const _ as usize, 110) };
-            #[cfg(target_arch = "x86")]
-            let res = {
-                let args = [fd as usize, &addr as *const _ as usize, 110];
-                unsafe { Self::syscall(102, 3, args.as_ptr() as usize, 0) }
-            };
-
-            if res == 0 {
-                Some(Self(fd))
-            } else {
+            // socketcall(SYS_CONNECT = 3, { fd, &addr, addrlen })
+            let connect_args = [fd as usize, &addr as *const _ as usize, 110];
+            let res = unsafe { socketcall(3, connect_args.as_ptr()) };
+            if res != 0 {
                 unsafe {
-                    #[cfg(target_arch = "x86_64")]
-                    Self::syscall(3, fd as usize, 0, 0); // SYS_close = 3
-                    #[cfg(target_arch = "x86")]
-                    Self::syscall(6, fd as usize, 0, 0); // SYS_close = 6
+                    syscall(6, fd as usize, 0, 0); // SYS_close
                 }
-                None
+                tracing::debug!("connect({path}) failed: errno {}", -res);
+                return None;
             }
+            Some(Self(fd))
         }
 
         fn read(&self, buf: &mut [u8]) -> isize {
-            #[cfg(target_arch = "x86_64")]
-            unsafe {
-                Self::syscall(0, self.0 as usize, buf.as_mut_ptr() as usize, buf.len())
-            }
-            #[cfg(target_arch = "x86")]
-            unsafe {
-                Self::syscall(3, self.0 as usize, buf.as_mut_ptr() as usize, buf.len())
-            }
+            unsafe { syscall(3, self.0 as usize, buf.as_mut_ptr() as usize, buf.len()) } // SYS_read
         }
 
         fn write_all(&self, mut buf: &[u8]) -> bool {
             while !buf.is_empty() {
-                #[cfg(target_arch = "x86_64")]
-                let n =
-                    unsafe { Self::syscall(1, self.0 as usize, buf.as_ptr() as usize, buf.len()) };
-                #[cfg(target_arch = "x86")]
-                let n =
-                    unsafe { Self::syscall(4, self.0 as usize, buf.as_ptr() as usize, buf.len()) };
-
+                // SYS_write
+                let n = unsafe { syscall(4, self.0 as usize, buf.as_ptr() as usize, buf.len()) };
                 if n <= 0 {
                     return false;
                 }
@@ -167,10 +154,7 @@ mod imp {
 
         fn close(&self) {
             unsafe {
-                #[cfg(target_arch = "x86_64")]
-                Self::syscall(3, self.0 as usize, 0, 0);
-                #[cfg(target_arch = "x86")]
-                Self::syscall(6, self.0 as usize, 0, 0);
+                syscall(6, self.0 as usize, 0, 0); // SYS_close
             }
         }
     }
@@ -199,11 +183,12 @@ mod imp {
                     format!("{base}/snap.discord-canary/discord-ipc-{i}"),
                 ];
                 for candidate in &candidates {
-                    if Path::new(candidate).exists() {
-                        if let Some(sock) = LinuxSocket::open_unix(candidate) {
-                            tracing::info!("Connected to Linux socket: {candidate}");
-                            return Some(sock);
-                        }
+                    // No existence probe: under Wine `GetFileAttributes` never
+                    // reports a Unix socket, so checking would reject every
+                    // candidate. Connecting is the only reliable test.
+                    if let Some(sock) = LinuxSocket::open_unix(candidate) {
+                        tracing::info!("Connected to Linux socket: {candidate}");
+                        return Some(sock);
                     }
                 }
             }

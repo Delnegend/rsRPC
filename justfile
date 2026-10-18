@@ -24,9 +24,9 @@ bump version:
 # Build the Windows Proton/Wine bridge executable using container cross-compilation.
 bridge:
     podman run --rm -v "$(pwd)":/ws:z -w /ws docker.io/library/rust:1-bookworm bash -c '\
-      rustup target add x86_64-pc-windows-gnu >/dev/null 2>&1 && \
-      apt-get update -qq && apt-get install -y -qq gcc-mingw-w64-x86-64 >/dev/null 2>&1 && \
-      cargo build -p rsrpc-bridge --target x86_64-pc-windows-gnu --release'
+      rustup target add i686-pc-windows-gnu >/dev/null 2>&1 && \
+      apt-get update -qq && apt-get install -y -qq gcc-mingw-w64-i686 >/dev/null 2>&1 && \
+      cargo build -p rsrpc-bridge --target i686-pc-windows-gnu --release'
     mkdir -p dist
-    cp target/x86_64-pc-windows-gnu/release/rsrpc-bridge.exe dist/
+    cp target/i686-pc-windows-gnu/release/rsrpc-bridge.exe dist/
     cp crates/bridge/scripts/bridge.sh dist/
