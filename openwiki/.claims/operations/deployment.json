@@ -1,24 +1,24 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:65536d976543edf5c45cfd5cd618d33f6ea83d298b325bfccc537f1bb07b1323",
+  "pageVersion": "sha256:31c53e2207b0eef77bbabf32e514241a0d20f831ece6ee410c9ea754bdf28c6a",
   "claims": [
     {
       "id": "claim_d73dcf35bdc9431dbac786a275cf3244",
       "statement": "rsrpc-cli handles SIGINT signals gracefully to drop listeners and exit cleanly.",
       "evidence": [
         {
-          "resource": "repo://crates/cli/src/main.rs#L58-L67",
-          "version": "repo-lines-v1:sha256:5ace97b6a03b44b4fb51ae618ecfec3670f5f94d8ff8c3dbeaa846a0e4ed429d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzNWIxYzc4M2Q5OGZlYjI2N2FiMWExOGUyYThmYTY1ZGJjMWFkNGUxNDEyYTMxZmIyMjFiNzc3NzMyZTE5YzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2NjVmNTIzMmI0NTRmMzA3MWU0MTBkYWM4Y2Q5NWZiNzQyMDA4ZGU2YzhiMjhjYjA3NDVlYWIyNTdhYWViM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhMmFmMTAxMGQ5NzUyNmNjNDFiNGRhMzJkZGMzYTcwZjAzY2JkMjkwZjYxMGFkNGNhY2RhYjdjMzU1ZWE1NWMifQ"
+          "resource": "repo://crates/cli/src/main.rs#L57-L67",
+          "version": "repo-lines-v1:sha256:c98073c7ab22f7994dd2ad5f671434bbedfa27659cd22827515f6e336fe9583d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0YWQyMjE4MDIyNjZiNTFlMTIyOWZkYWIzMmI3N2NkOGVkMmNkNWUzMTIyZGY0YTI0ZGZkN2QyYzU1MWE2YmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExMWJhYzU1YWFkYTdkZTk3ZGI4N2YzZTI0OGQ4ZTc1NTgxMGYxZGZjZGVmN2I5NjllN2UzNTJhMWQzYzEyNTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhMmFmMTAxMGQ5NzUyNmNjNDFiNGRhMzJkZGMzYTcwZjAzY2JkMjkwZjYxMGFkNGNhY2RhYjdjMzU1ZWE1NWMifQ"
         }
       ]
     },
     {
       "id": "claim_7164ee9c8db143f586740a031c331c75",
-      "statement": "justfile defines a check recipe executing format, clippy, tests, and documentation gates.",
+      "statement": "justfile defines a check recipe that is the single CI gate, running `cargo fmt --check`, a `cargo metadata --locked` guard, clippy with `-D warnings`, the workspace tests, rustdoc with `-D warnings`, and `cargo audit` when cargo-audit is installed.",
       "evidence": [
         {
-          "resource": "repo://justfile#L4-L10",
-          "version": "repo-lines-v1:sha256:f08c4c5e09f758d98c08fc963f4332d7b6a1125cd82c9b536ad3dbd6171a828a:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWVhNzBhZmUzYTY1OWYxODAzZDhkOWU1YTlkOTUwOGJjMDllY2E2YjAyYWM3YjI4YTEzZjNlMjhiZjBiMjEwYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmVkN2U2YzNjNTBjNDZhNTdiMjFjN2ExMmEzMDhiYTU1MGI2Y2NkNDQxYTQ5NmFkNTgxOWFmNmUxMzA5MzY4YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzQ2MWY0NzZkYWZhOTU1MzM1OWY0MGM2NDQ1ZjM0MzZmMTUwODIxYzMxNjI1ODJjYWVhMzRhNzdjZDNmYmMyZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmRlZTQwYWMzM2MxZTZkNjc2ZTBmNDIzMWQwYzlmZDk0ZjU1ODE3MWE0MmI0MzJiNzJjMzZiYzZiZjFhMzJiZSJ9"
+          "resource": "repo://justfile#L4-L13",
+          "version": "repo-lines-v1:sha256:9d69ffcf4fdbc4336059ba5e611f961da4c831d7ac8ef7f762363cdc939cb417:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllYTcwYWZlM2E2NTlmMTgwM2Q4ZDllNWE5ZDk1MDhiYzA5ZWNhNmIwMmFjN2IyOGExM2YzZTI4YmYwYjIxMGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlZDdlNmMzYzUwYzQ2YTU3YjIxYzdhMTJhMzA4YmE1NTBiNmNjZDQ0MWE0OTZhZDU4MTlhZjZlMTMwOTM2OGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc0NjFmNDc2ZGFmYTk1NTMzNTlmNDBjNjQ0NWYzNDM2ZjE1MDgyMWMzMTYyNTgyY2FlYTM0YTc3Y2QzZmJjMmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJkZWU0MGFjMzNjMWU2ZDY3NmUwZjQyMzFkMGM5ZmQ5NGY1NTgxNzFhNDJiNDMyYjcyYzM2YmM2YmYxYTMyYmUifQ"
         }
       ]
     },
@@ -27,14 +27,24 @@
       "statement": "justfile defines a containerized bridge recipe targeting x86_64-pc-windows-gnu.",
       "evidence": [
         {
-          "resource": "repo://justfile#L21-L28",
+          "resource": "repo://justfile#L25-L32",
           "version": "repo-lines-v1:sha256:7e15dd2166eed19436c2cb11ffd54ddff10f7d4d13687e92ca7539300eaf0649:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzM4YjQ2MzI0MjBmMjA4ZGIzYmZiOGMyOGEzMmZmNThmM2M1MWNjNWY5NjFiYzRmZTQ4YzI4NjAzOTUwNDk1YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDVlZDdiOTcyYWY1MzE4MTFmNDIxYTM3ZDAxYjgwNzEwMWU0NDg1MDBkY2U1OTE4NDllYmY5MzFhYjU3NjAyNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDY1YmEwNDI1MzAzZTI5N2NhYTE4ZTYyMzc5NjBjZjFjZjJjNGU3ZTQwMDQ2ZGE4NzhjNTA2OTU4YjE0NDJhOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_da29a32c541e458b87ed2d28c0b4d75f",
+      "statement": "The Homebrew tap installs rsrpc as `rsrpc`, and the systemd unit invokes it from `PATH`, with an absolute path documented for release-zip installs.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L15-L32",
+          "version": "repo-lines-v1:sha256:24d6839e557d2daec43e50ee6e866ab41269076dd1d743139a54debb252dd41e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyOWE0OTAwZTI5MmM0NTU0YTQwNTliOWRkMThmOTY1YzgxYzJmMWUxMmZjNDhlODY4MmFlMzI2MzAyOWNiYjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YzA2YzU2MWQ1YzMyNzM0MzY4NTI2OGE0NmIzMzkxZjM5OThlZWU4OTBkMmJlNTFmMGQyMWNjNGE1M2FlNmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMWYyZWMxNzU5M2MxMDU0ZWI0NjM2N2Q4NDUzZWYyNGExNzNjZTk2YjcxMTdkOTFmOWE2OGQ0NGZlZjhiMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmNDY3NTYzODAwNTkxOGE2YmIxZDY2ZjMwNGNlMDIxOWE4M2RiNGY4ZTIzZTEwNjFiYTJmNTU1NjAxYzRlMDIifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.2",
-    "at": "2026-10-17T15:23:46.177Z"
+    "at": "2026-10-18T06:59:24.615Z"
   }
 }

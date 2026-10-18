@@ -17,19 +17,35 @@
 Get running in less than 60 seconds:
 
 ```bash
-# 1. Install — grab the binary for your OS from Releases
-curl -fSLO https://github.com/Delnegend/rsRPC/releases/latest/download/rsrpc-x86_64-unknown-linux-gnu.zip && unzip rsrpc-*.zip
+# 1. Install
+brew install Delnegend/tap/rsrpc
 
 # 2. Run it — fetches Discord's game list automatically
-./rsrpc-cli
+rsrpc
+```
+
+Playing Windows games through Steam Play or Proton? Install the bridge too, then point the game's Steam launch options at it:
+
+```bash
+brew install Delnegend/tap/rsrpc-bridge
+# Steam launch options: $(brew --prefix)/opt/rsrpc-bridge/libexec/bridge.sh %command%
+```
+
+Not on Homebrew? Grab the binary for your OS from [Releases](https://github.com/Delnegend/rsRPC/releases):
+
+```bash
+curl -fSLO https://github.com/Delnegend/rsRPC/releases/latest/download/rsrpc-x86_64-unknown-linux-gnu.zip && unzip rsrpc-*.zip
+./rsrpc-x86_64-unknown-linux-gnu
 ```
 
 Open Discord and launch a game: your status updates. Press `Ctrl+C` to stop.
 
 ## Highlights
 
+- **One command to install** — `brew install Delnegend/tap/rsrpc`; the tap follows releases, so `brew upgrade` keeps you current.
 - **Zero setup for most games** — downloads Discord's detectable-games list on start, no config file needed.
 - **Catches games three ways** — running-process scan, local socket, and browser websocket, so odd launchers still show up.
+- **Windows games too** — the `rsrpc-bridge` formula covers Proton and Wine games that never touch the host IPC socket.
 - **Your list, your rules** — point it at your own `detectable.json`, or add and scan games while it runs.
 - **Use it as a part, not just an app** — the `rsrpc` crate embeds the same server in your own Rust program.
 
@@ -37,7 +53,7 @@ Open Discord and launch a game: your status updates. Press `Ctrl+C` to stop.
 
 ```bash
 # Use your own game list instead of Discord's
-./rsrpc-cli --detectable-file ./detectable.json
+rsrpc --detectable-file ./detectable.json
 ```
 
 | Option | Default | Description |
@@ -64,12 +80,12 @@ For connectors, event flow, and design notes, see **[Architecture Overview](open
 
 ## Documentation (OpenWiki)
 
-- **[Quickstart](openwiki/quickstart.md)** — Get running in under 60 seconds with CLI, Docker, or systemd.
+- **[Quickstart](openwiki/quickstart.md)** — Get running in under 60 seconds with Homebrew, Docker, or systemd.
 - **[Architecture Overview](openwiki/architecture/overview.md)** — Connectors, event flow, and invariants.
 - **[Activity Middleware](openwiki/architecture/middleware.md)** — Sanitization pipeline for thread names and mod watermarks.
 - **[Proton & Wine Bridge](openwiki/integrations/proton-bridge.md)** — Connect Windows games running in Steam Proton, Lutris, or Wine.
 - **[Configuration](openwiki/operations/configuration.md)** — CLI flags, `RPCConfig`, env vars, and the Rust API.
-- **[Deployment & Operations](openwiki/operations/deployment.md)** — Install from releases and run under systemd.
+- **[Deployment & Operations](openwiki/operations/deployment.md)** — Install from Homebrew or releases, and run under systemd.
 
 ## License
 

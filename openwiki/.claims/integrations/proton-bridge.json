@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:f3ec8d02c58010a63a74f73b783a620e5f3028d6dc3a3e4c2ecb794945d1c0d2",
+  "pageVersion": "sha256:b438dabda3d8273b9c1b614452f24294c5c5cd6cd3bc25c2dba49c4636c56239",
   "claims": [
     {
       "id": "claim_37894be2a57c4659a035a0d189408758",
@@ -35,10 +35,30 @@
           "version": "repo-lines-v1:sha256:77986bcf96f030850be4f2779042dd8ecf566f8dbd0bac3a565f384e979e1b5d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4NzVmOTI4NTQ2YWVlNzg1NWNiMWRiOWFmYzhhYjNmMWE4YTM0ZDQzZGU1YmJkNjJmNzA3NmQ3YmE5ZjM5MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4ZjIxODFiOWIzNDA0OTRjNzljYzBiNmNiNTUxYjJiMjY0NDFiYWZlMTRlYzc3ZDhjNzc3MDIyMWE2MWE0ZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzMDFhZTk3NDgxMjI5ZDlkYTg0MGE3ZDg1YjhiZjk1ZGQ4YzMzNzg2Njk2Y2Y5NTc5ZjRlYmRhZDM5ZGNmMDcifQ"
         }
       ]
+    },
+    {
+      "id": "claim_5cac82958cee478fa63ac7e268a6ecb8",
+      "statement": "The `rsrpc-bridge` Homebrew formula installs `rsrpc-bridge.exe` and `bridge.sh` into `$(brew --prefix)/opt/rsrpc-bridge/libexec/` rather than onto `PATH`, because `bridge.sh` resolves the exe relative to its own directory and the Windows exe is not runnable on the host.",
+      "evidence": [
+        {
+          "resource": "repo://crates/bridge/scripts/bridge.sh#L5-L6",
+          "version": "repo-lines-v1:sha256:7079b9057c0043f953fa0842571dc0641e04298e0495a170be053f0c6676dd40:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGIxMzliM2E0NTRjMGYzMGY2MjU0YTk5OWE3ZjBiZDhjZDNhYmIyZDBkYWFlNDlhZWRmYWIzNjFlY2JjMGE5NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWI2MDliMWM4ZTg3MjI1ZjU3NDg5OGMzYzIyNmFmY2RmMGJhMjU2MTBmMDkxNjU2MGUyMGUwMWZlYjE0ZmQ5NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjRlZjA1YjI4NTQ1M2M0NmUwZGU0NDNmYTZmYjQ3ODA0Y2IwMjYzM2NlZDkxYjg1NzVhZDQ4NWQ5ZjQwMDI5ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjg2MWE2YWJkODhkNjVmMWRjMjNjNWY2NjQzOGM1YzhiY2QxZDAxMTQ4ZTIyYmY3MmY3NmYzM2M1MzQ2NzliNiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8dd07856087440ff8b15f470eabb8a6d",
+      "statement": "Every release publishes `rsrpc-bridge-x86_64-pc-windows-gnu.zip` containing both `rsrpc-bridge.exe` and `bridge.sh`, so the bridge can be installed by unzipping the artifact instead of using the tap or `just bridge`.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/release.yml#L103-L151",
+          "version": "repo-lines-v1:sha256:b748dd961a1cb768a7bfdb27cf9f66753b965f20c55d323c682c225abe6bd6c8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiMmIwOGZmMDkzMzE5NDRkMDU3ZWQyNTA1NzZjN2Y4MTAyNjIzNDc4ZjRkNmE2NDM3ZDg4ZGZhZWVmNWU1YjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmNTU5NzljZTczMDIwMzNlNmIyZmQ3ZDg4ZjUzN2EzYjhlMDkxZWEzMDVjODExZmZhMTI3NGJmNTc2NGVhNWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhYzRkZjQ5YWQ0MTI1NDI0ZjM5ODRmZGEyMWUwOWM1Yzc5OThkYzVlNzhhOGY5Zjg3YWJmZDMwMTVkOTJmMTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiZjJhN2E5ZWMxNzM4YmY4ODg2ZjM3YTcxYTNhZTMyODdhMTIzY2JiOWIwNDk2MzgyMjFjMDAxMDY2N2Y0NTUifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.2",
-    "at": "2026-10-17T15:23:46.177Z"
+    "at": "2026-10-18T06:59:24.615Z"
   }
 }

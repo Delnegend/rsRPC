@@ -18,10 +18,12 @@ sources:
     resource: repo://crates/lib/src/server/process.rs
   - id: openwiki-source-0da527745131e25b52757419
     resource: repo://crates/lib/src/server/websocket.rs
-generated: { by: "omp", at: "2026-10-17T16:21:17.267Z" }
+  - id: openwiki-source-bda2ffefb68135e3d414bf28
+    resource: repo://crates/lib/tests/api_errors.rs
+generated: { by: "omp", at: "2026-10-18T06:59:24.615Z" }
 verified:
   - by: openwiki/0.7.2
-    at: 2026-10-17T16:21:17.267Z
+    at: 2026-10-18T06:59:24.615Z
 ---
 
 # Architecture Overview
@@ -58,12 +60,13 @@ Owns the local `discord-ipc-0` socket (`$XDG_RUNTIME_DIR/discord-ipc-0` on Linux
 Hunts sequentially for an available port across its candidate range — `6463` through `6472` inclusive by default, overridable via the `RSRPC_WS_PORTS` environment variable (a single port or an inclusive range) — to accept browser-based games and secondary Discord events (`INVITE_BROWSER`, `SET_ACTIVITY`). Origin headers are strictly checked against `VALID_ORIGINS` before payload deserialization. If every candidate port is taken, `RPCServer::start` logs a warning and continues with a disabled facade (no listener) rather than failing to start.
 
 ### 4. Client Connector Hub (`server/client_connector.rs`)
-The central event broker. Listens on port `1337` (or configured port) where Discord clients (such as Vesktop, web clients, or open-source clients) connect. Channels from the Process Scanner, IPC Connector, and WebSocket Connector deliver events to the hub over `std::sync::mpsc` channels.
+The central event broker. Listens on port `1337` (or configured port) where Discord clients (such as Vesktop, web clients, or open-source clients) connect. Channels from the Process Scanner, IPC Connector, and WebSocket Connector deliver events to the hub over `std::sync::mpsc` channels. Because its port is fixed, a bind failure here is fatal to startup (see the invariants below), which is why the constructor reports an `io::Error` of kind `AddrInUse` rather than degrading.
 
 ## System Invariants & Guarantees
 
-- **Single-Flight Initialization:** `RPCServer::start()` initializes all connector threads once. Re-calling `start()` or modifying callbacks after initialization returns `RpcError::AlreadyStarted`.
+- **Single-Flight Initialization:** `RPCServer::start()` initializes all connector threads once and returns `Result<(), RpcError>`. Calling it again returns `RpcError::AlreadyStarted`, and mutators that need a running server (such as `on_process_scan_complete`) report `RpcError::NotStarted` before it or `RpcError::AlreadyStarted` after.
 - **Fail-Open Stale Socket Recovery:** If an existing IPC socket is found on the filesystem, `rsrpc` attempts connecting to it. If the connection fails (indicating a dead process leftover), `rsrpc` unlinks the dead socket and re-binds cleanly.
 - **Degraded Connectors Don't Kill the Daemon:** If no IPC socket can be bound, the IPC connector comes up disabled (logged error) instead of exiting the process, and if no websocket port can be bound, `RPCServer::start` continues with a disabled facade (logged warning). The process scanner and client connector hub keep serving.
+- **The Client Connector Is the One Hard Failure:** The hub binds a fixed port, so when it cannot (typically because another instance already owns it), `start` logs the error and returns `RpcError::Io` with kind `AddrInUse` instead of degrading. Nothing is initialized in that case, so the server is left unstarted and mutators still report `RpcError::NotStarted` — a failed start never yields a half-started daemon.
 - **Immediate State Replay on Connect:** `ClientConnector` caches the latest active activity payload (`last_payload`). When a Discord client connects or reconnects after game startup, `rsrpc` immediately replays the cached activity frame following the `READY` handshake.
 - **Unbounded Stalls Contained:** Every IPC stream runs in its own thread; stalled clients block only their connection thread without starving the central listener or other connectors.

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:7331031b2bdadb7e8c7889dee42a7d315fe462897a3f62b4a96eb0bedaa8bdee",
+  "pageVersion": "sha256:fccb0f1c47e2683b83de47b27a83f112503e8b6aaa605689ddba136d6a9058e5",
   "claims": [
     {
       "id": "claim_d14749b3cbc54f92839dc95f7a51dd97",
@@ -17,14 +17,38 @@
       "statement": "rsrpc-cli sets up a ctrlc handler to gracefully shut down the client on SIGINT.",
       "evidence": [
         {
-          "resource": "repo://crates/cli/src/main.rs#L57-L66",
-          "version": "repo-lines-v1:sha256:881b570b77905f83d1cdac69f4116dee5f8bbf65afcae597b0ca9be2d1038e5e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0YWQyMjE4MDIyNjZiNTFlMTIyOWZkYWIzMmI3N2NkOGVkMmNkNWUzMTIyZGY0YTI0ZGZkN2QyYzU1MWE2YmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNGVlNDM4YTY3MjkxOGYxNmEyY2RmNjZhMjc1ZDMwZTYxYTBjYTkyNzU3NTBkYTRjZGRjZWYyZTk3MjMwODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5MTc3NzNmODk5MjAyMmE0MDYxYjdjMTUzMTc2ZjQyNjI2MDIyNmE3YjBjZWE2NTUzMmQyZDVkZjZkOTgxM2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhiY2YxOTU3ZjQ2OGYzMGE3MjZlYTBmNWM4ZDQxNTEwM2Q1NDBlOTdjMTkwZGY0ZjYxMjQ3ZmU0ZmM5OTliMWIifQ"
+          "resource": "repo://crates/cli/src/main.rs#L57-L67",
+          "version": "repo-lines-v1:sha256:c98073c7ab22f7994dd2ad5f671434bbedfa27659cd22827515f6e336fe9583d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0YWQyMjE4MDIyNjZiNTFlMTIyOWZkYWIzMmI3N2NkOGVkMmNkNWUzMTIyZGY0YTI0ZGZkN2QyYzU1MWE2YmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExMWJhYzU1YWFkYTdkZTk3ZGI4N2YzZTI0OGQ4ZTc1NTgxMGYxZGZjZGVmN2I5NjllN2UzNTJhMWQzYzEyNTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhMmFmMTAxMGQ5NzUyNmNjNDFiNGRhMzJkZGMzYTcwZjAzY2JkMjkwZjYxMGFkNGNhY2RhYjdjMzU1ZWE1NWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4ee21df16d9c40a39d88b044ac80689d",
+      "statement": "The documented primary install path is the Homebrew tap (`brew install Delnegend/tap/rsrpc`), with the release-zip download and a source build kept as fallbacks.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L15-L45",
+          "version": "repo-lines-v1:sha256:74012672f8df7d7c4f5f211fa0887dba4448c8d6f57214272e4f0e0ecad67dcf:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyOWE0OTAwZTI5MmM0NTU0YTQwNTliOWRkMThmOTY1YzgxYzJmMWUxMmZjNDhlODY4MmFlMzI2MzAyOWNiYjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlNjZkNDE5OTBhODc4YWEwNWI2ODNlN2M2OTIxYWQ4YzU2MjVjODdjMzUzODBmZjBmMjRiYzE1OTFjNDZjMzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMWYyZWMxNzU5M2MxMDU0ZWI0NjM2N2Q4NDUzZWYyNGExNzNjZTk2YjcxMTdkOTFmOWE2OGQ0NGZlZjhiMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwOThhYzFkZTU3NTUyNTZkNWFjZmJlMjZhMjFiNWFmY2M3MzYwNGYxYzVkZmNhNTljOWQwNmI0ZmIzMzIzN2EifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_44042a95a9614361a2d7e8ce23988ab8",
+      "statement": "Proton and Wine users install `Delnegend/tap/rsrpc-bridge` and set the Steam launch option to `$(brew --prefix)/opt/rsrpc-bridge/libexec/bridge.sh %command%`.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L26-L30",
+          "version": "repo-lines-v1:sha256:4a7ea6f9b27e8b9c39c3739067dcff7d7e2a44e40a4388c9b39e787b17041720:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjk4MTIyNDQyNTkyODUxNzYwZGFkMzZlN2M3MDBkNmVkMGJlMGVjNjQ0ZTAyZDU4ZTA2OGZjNWExY2RmYWEwMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjFjNGY5MjVlZTFiNGYzZTIzYTkxNGRlZTI1YjU4M2MwNmQ2YTJjZDAyNTlhMDM2ZjljMjE1NzQ1OGZiYjk4NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTM1MTc5OGM2OTgzOWY0YjRiYWY0ZmFkOTUzYzZmMGYwZTlhZTgwY2U5NTIxZWQ5OGNmNGMzMjA4OGVhOTZhYyJ9"
+        },
+        {
+          "resource": "repo://crates/bridge/scripts/bridge.sh#L5-L6",
+          "version": "repo-lines-v1:sha256:7079b9057c0043f953fa0842571dc0641e04298e0495a170be053f0c6676dd40:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGIxMzliM2E0NTRjMGYzMGY2MjU0YTk5OWE3ZjBiZDhjZDNhYmIyZDBkYWFlNDlhZWRmYWIzNjFlY2JjMGE5NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWI2MDliMWM4ZTg3MjI1ZjU3NDg5OGMzYzIyNmFmY2RmMGJhMjU2MTBmMDkxNjU2MGUyMGUwMWZlYjE0ZmQ5NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjRlZjA1YjI4NTQ1M2M0NmUwZGU0NDNmYTZmYjQ3ODA0Y2IwMjYzM2NlZDkxYjg1NzVhZDQ4NWQ5ZjQwMDI5ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjg2MWE2YWJkODhkNjVmMWRjMjNjNWY2NjQzOGM1YzhiY2QxZDAxMTQ4ZTIyYmY3MmY3NmYzM2M1MzQ2NzliNiJ9"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.2",
-    "at": "2026-10-17T15:23:46.177Z"
+    "at": "2026-10-18T06:59:24.615Z"
   }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:d800959b59ee92a9f1d26d74cb7a81da18dbe97de4f20b226b1a843b3b83199a",
+  "pageVersion": "sha256:b6dd6189d5dd54848164cf7b310bf791f5300ff948ab68234f51f3815d8272f0",
   "claims": [
     {
       "id": "claim_2d7f0365d5334a328ada314a03bc7b55",
@@ -37,15 +37,15 @@
       "statement": "ClientConnector applies MiddlewarePipeline across all three activity sources: IPC stream, process scanner, and WebSocket.",
       "evidence": [
         {
-          "resource": "repo://crates/lib/src/server/client_connector.rs#L229-L232",
+          "resource": "repo://crates/lib/src/server/client_connector.rs#L230-L233",
           "version": "repo-lines-v1:sha256:532ba81f815edf941cc65182a8b526f93463265dae0fd026a3aba70384101980:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmY2ZDNjNzc3YmEyMzJmZjUzMDM4ZWQ3NDZiMTQ1MjJlOWIyMjViM2YxYTI3NTU3NzA4ZTJlYjQ0YmIyYmY3NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDZmOTdjNjhhOTIyMTE2YTM0NTQzMDhjYjVmM2ZkZjFhY2MyMWM5NTFhZGI3YjA4NGViZTBlZjc3MzZhYmYzNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmNlNWU4MDgyYmQ3MTQ0NzY4YWVkOTU4NmEzYjYwZDg4ZWZlY2RjYjQ1Y2RjMzI4N2Y4MTc4NGNlMWVlYzg3MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYThmNmNjNzUyOWQ4MmU1ZDE5NTRkYmMzMjU1NjZmNDAwNzJiNjEwNDFhYjlmMzkzZDQxZTg5MmY2MmI2MjUzZCJ9"
         },
         {
-          "resource": "repo://crates/lib/src/server/client_connector.rs#L293-L298",
+          "resource": "repo://crates/lib/src/server/client_connector.rs#L294-L299",
           "version": "repo-lines-v1:sha256:d322b209dfb898aceacb84eb38b59d04d9a9cda1a7b86edc9769ba84e449d255:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDJmNDdmZDE1MzliM2NjNTU0MmY1NTExZGNmMzllZmFjMmUxOWE0MzdlNjJkMTE2MGNhZjc0MDNjNGFiNjk3NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzg3ODZkZjI2MDFlMjdmN2FkZTI0YmU1YzQ2MTg3NWQ4NTRjNjhhNzdlODkxZTBlYmE4NmQ2MWIxNWE2OWVkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjQ3NWUxOWFkYzExOGVkMWZmZTIxMDc3YTMyZWVlODk2ZTcyMzdmNjM4Y2I5NDkwODcwOWNiZjRhYTdhNjVlZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzY5ZTUzZWM1ZjcyMjRkZTVlNWJlN2IyOGU0NGUyMGNlM2ZhMTIxM2NiMTc3ZmI4ZjA3ZDA4MGRjMDcwZmQ2YyJ9"
         },
         {
-          "resource": "repo://crates/lib/src/server/client_connector.rs#L369-L372",
+          "resource": "repo://crates/lib/src/server/client_connector.rs#L370-L373",
           "version": "repo-lines-v1:sha256:4e51f39cfe7e33166e3aeffdb243cf448b00884b31cd3402009c53f9bc9efe79:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmY2ZDNjNzc3YmEyMzJmZjUzMDM4ZWQ3NDZiMTQ1MjJlOWIyMjViM2YxYTI3NTU3NzA4ZTJlYjQ0YmIyYmY3NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDZmOTdjNjhhOTIyMTE2YTM0NTQzMDhjYjVmM2ZkZjFhY2MyMWM5NTFhZGI3YjA4NGViZTBlZjc3MzZhYmYzNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmNlNWU4MDgyYmQ3MTQ0NzY4YWVkOTU4NmEzYjYwZDg4ZWZlY2RjYjQ1Y2RjMzI4N2Y4MTc4NGNlMWVlYzg3MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYThmNmNjNzUyOWQ4MmU1ZDE5NTRkYmMzMjU1NjZmNDAwNzJiNjEwNDFhYjlmMzkzZDQxZTg5MmY2MmI2MjUzZCJ9"
         }
       ]
@@ -53,6 +53,6 @@
   ],
   "verification": {
     "by": "openwiki/0.7.2",
-    "at": "2026-10-17T15:23:46.177Z"
+    "at": "2026-10-18T06:59:24.615Z"
   }
 }

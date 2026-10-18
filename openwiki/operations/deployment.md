@@ -8,25 +8,45 @@ sources:
     resource: repo://crates/cli/src/main.rs
   - id: openwiki-source-c59fe4336a371ea1052a01dd
     resource: repo://justfile
-generated: { by: "openwiki", at: "2026-10-17T15:02:42.014Z" }
+  - id: openwiki-source-23775c3de52f3ab95a13cb8b
+    resource: repo://README.md
+generated: { by: "omp", at: "2026-10-18T06:59:24.615Z" }
 verified:
   - by: openwiki/0.7.2
-    at: 2026-10-17T15:23:46.177Z
+    at: 2026-10-18T06:59:24.615Z
 ---
 
 # Deployment & Operations
 
 This guide describes deploying, managing, and monitoring `rsrpc` as a long-running daemon under Linux.
 
-## Installation from Release
+## Installation
 
-Every release publishes pre-compiled binaries:
+Homebrew is the primary install path. The tap installs the prebuilt release
+binary where one is published (Linux x86_64, macOS arm64) and builds from the
+release tag elsewhere, and a scheduled bot bumps it on every release:
+
+```bash
+brew install Delnegend/tap/rsrpc
+rsrpc --version
+```
+
+Playing Proton or Wine games? Add the bridge formula in the same command:
+
+```bash
+brew install Delnegend/tap/rsrpc-bridge
+```
+
+### Installing from a Release Instead
+
+Every release also publishes pre-compiled binaries, which is the route to take
+without Homebrew:
 
 ```bash
 # Download latest Linux release
 curl -fSLO https://github.com/Delnegend/rsRPC/releases/latest/download/rsrpc-x86_64-unknown-linux-gnu.zip
 unzip rsrpc-*.zip
-install -m 755 rsrpc-cli ~/.local/bin/rsrpc-cli
+install -m 755 rsrpc-x86_64-unknown-linux-gnu ~/.local/bin/rsrpc
 ```
 
 ## Systemd User Service (Linux)
@@ -42,7 +62,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=%h/.local/bin/rsrpc-cli
+ExecStart=rsrpc
 Restart=on-failure
 RestartSec=5s
 Environment=RUST_LOG=info
@@ -50,6 +70,10 @@ Environment=RUST_LOG=info
 [Install]
 WantedBy=default.target
 ```
+
+`ExecStart=rsrpc` resolves the Homebrew binary on `PATH`. If you installed a
+release binary somewhere outside `PATH`, use its absolute path instead, for
+example `ExecStart=%h/.local/bin/rsrpc`.
 
 Enable and start the service:
 
@@ -80,7 +104,13 @@ Verify that the daemon is functioning properly:
 
 | Check | Command | Expected Healthy Output | Action if Failing |
 |---|---|---|---|
-| **Daemon Process** | `pgrep -a rsrpc-cli` | Process PID visible | Start service: `systemctl --user start rsrpc` |
+| **Daemon Process** | `pgrep -a rsrpc` | Process PID visible | Start service: `systemctl --user start rsrpc` |
 | **IPC Socket** | `ls -l "$XDG_RUNTIME_DIR"/discord-ipc-0` | Socket file exists with read/write permissions | Check directory permissions or unbind stale files |
 | **Client Connector** | `ss -tlnp \| grep 1337` | Listening on `127.0.0.1:1337` | Verify port 1337 is not taken by another process |
 | **Tracing Logs** | `journalctl --user -u rsrpc -n 20` | `Done! Watching for activity...` | Check logs for bind or permission errors |
+
+A service that starts and then immediately exits is usually the client
+connector failing to bind port 1337, because that is the one connector whose
+bind failure aborts startup: the daemon logs the error and exits non-zero
+instead of lingering as a process that serves nothing. Look for a
+`Client connector failed` line in the journal.

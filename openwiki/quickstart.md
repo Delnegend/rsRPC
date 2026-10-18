@@ -4,12 +4,16 @@ title: Quickstart
 description: Get up and running with rsRPC on Linux in under 60 seconds.
 tags: [quickstart, guide, install, run]
 sources:
+  - id: openwiki-source-125fd31acef08c140d0a0374
+    resource: repo://crates/bridge/scripts/bridge.sh
   - id: openwiki-source-58783f5f62c54fb0c3ee36cf
     resource: repo://crates/cli/src/main.rs
-generated: { by: "openwiki", at: "2026-10-17T15:02:42.014Z" }
+  - id: openwiki-source-23775c3de52f3ab95a13cb8b
+    resource: repo://README.md
+generated: { by: "omp", at: "2026-10-18T06:59:24.615Z" }
 verified:
   - by: openwiki/0.7.2
-    at: 2026-10-17T15:23:46.177Z
+    at: 2026-10-18T06:59:24.615Z
 ---
 
 # Quickstart
@@ -23,7 +27,7 @@ sequenceDiagram
     participant RSRPC as rsRPC Daemon
     participant Discord as Discord Client
 
-    Player->>RSRPC: Launch rsrpc-cli
+    Player->>RSRPC: Launch rsrpc
     RSRPC->>RSRPC: Bind discord-ipc-0 & Hub :1337
     Player->>Game: Launch game
     Game->>RSRPC: Connect to discord-ipc-0 (or scanned)
@@ -33,9 +37,32 @@ sequenceDiagram
 ```
 *End-to-end presence flow from game launch through rsRPC to the Discord client.*
 
-## 1. Quick Launch (Pre-compiled Binary)
+## 1. Install and Run (Homebrew)
 
-Download and extract the latest release binary:
+The tap is the primary install path. It ships the prebuilt binary, follows
+releases automatically, and upgrades with the rest of your system:
+
+```bash
+# Install
+brew install Delnegend/tap/rsrpc
+
+# Start the daemon — it fetches Discord's game list on first run
+rsrpc
+```
+
+Open your Discord client (Vesktop, Discord Web, or Discord Desktop) and launch a game. Your Rich Presence updates automatically.
+
+Press `Ctrl+C` to stop the daemon cleanly.
+
+Keep it current the usual way:
+
+```bash
+brew upgrade rsrpc
+```
+
+### Without Homebrew
+
+Every release publishes pre-built binaries:
 
 ```bash
 # Download and unpack
@@ -43,14 +70,10 @@ curl -fSLO https://github.com/Delnegend/rsRPC/releases/latest/download/rsrpc-x86
 unzip rsrpc-*.zip
 
 # Start the daemon
-./rsrpc-cli
+./rsrpc-x86_64-unknown-linux-gnu
 ```
 
-Open your Discord client (Vesktop, Discord Web, or Discord Desktop) and launch a game. Your Rich Presence updates automatically.
-
-Press `Ctrl+C` to stop the daemon cleanly.
-
-## 2. Compile From Source
+### From Source
 
 To build and run directly from this repository:
 
@@ -62,20 +85,26 @@ cargo build -p rsrpc-cli --release
 ./target/release/rsrpc-cli
 ```
 
-## 3. Windows Games on Steam (Proton)
+## 2. Windows Games on Steam (Proton)
 
-If you play Windows games through Steam Play / Proton, enable the built-in bridge:
+If you play Windows games through Steam Play / Proton, install the bridge. It
+is a Windows proxy that runs inside the game's Wine prefix and relays its named
+pipe to the host socket:
 
 ```bash
-# 1. Build or copy bridge artifacts
-just bridge
-mkdir -p ~/.local/share/rpc-bridge
-cp dist/rsrpc-bridge.exe dist/bridge.sh ~/.local/share/rpc-bridge/
-chmod +x ~/.local/share/rpc-bridge/bridge.sh
+# 1. Install the bridge
+brew install Delnegend/tap/rsrpc-bridge
 
 # 2. Add to game launch options in Steam
-~/.local/share/rpc-bridge/bridge.sh %command%
+$(brew --prefix)/opt/rsrpc-bridge/libexec/bridge.sh %command%
 ```
+
+Prefer not to use the tap? Unzip `rsrpc-bridge-x86_64-pc-windows-gnu.zip` from
+a release, or build it with `just bridge`, then keep the `.exe` next to
+`bridge.sh` in a directory of your choice and point the launch option at it.
+
+See the [Wine & Proton Bridge](integrations/proton-bridge.md) page for how the
+sandbox boundaries are handled.
 
 ## 4. Documentation Map
 

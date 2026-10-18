@@ -5,7 +5,7 @@ description: Transformation and filtering pipeline applied to Discord activities
 tags: [middleware, activity, filtering, architecture]
 verified:
   - by: openwiki/0.7.2
-    at: 2026-10-17T15:23:46.177Z
+    at: 2026-10-18T06:59:24.615Z
 sources:
   - id: openwiki-source-d1a44bf94917862756b7ac24
     resource: repo://crates/lib/src/middleware.rs

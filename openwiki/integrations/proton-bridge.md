@@ -4,14 +4,16 @@ title: Wine & Proton IPC Bridge
 description: Technical guide and setup for bridging Windows named pipe RPC to Linux Unix domain sockets under Steam Proton and Wine.
 tags: [proton, wine, bridge, steam, named-pipe]
 sources:
+  - id: openwiki-source-4d1d392666be6dfdd7a91a2e
+    resource: repo://.github/workflows/release.yml
   - id: openwiki-source-125fd31acef08c140d0a0374
     resource: repo://crates/bridge/scripts/bridge.sh
   - id: openwiki-source-2ccf483099a881b4999f2ea1
     resource: repo://crates/bridge/src/main.rs
-generated: { by: "openwiki", at: "2026-10-17T15:02:42.014Z" }
+generated: { by: "omp", at: "2026-10-18T06:59:24.615Z" }
 verified:
   - by: openwiki/0.7.2
-    at: 2026-10-17T15:23:46.177Z
+    at: 2026-10-18T06:59:24.615Z
 ---
 
 # Wine & Proton IPC Bridge
@@ -49,21 +51,44 @@ Under Steam Proton, games execute inside an isolated container sandbox (Pressure
 
 ## Steam Proton Configuration
 
-### 1. Build or Install the Bridge Artifacts
+### 1. Install the Bridge
 
-Cross-compile the Windows binary using the container build recipe or copy release artifacts:
+The primary route is the Homebrew tap, which installs the prebuilt Windows
+binary from the release artifacts:
 
 ```bash
+brew install Delnegend/tap/rsrpc-bridge
+```
+
+The formula places `rsrpc-bridge.exe` and `bridge.sh` in
+`$(brew --prefix)/opt/rsrpc-bridge/libexec/`, with `bridge.sh` executable. It
+installs them together and off `PATH` deliberately: the script resolves
+`rsrpc-bridge.exe` from its own directory, so the pair has to sit side by side,
+and the `.exe` is not runnable on the host anyway.
+
+Prefer to keep it outside Homebrew, or you built the binary yourself? Either
+route works as long as both files end up in the same directory:
+
+```bash
+# From a release artifact
+mkdir -p ~/.local/share/rpc-bridge
+unzip rsrpc-bridge-x86_64-pc-windows-gnu.zip -d ~/.local/share/rpc-bridge
+chmod +x ~/.local/share/rpc-bridge/bridge.sh
+
+# Or cross-compile with the container build recipe
 just bridge
 # Copies target/x86_64-pc-windows-gnu/release/rsrpc-bridge.exe and bridge.sh to dist/
-mkdir -p ~/.local/share/rpc-bridge
-cp dist/rsrpc-bridge.exe dist/bridge.sh ~/.local/share/rpc-bridge/
-chmod +x ~/.local/share/rpc-bridge/bridge.sh
 ```
 
 ### 2. Set Steam Launch Options
 
 In Steam, right-click the game $\rightarrow$ **Properties** $\rightarrow$ **Launch Options**:
+
+```bash
+$(brew --prefix)/opt/rsrpc-bridge/libexec/bridge.sh %command%
+```
+
+Or, when you installed the files manually:
 
 ```bash
 ~/.local/share/rpc-bridge/bridge.sh %command%

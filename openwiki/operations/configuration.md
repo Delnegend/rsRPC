@@ -12,19 +12,21 @@ sources:
     resource: repo://crates/lib/src/server/ipc_unix.rs
   - id: openwiki-source-0da527745131e25b52757419
     resource: repo://crates/lib/src/server/websocket.rs
-generated: { by: "omp", at: "2026-10-17T16:21:17.267Z" }
+generated: { by: "omp", at: "2026-10-18T06:59:24.615Z" }
 verified:
   - by: openwiki/0.7.2
-    at: 2026-10-17T16:21:17.267Z
+    at: 2026-10-18T06:59:24.615Z
 ---
 
 # Configuration Reference
 
 This reference covers runtime configuration options across the CLI binary (`rsrpc-cli`), environment variables, and the `rsrpc` library interface.
 
-## Command-Line Arguments (`rsrpc-cli`)
+## Command-Line Arguments (`rsrpc`)
 
-Options accepted when invoking the `rsrpc-cli` binary:
+Options accepted when invoking the daemon. Installed from the Homebrew tap the
+command is `rsrpc`; a release zip unpacks to `rsrpc-<target>`, and the binary
+still reports itself as `rsrpc-cli` in `--version`:
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -35,10 +37,10 @@ Example:
 
 ```bash
 # Launch with custom detectable games list
-./rsrpc-cli --detectable-file ./custom-detectable.json
+rsrpc --detectable-file ./custom-detectable.json
 
 # Launch in socket/websocket-only mode without scanning OS processes
-./rsrpc-cli --no-process-scan
+rsrpc --no-process-scan
 ```
 
 ## Environment Variables
@@ -56,21 +58,35 @@ Example:
 When using `rsrpc` as an embedded crate, configuration is passed via `RPCConfig`:
 
 ```rust
-use rsrpc::{RPCConfig, RPCServer};
+use rsrpc::{RPCConfig, RPCServer, RpcError};
 
-let config = RPCConfig {
-    enable_process_scanner: true,
-    enable_ipc_connector: true,
-    enable_websocket_connector: true,
-    enable_secondary_events: true,
-    enable_gsi: false,
-    gsi_port: 3000,
-    port: 1337,
-};
+fn run() -> Result<(), RpcError> {
+    let config = RPCConfig {
+        enable_process_scanner: true,
+        enable_ipc_connector: true,
+        enable_websocket_connector: true,
+        enable_secondary_events: true,
+        enable_gsi: false,
+        gsi_port: 3000,
+        port: 1337,
+    };
 
-let mut server = RPCServer::from_json_str("[]", config)?;
-server.start();
+    let mut server = RPCServer::from_json_str("[]", config)?;
+    server.on_process_scan_complete(|_state| {})?;
+    server.start()?;
+
+    Ok(())
+}
 ```
+
+### Start-up Contract
+
+`start` is fallible and its ordering matters:
+
+- Mutators that need a running server (such as `on_process_scan_complete`) fail with `RpcError::NotStarted` before `start` and with `RpcError::AlreadyStarted` after it.
+- Calling `start` a second time returns `RpcError::AlreadyStarted`; connectors are never built twice.
+- If the client connector cannot bind its port — typically because another instance already owns it — `start` returns `RpcError::Io` with an underlying `io::Error` of kind `AddrInUse`. Nothing is initialized, so the server remains unstarted and mutators still report `NotStarted`; a failed start never leaves a half-started daemon.
+- Connector degradations are not errors: when no websocket port can be bound, `start` logs a warning and continues with a disabled facade, and the IPC connector comes up disabled when no socket can be bound.
 
 ### Fields
 

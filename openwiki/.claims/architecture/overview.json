@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:d619b3368e0021396fc7dedafaa73c59143c11587910c5a230e0dca91f386f66",
+  "pageVersion": "sha256:620e5e69f27750ac0be1216afd76c24c9a9a54da2cc75520eb1ec61b9d74660a",
   "claims": [
     {
       "id": "claim_eccb22c725c0487f994f911cfdb26b0b",
@@ -137,7 +137,7 @@
       "statement": "When every candidate websocket port is taken, `RPCServer::start` continues with a disabled websocket facade (no listener) instead of failing to start.",
       "evidence": [
         {
-          "resource": "repo://crates/lib/src/lib.rs#L362-L371",
+          "resource": "repo://crates/lib/src/lib.rs#L373-L382",
           "version": "repo-lines-v1:sha256:8e86b5b59c39130cba7d9e755b0e3acd89102e6c6bf1a1f3afe1d6b7fc2fd112:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2ZjIxYjAwMmM4NjYyYjllNTIzNjEzMGFjMzVmODI2ZDMxMzBlYTg3MDIzOWVlZTJiYjMyYzZlMjE5NWI1ZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1Y2RlZjgwODVhZTc0YWI2MzZkNjQ1OWY1YzZkNWZiZmIwZGIyNjRmMWIwZDc1YmFjNTE5YzliM2Y2NzE3YWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiNWY5ODNmYjAyOWU3OWE0OWViNjFiNGY5NmQ4NmJiMTQxYWJmYWY4ZTkyMTI1MTMxOWNmN2ExNTUxYzA3YTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1Y2QwN2ViOGNmNzEwOTYxZmM3YmRlZWI0ZTcwNzM4YTYwYzJiNGFjOTVjMDcyYWJiNmJmZTNiM2RkNjFmN2IifQ"
         },
         {
@@ -145,10 +145,48 @@
           "version": "repo-lines-v1:sha256:d0805bb7bb1f5ad339c8ef6665db91711a7f299ff61509d75869354bb216f773:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViMGQxMTMxMmY3NTJlYjIwYTI1ZTdjMjMxZmQ0MmI5OGM5ZjdmMDY2N2Y5ZmRhMWEyZDhiMTc5MDRiMmIwMDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxNDBiZDFjODI0ZjllZDM2Nzk1M2I4OWIzNjYzMWU1Yjc1NDAzZTI3YTI4MmUzODg2NGQwMTdkYmRjYWFhMmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlZGFmNDY5NjliNTA5ODM2ODA4ZDU3MDU3MDliNzlmYjZkMGE0MTVlZmUyMDU0YjRjMmY3YzA2ZTY3Yzc3NjcifQ"
         }
       ]
+    },
+    {
+      "id": "claim_d72352e5ab484ec28eb0cc9e4c3a1a38",
+      "statement": "`RPCServer::start` returns `Result<(), RpcError>` and initialization is single-flight: it guards on connectors already being set and returns `RpcError::AlreadyStarted` rather than building a second set of connectors.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/lib.rs#L348-L352",
+          "version": "repo-lines-v1:sha256:703c0d68b305daebeebed99b5d6f8d2a6ae1543223ab11a6568081173ebf740b:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGI4ODE0YmMwYTBlN2ViNDIzOGY1MzI2M2JiMDE1OGZmMDYyYjY5ODRiNzNjZTg5NWQzNGQxNzAyYjQ2MWJmZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTZiMDQ0OTE0Njk3MjJlODM2M2E5NGU0MDQ0NTM4ZTAxM2EyYTIxN2UzNmIxZTU2OGJhNjBhY2I3YjRjOGYyZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWRiZjUzM2U4YjZlZWIxMmEwNmI3YjEwZDNhYzU5NGQyNTc3NWNlZTc2OTQ0MzY1YzEwNjhkNWQwMDhjZjRlYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDYyNGEyNDMzYTRmMDM4NzdlYzQwMGU5Y2Y4YTVlYTQzYTM3ZDcwYWY3OWI2OTcyNWFjYTM3YWZlNWUyZmIxZSJ9"
+        },
+        {
+          "resource": "repo://crates/lib/tests/api_errors.rs#L130-L152",
+          "version": "repo-lines-v1:sha256:db8d2291d69ecdaf3f8322d977284dbacd5456764847f0fcbf03ab9e50a2844a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmZjNjMTVjMWYxZWY3MTYxNTBlYTRhNjNlNzhjYTAyNDNhZDcwNjA2ZmNlY2JmYjBkYWU4ZGYzODdlYjQ5ZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0MDZhZTQxZjk3YThhZDYzYzMzNWY2MGZmZDE0YmVjYTBmNzc5NmNjOTNhNmVhOThkZTEzZGRiZDdiMDNhZDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fc24f54b056043a2a990b1e728d0ee50",
+      "statement": "When the client connector cannot bind its port, `start` logs the failure and returns `RpcError::Io`; connectors are never assigned, so the server stays unstarted and mutators still report `RpcError::NotStarted` rather than a half-started daemon.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/lib.rs#L360-L372",
+          "version": "repo-lines-v1:sha256:03005a0099789e2c38ccc9e2b58143f7afced0448165c1c349a01b19a9a4fa51:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1ZGFmYWUzOWVjN2QyNDBhYmU2MjRkYjk0N2NkNDA4NjdlMjc2OWYzOTZiNmEwODY0OTEyYzdjZTNmOTNkNTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1Y2RlZjgwODVhZTc0YWI2MzZkNjQ1OWY1YzZkNWZiZmIwZGIyNjRmMWIwZDc1YmFjNTE5YzliM2Y2NzE3YWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0MTZmYTQ3ZDZmOWE0NGM4OGVjZmIwNWQ3MjhkOGFmZjJhNDAzZjJlNWViODQwZGU3NjdhNTY3ODBhMWY0N2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiMjQ1ZDJkNWJhZDYyZDIxNzRjYzFlMDRkM2UwMzY0NWQ5ZTBmOGNlY2UyZjNhMGZlNTU5NmM4MDg4MzM5Y2YifQ"
+        },
+        {
+          "resource": "repo://crates/lib/tests/api_errors.rs#L99-L129",
+          "version": "repo-lines-v1:sha256:029cf793ed3ebd506b441f1200a812d52a435345425318a3e6dbd029e45a10ed:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5NGZkYzJlYmJmNTMyNmQyZDE2ZDU2NmM4NDQ2MWRmYWFkYTVhZmE5OGI1ZTg4ZDIxYzk0YzZlYmJlMTBjOGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3OWUwM2QwYWRmMWVlYWJmODBjMDc4ZmIwZjgzODBjMjczYWY4MTU4Mzk2M2Y3YmZhZmIxMGJiMjU4ZDhmNGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4ODUyMDBhOTRlMGU4ZGIwMjUwZjIzNDY4MGFkMjQwY2Y1Zjk5YjBiYTIyYmMyOWVmYjE4NGNjZmIzYTg1YzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_600c789bd84c4664bc2ae78ac48f67b8",
+      "statement": "`ClientConnector::new` reports a bind failure as an `io::Error` of kind `AddrInUse`, which is what `start` surfaces as `RpcError::Io`.",
+      "evidence": [
+        {
+          "resource": "repo://crates/lib/src/server/client_connector.rs#L85-L91",
+          "version": "repo-lines-v1:sha256:87e47943f7bb998035d633cddf9343b43845076103ef4d538db7750e7fa70d94:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmExOGIwYzY5NDdkMTY0MDU1MWJkNmZmMTU1YjE1OTE3YzlmN2ZhYzc1M2E1NTdiNzBlNzM3YjdhODgzMjA2OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjRhZjQ1ZWEyN2E2NzQzODQ3MjBmNjE5NzRkMjgyYjkyZGFjZmIwNjc1NThlM2I5NWFkYTdhZjNhZDM5M2RhZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjk0MDAwODk3ZjJkNTcwZDNlNjY3NDBhZjNkY2VkMDVlZWQ3ZDU3ODdjMmRmMzE5MGE1ZWE3MWI0ZTRkMDAxNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWQ5YzcyODNmNDRhYWI3ZDUwY2QwNDZmYWY3OGFhMTczNDQ2MDMwYmQzNzFjM2E5NGNiM2Q4ODM4ZDVmNGYzZSJ9"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.2",
-    "at": "2026-10-17T16:21:17.267Z"
+    "at": "2026-10-18T06:59:24.615Z"
   }
 }
