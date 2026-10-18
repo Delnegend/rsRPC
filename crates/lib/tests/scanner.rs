@@ -96,8 +96,9 @@ fn process_detected_details_from_window_title() {
     let mut s = empty_server();
     s.append_detectables(vec![da]);
 
-    // The scan reads a live /proc; a freshly spawned process can be briefly
-    // invisible or mid-exec, so poll instead of a single immediate scan.
+    // `spawn` can return while the child's execve is still settling — its
+    // cmdline briefly reads as empty or as the parent's — so a single
+    // immediate scan can miss it under load. Poll instead.
     let deadline = Instant::now() + Duration::from_secs(10);
     let detected = loop {
         let matches = s.scan_for_processes().unwrap();
