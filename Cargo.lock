@@ -1170,7 +1170,7 @@ dependencies = [
 
 [[package]]
 name = "rsrpc"
-version = "0.29.2"
+version = "0.29.3"
 dependencies = [
  "aho-corasick",
  "chrono",
@@ -1187,7 +1187,7 @@ dependencies = [
 
 [[package]]
 name = "rsrpc-bridge"
-version = "0.29.2"
+version = "0.29.3"
 dependencies = [
  "tracing",
  "tracing-subscriber",
@@ -1196,7 +1196,7 @@ dependencies = [
 
 [[package]]
 name = "rsrpc-cli"
-version = "0.29.2"
+version = "0.29.3"
 dependencies = [
  "clap",
  "ctrlc",
