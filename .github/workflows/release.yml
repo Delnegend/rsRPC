@@ -280,6 +280,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
+          # actions/download-artifact does not preserve the executable bit,
+          # so the zips would ship non-executable binaries and scripts
+          # (bridge.sh is a Steam launch option). Restore it before zipping.
+          find artifacts -type f -exec chmod +x {} +
           for dir in artifacts/*/; do
             folder="$(basename "$dir")"
             (cd "$dir" && zip -j -r "../../dist/${folder}.zip" .)
