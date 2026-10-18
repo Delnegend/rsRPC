@@ -1,11 +1,11 @@
-use rsrpc::{logger::set_logs_enabled, RPCConfig};
+use rsrpc_core::{logger::set_logs_enabled, RPCConfig};
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
   // When running as a binary, enable logs
   set_logs_enabled(true);
 
   // Create new client and stuff
-  let mut client = rsrpc::RPCServer::from_json_str(
+  let mut client = rsrpc_core::RPCServer::from_json_str(
     // in order for the process scanner to actually scan, we need to provide a list of detectable games (even if just one)
     r#"
     [{

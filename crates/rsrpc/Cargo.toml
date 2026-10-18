@@ -1,5 +1,5 @@
 [package]
-name = "rsrpc-cli"
+name = "rsrpc"
 version.workspace = true
 edition.workspace = true
 authors = ["spikehd", "Delnegend"]
@@ -8,7 +8,7 @@ authors = ["spikehd", "Delnegend"]
 workspace = true
 
 [dependencies]
-rsrpc.workspace = true
+rsrpc-core.workspace = true
 clap = { version = "4.6.7", features = ["derive", "std", "help", "usage"], default-features = false }
 # charset dropped: CLI only reads Discord JSON (UTF-8 fallback is enough).
 ureq = { version = "3.4.2", default-features = false, features = ["rustls"] }

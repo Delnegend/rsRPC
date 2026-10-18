@@ -1,5 +1,5 @@
-use rsrpc::detection::DetectableActivity;
-use rsrpc::{ProcessEventListeners, ProcessScanState, ProcessServer};
+use rsrpc_core::detection::DetectableActivity;
+use rsrpc_core::{ProcessEventListeners, ProcessScanState, ProcessServer};
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::mpsc;

@@ -18,7 +18,7 @@ use std::{
     time::Duration,
 };
 
-use rsrpc::WebsocketConnector;
+use rsrpc_core::WebsocketConnector;
 
 const ORIGIN: &str = "https://discord.com";
 
@@ -153,7 +153,10 @@ impl WsClient {
     }
 }
 
-fn start_server() -> (WebsocketConnector, mpsc::Receiver<rsrpc::cmd::ActivityCmd>) {
+fn start_server() -> (
+    WebsocketConnector,
+    mpsc::Receiver<rsrpc_core::cmd::ActivityCmd>,
+) {
     let (tx, rx) = mpsc::channel();
     let connector = must!(WebsocketConnector::new(tx), "websocket server starts");
     (connector, rx)

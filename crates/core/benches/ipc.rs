@@ -1,5 +1,5 @@
 use criterion::{Criterion, criterion_group, criterion_main};
-use rsrpc::{PacketType, encode, encode_into, get_url_params};
+use rsrpc_core::{PacketType, encode, encode_into, get_url_params};
 
 fn bench_encode(c: &mut Criterion) {
     c.bench_function("ipc/encode frame 1KiB", |b| {

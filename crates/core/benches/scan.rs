@@ -1,5 +1,5 @@
 use criterion::{Criterion, criterion_group, criterion_main};
-use rsrpc::{ProcessEventListeners, ProcessServer};
+use rsrpc_core::{ProcessEventListeners, ProcessServer};
 use std::sync::mpsc;
 
 fn bench_scan_for_processes(c: &mut Criterion) {

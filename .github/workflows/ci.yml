@@ -53,7 +53,7 @@ jobs:
       # toolchain — the library carries all windows-only code.
       - name: Check the library for the Windows (msvc) target
         shell: bash
-        run: cargo check -p rsrpc --lib --target x86_64-pc-windows-msvc
+        run: cargo check -p rsrpc-core --lib --target x86_64-pc-windows-msvc
       # Build rather than `cargo check`: the bridge's inline-asm syscall
       # wrappers compile cleanly even against the wrong ABI, so only a full
       # build proves the mingw target and linker are wired up correctly.

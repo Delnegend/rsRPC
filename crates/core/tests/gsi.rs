@@ -3,7 +3,7 @@ use std::net::TcpStream;
 use std::sync::mpsc;
 use std::time::Duration;
 
-use rsrpc::{GsiMap, GsiPayload, GsiServer, GsiTeam, gsi_payload_to_activity};
+use rsrpc_core::{GsiMap, GsiPayload, GsiServer, GsiTeam, gsi_payload_to_activity};
 
 #[test]
 fn gsi_payload_mapping_to_activity() {

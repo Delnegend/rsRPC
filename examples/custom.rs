@@ -1,4 +1,4 @@
-use rsrpc::{detection::DetectableActivity, logger::set_logs_enabled, RPCConfig};
+use rsrpc_core::{detection::DetectableActivity, logger::set_logs_enabled, RPCConfig};
 use std::sync::{Arc, Mutex};
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -7,7 +7,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   // Create new client and stuff
   let client = Arc::new(Mutex::new(
-    rsrpc::RPCServer::from_json_str("[]", RPCConfig::default())?,
+    rsrpc_core::RPCServer::from_json_str("[]", RPCConfig::default())?,
   ));
 
   // We can use this cloned Arc of the client to append new detectables

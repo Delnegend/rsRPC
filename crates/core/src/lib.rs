@@ -72,8 +72,8 @@ impl Default for RPCConfig {
 /// [`RPCServer::start`] fails with [`RpcError::AlreadyStarted`].
 ///
 /// ```
-/// # fn main() -> Result<(), rsrpc::RpcError> {
-/// use rsrpc::{RPCConfig, RPCServer, RpcError};
+/// # fn main() -> Result<(), rsrpc_core::RpcError> {
+/// use rsrpc_core::{RPCConfig, RPCServer, RpcError};
 ///
 /// // Mutators before start() report NotStarted.
 /// let mut server = RPCServer::from_json_str("[]", RPCConfig::default())?;
@@ -155,8 +155,8 @@ impl RPCServer {
     /// Returns [`RpcError::Json`] when `detectable` is not valid JSON.
     ///
     /// ```
-    /// # fn main() -> Result<(), rsrpc::RpcError> {
-    /// use rsrpc::{RPCConfig, RPCServer};
+    /// # fn main() -> Result<(), rsrpc_core::RpcError> {
+    /// use rsrpc_core::{RPCConfig, RPCServer};
     ///
     /// let server = RPCServer::from_json_str("[]", RPCConfig::default())?;
     /// # Ok(())
@@ -187,8 +187,8 @@ impl RPCServer {
     /// [`RpcError::Json`] when its contents are not valid JSON.
     ///
     /// ```no_run
-    /// # fn main() -> Result<(), rsrpc::RpcError> {
-    /// use rsrpc::{RPCConfig, RPCServer};
+    /// # fn main() -> Result<(), rsrpc_core::RpcError> {
+    /// use rsrpc_core::{RPCConfig, RPCServer};
     ///
     /// let server = RPCServer::from_file("./detectable.json", RPCConfig::default())?;
     /// # Ok(())
@@ -206,8 +206,8 @@ impl RPCServer {
     /// Returns [`RpcError::NotStarted`] when called before [`RPCServer::start`].
     ///
     /// ```
-    /// # fn main() -> Result<(), rsrpc::RpcError> {
-    /// use rsrpc::{RPCConfig, RPCServer, RpcError};
+    /// # fn main() -> Result<(), rsrpc_core::RpcError> {
+    /// use rsrpc_core::{RPCConfig, RPCServer, RpcError};
     ///
     /// let mut server = RPCServer::from_json_str("[]", RPCConfig::default())?;
     /// assert!(matches!(
@@ -233,8 +233,8 @@ impl RPCServer {
     /// Returns [`RpcError::NotStarted`] when called before [`RPCServer::start`].
     ///
     /// ```
-    /// # fn main() -> Result<(), rsrpc::RpcError> {
-    /// use rsrpc::{RPCConfig, RPCServer, RpcError};
+    /// # fn main() -> Result<(), rsrpc_core::RpcError> {
+    /// use rsrpc_core::{RPCConfig, RPCServer, RpcError};
     ///
     /// let mut server = RPCServer::from_json_str("[]", RPCConfig::default())?;
     /// assert!(matches!(
@@ -257,8 +257,8 @@ impl RPCServer {
     /// Returns [`RpcError::NotStarted`] when called before [`RPCServer::start`].
     ///
     /// ```
-    /// # fn main() -> Result<(), rsrpc::RpcError> {
-    /// use rsrpc::{RPCConfig, RPCServer, RpcError};
+    /// # fn main() -> Result<(), rsrpc_core::RpcError> {
+    /// use rsrpc_core::{RPCConfig, RPCServer, RpcError};
     ///
     /// let mut server = RPCServer::from_json_str("[]", RPCConfig::default())?;
     /// assert!(matches!(
@@ -288,8 +288,8 @@ impl RPCServer {
     /// [`RPCServer::start`].
     ///
     /// ```
-    /// # fn main() -> Result<(), rsrpc::RpcError> {
-    /// use rsrpc::{RPCConfig, RPCServer};
+    /// # fn main() -> Result<(), rsrpc_core::RpcError> {
+    /// use rsrpc_core::{RPCConfig, RPCServer};
     ///
     /// let mut server = RPCServer::from_json_str("[]", RPCConfig::default())?;
     /// server.on_process_scan_complete(|_state| {})?;
@@ -336,8 +336,8 @@ impl RPCServer {
     /// its port (for example when another instance owns it).
     ///
     /// ```no_run
-    /// # fn main() -> Result<(), rsrpc::RpcError> {
-    /// use rsrpc::{RPCConfig, RPCServer};
+    /// # fn main() -> Result<(), rsrpc_core::RpcError> {
+    /// use rsrpc_core::{RPCConfig, RPCServer};
     ///
     /// let mut server = RPCServer::from_json_str("[]", RPCConfig::default())?;
     /// server.on_process_scan_complete(|_state| {})?;

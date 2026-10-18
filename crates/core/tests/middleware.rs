@@ -7,8 +7,8 @@
 )]
 //! Tests for the activity middleware pipeline.
 
-use rsrpc::cmd::{Activity, Assets};
-use rsrpc::middleware::{
+use rsrpc_core::cmd::{Activity, Assets};
+use rsrpc_core::middleware::{
     ActivityMiddleware, MiddlewarePipeline, ModWatermarkFilter, ThreadNameFilter,
 };
 

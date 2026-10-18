@@ -6,8 +6,8 @@
 )]
 use std::net::TcpListener;
 
-use rsrpc::cmd::{Activity, ActivityCmd, ActivityCmdArgs, TimeoutValue, Timestamps};
-use rsrpc::{RPCConfig, RPCServer, RpcError};
+use rsrpc_core::cmd::{Activity, ActivityCmd, ActivityCmdArgs, TimeoutValue, Timestamps};
+use rsrpc_core::{RPCConfig, RPCServer, RpcError};
 use serde_json::{Value, json};
 
 fn empty_server() -> RPCServer {

@@ -1,9 +1,9 @@
 use std::process::Command;
 use std::sync::mpsc;
 
-use rsrpc::detection::DetectableActivity;
-use rsrpc::plugins::{GameEnrichment, GameStatusPlugin, LeagueOfLegendsPlugin, VrChatPlugin};
-use rsrpc::{ProcessEventListeners, ProcessServer};
+use rsrpc_core::detection::DetectableActivity;
+use rsrpc_core::plugins::{GameEnrichment, GameStatusPlugin, LeagueOfLegendsPlugin, VrChatPlugin};
+use rsrpc_core::{ProcessEventListeners, ProcessServer};
 
 fn empty_server() -> ProcessServer {
     let (tx, _rx) = mpsc::channel();

@@ -19,7 +19,7 @@ use std::sync::mpsc;
 use std::time::Duration;
 
 use common::{next_free_socket_dir, read_frame, write_frame};
-use rsrpc::{IpcConnector, IpcFacilitator, cmd::ActivityCmd};
+use rsrpc_core::{IpcConnector, IpcFacilitator, cmd::ActivityCmd};
 
 const OPCODE_HANDSHAKE: u32 = 0;
 const OPCODE_CLOSE: u32 = 2;

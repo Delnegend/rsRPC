@@ -1172,17 +1172,12 @@ dependencies = [
 name = "rsrpc"
 version = "0.29.1"
 dependencies = [
- "aho-corasick",
- "chrono",
- "criterion",
- "interprocess",
- "serde",
- "serde_json",
- "serde_with",
- "serial_test",
- "simple-websockets",
- "sysinfo",
+ "clap",
+ "ctrlc",
+ "rsrpc-core",
  "tracing",
+ "tracing-subscriber",
+ "ureq",
 ]
 
 [[package]]
@@ -1195,15 +1190,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "rsrpc-cli"
+name = "rsrpc-core"
 version = "0.29.1"
 dependencies = [
- "clap",
- "ctrlc",
- "rsrpc",
+ "aho-corasick",
+ "chrono",
+ "criterion",
+ "interprocess",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "serial_test",
+ "simple-websockets",
+ "sysinfo",
  "tracing",
- "tracing-subscriber",
- "ureq",
 ]
 
 [[package]]

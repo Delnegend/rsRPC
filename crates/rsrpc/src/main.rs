@@ -1,7 +1,7 @@
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 
 use clap::Parser;
-use rsrpc::{RPCConfig, RPCServer, RpcError};
+use rsrpc_core::{RPCConfig, RPCServer, RpcError};
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]

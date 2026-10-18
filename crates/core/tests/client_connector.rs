@@ -12,8 +12,8 @@ use std::net::TcpStream;
 use std::sync::mpsc;
 use std::time::Duration;
 
-use rsrpc::ClientConnector;
-use rsrpc::cmd::{Activity, ActivityCmd, ActivityCmdArgs};
+use rsrpc_core::ClientConnector;
+use rsrpc_core::cmd::{Activity, ActivityCmd, ActivityCmdArgs};
 
 struct WsClient {
     stream: TcpStream,

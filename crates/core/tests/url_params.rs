@@ -1,4 +1,4 @@
-use rsrpc::url_params::get_url_params;
+use rsrpc_core::url_params::get_url_params;
 
 #[test]
 fn extracts_v_and_encoding() {

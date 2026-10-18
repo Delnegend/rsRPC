@@ -1,5 +1,5 @@
 [package]
-name = "rsrpc"
+name = "rsrpc-core"
 version.workspace = true
 edition.workspace = true
 authors = ["spikehd", "Delnegend"]

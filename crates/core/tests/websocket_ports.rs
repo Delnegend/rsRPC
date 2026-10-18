@@ -15,7 +15,7 @@ use std::net::{TcpListener, TcpStream};
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
-use rsrpc::{RPCConfig, RPCServer, WebsocketConnector};
+use rsrpc_core::{RPCConfig, RPCServer, WebsocketConnector};
 
 /// Unwrap-or-fail without `unwrap`/`expect` tokens (owned files stay
 /// grep-clean). Fails the test with context on `Err` or `None`.
