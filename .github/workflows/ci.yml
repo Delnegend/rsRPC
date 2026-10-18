@@ -27,9 +27,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
         with:
           components: rustfmt, clippy
-      - name: Install cargo-audit
-        shell: bash
-        run: cargo install cargo-audit --locked
+      - uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2.87.29
+        with:
+          tool: cargo-audit
       - name: Run verification
         shell: bash
         run: just check
