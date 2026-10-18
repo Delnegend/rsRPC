@@ -31,11 +31,12 @@ brew install Delnegend/tap/rsrpc-bridge
 # Steam launch options: $(brew --prefix)/opt/rsrpc-bridge/libexec/bridge.sh %command%
 ```
 
-Not on Homebrew? Grab the binary for your OS from [Releases](https://github.com/Delnegend/rsRPC/releases):
+Not on Homebrew? Grab the latest Linux binary from [Releases](https://github.com/Delnegend/rsRPC/releases):
 
 ```bash
-curl -fSLO https://github.com/Delnegend/rsRPC/releases/latest/download/rsrpc-x86_64-unknown-linux-gnu.zip && unzip rsrpc-*.zip
-./rsrpc-x86_64-unknown-linux-gnu
+URL=$(curl -fsSL https://api.github.com/repos/Delnegend/rsRPC/releases/latest | grep -o 'https://[^"]*x86_64-unknown-linux-gnu\.tar\.xz')
+curl -fsSL -o rsrpc.tar.xz "$URL" && tar -xJf rsrpc.tar.xz --strip-components=1
+./rsrpc
 ```
 
 Open Discord and launch a game: your status updates. Press `Ctrl+C` to stop.
@@ -47,7 +48,6 @@ Open Discord and launch a game: your status updates. Press `Ctrl+C` to stop.
 - **Catches games three ways** — running-process scan, local socket, and browser websocket, so odd launchers still show up.
 - **Windows games too** — the `rsrpc-bridge` formula covers Proton and Wine games that never touch the host IPC socket.
 - **Your list, your rules** — point it at your own `detectable.json`, or add and scan games while it runs.
-- **Use it as a part, not just an app** — the `rsrpc` crate embeds the same server in your own Rust program.
 
 ## Common Options
 
