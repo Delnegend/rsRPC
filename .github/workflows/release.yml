@@ -146,7 +146,7 @@ jobs:
       # which is what the formulae install from. The executable bit is recorded
       # inside the archive, so the publish job needs no chmod step.
       - name: Package artifact
-        uses: Delnegend/actions/package-artifact@735208d8cdad6af9702f23661cc1e9e8c024558e # v1
+        uses: Delnegend/actions/package-artifact@052e82a502067a31bdd5aef5f6e50da21d91f913 # v1
         with:
           name: ${{ matrix.name }}
           version: ${{ needs.prepare.outputs.version }}
