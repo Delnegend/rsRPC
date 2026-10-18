@@ -97,6 +97,9 @@ jobs:
             package: rsrpc-cli
             name: rsrpc
             extra: ""
+          # macOS gets a tar.xz rather than a zip, and the formulae name it
+          # that way, so the arm64 formula below points at the extension this
+          # produces.
           - os: macos-latest
             target: aarch64-apple-darwin
             ext: ""
@@ -138,23 +141,17 @@ jobs:
           TARGET: ${{ matrix.target }}
           PACKAGE: ${{ matrix.package }}
         run: cargo build -p "$PACKAGE" --release --target "$TARGET"
-      # Names the archive `<name>-<version>-<target>.zip` and uploads it under
-      # that same name, so the run, the release and a formula all agree.
-      #
-      # format and layout are pinned rather than defaulted: zip keeps the
-      # existing asset names, and flat keeps a bare binary at the archive root,
-      # which is what the formulae install from. The executable bit is recorded
-      # inside the archive, so the publish job needs no chmod step.
+      # Names the archive `<name>-<version>-<target>.<ext>` and uploads it
+      # under that same name, so the run, the release and a formula all agree.
+      # Format, effort and layout are the action's decision, not this file's.
       - name: Package artifact
-        uses: Delnegend/actions/package-artifact@052e82a502067a31bdd5aef5f6e50da21d91f913 # v1
+        uses: Delnegend/actions/package-artifact@660fdcf3457c1166b038976561e48fe50566f6e2 # v1
         with:
           name: ${{ matrix.name }}
           version: ${{ needs.prepare.outputs.version }}
           target: ${{ matrix.target }}
           source: target/${{ matrix.target }}/release/${{ matrix.package }}${{ matrix.ext }}
           extra: ${{ matrix.extra }}
-          format: zip
-          layout: flat
 
   publish:
     name: Publish Consolidated Release
