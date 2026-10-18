@@ -6,8 +6,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  # The release workflow calls the whole file as its gate: all jobs below
-  # must pass before anything ships.
   workflow_call:
 
 concurrency:
@@ -27,12 +25,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@686976e191b89faba57d3206551f0f330d8cb249 # stable
         with:
           components: rustfmt, clippy
-      # Registry/index and target/ persist across runs; the key rolls with
-      # the lockfile, so a dependency bump starts a fresh cache.
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
       - uses: taiki-e/install-action@8cca0918f8471c33515202b73f56ab27f2bed283 # v2.87.29
         with:
-          # Pinned: audits must run the same binary release every time.
           tool: cargo-audit@0.22.2
       - name: Run verification
         shell: bash

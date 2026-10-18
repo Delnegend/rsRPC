@@ -1,11 +1,5 @@
 name: Release / Build Artifacts
 
-# Solo-dev maintenance flow: one run, zero clicks on the happy path.
-# Sunday cron (or a manual run) gates on all of CI, then bumps, tags,
-# pushes, builds, and ships. No PR, no second run, no PAT.
-#
-# Branch protection keeps force-push/deletion/linear-history guards but
-# requires no status checks, so the bot pushes the bump straight to main.
 on:
   workflow_dispatch:
     inputs:
@@ -29,7 +23,6 @@ permissions:
   contents: write
 
 jobs:
-  # Every CI job must pass before anything ships.
   gate:
     name: Gate (all of CI)
     uses: ./.github/workflows/ci.yml
@@ -124,10 +117,6 @@ jobs:
           TARGET: ${{ matrix.target }}
           PACKAGE: ${{ matrix.package }}
         run: cargo build -p "$PACKAGE" --release --target "$TARGET"
-      # Names the archive `<name>-<version>-<target>.<ext>` and uploads it
-      # under that same name, so the run, the release and a formula all agree.
-      # Format, effort, layout and the `.exe` suffix are all the action's
-      # decision from `target`, so this file names no per-platform strings.
       - name: Package artifact
         uses: Delnegend/actions/package-artifact@37703f8b7b6c71b56b56a6f1a018268a485bc8ba # v1
         with:
@@ -150,9 +139,6 @@ jobs:
           # Each matrix entry uploads one archive; merge them into a single
           # directory rather than one subdirectory per entry.
           merge-multiple: true
-      # No re-zip and no chmod: the build job already produced the release
-      # archive, and the executable bit is recorded inside it rather than
-      # having been stripped by the download.
       - name: Publish release
         if: needs.prepare.outputs.publish == 'true'
         uses: softprops/action-gh-release@5113cdc90fd4d541c801c55356214017bf5ae34b # v3
