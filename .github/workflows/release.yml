@@ -87,22 +87,16 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            ext: ""
             package: rsrpc-cli
             name: rsrpc
             extra: ""
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            ext: ".exe"
             package: rsrpc-cli
             name: rsrpc
             extra: ""
-          # macOS gets a tar.xz rather than a zip, and the formulae name it
-          # that way, so the arm64 formula below points at the extension this
-          # produces.
           - os: macos-latest
             target: aarch64-apple-darwin
-            ext: ""
             package: rsrpc-cli
             name: rsrpc
             extra: ""
@@ -113,7 +107,6 @@ jobs:
           # from its own directory, so the two ship side by side.
           - os: ubuntu-latest
             target: i686-pc-windows-gnu
-            ext: ".exe"
             package: rsrpc-bridge
             name: rsrpc-bridge
             extra: "crates/bridge/scripts/bridge.sh"
@@ -143,14 +136,15 @@ jobs:
         run: cargo build -p "$PACKAGE" --release --target "$TARGET"
       # Names the archive `<name>-<version>-<target>.<ext>` and uploads it
       # under that same name, so the run, the release and a formula all agree.
-      # Format, effort and layout are the action's decision, not this file's.
+      # Format, effort, layout and the `.exe` suffix are all the action's
+      # decision from `target`, so this file names no per-platform strings.
       - name: Package artifact
-        uses: Delnegend/actions/package-artifact@2edc1c04a7a1205396fc26fc8da87c10695602db # v1
+        uses: Delnegend/actions/package-artifact@37703f8b7b6c71b56b56a6f1a018268a485bc8ba # v1
         with:
           name: ${{ matrix.name }}
           version: ${{ needs.prepare.outputs.version }}
           target: ${{ matrix.target }}
-          source: target/${{ matrix.target }}/release/${{ matrix.package }}${{ matrix.ext }}
+          source: target/${{ matrix.target }}/release/${{ matrix.package }}
           extra: ${{ matrix.extra }}
 
   publish:
