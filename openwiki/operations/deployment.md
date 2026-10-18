@@ -13,7 +13,7 @@ sources:
 generated: { by: "omp", at: "2026-10-18T06:59:24.615Z" }
 verified:
   - by: openwiki/0.7.2
-    at: 2026-10-18T06:59:24.615Z
+    at: 2026-10-18T07:08:32.938Z
 ---
 
 # Deployment & Operations
@@ -49,11 +49,54 @@ unzip rsrpc-*.zip
 install -m 755 rsrpc-x86_64-unknown-linux-gnu ~/.local/bin/rsrpc
 ```
 
-## Systemd User Service (Linux)
+## Running as a Background Service
 
-Running `rsrpc` as a systemd user service ensures automatic startup upon login and automatic restarts on failure.
+The formula declares a service, so Homebrew manages the daemon for you:
 
-Create `~/.config/systemd/user/rsrpc.service`:
+```bash
+brew services start rsrpc     # start now and at every login
+brew services stop rsrpc      # stop
+brew services restart rsrpc   # reload after a config change
+brew services list            # show status
+```
+
+On Linux this writes a systemd user unit (`sh.brew.rsrpc.service`); on macOS it
+registers a launchd job. Because the unit is generated from the formula, it
+survives `brew upgrade`: the `ExecStart` points at `$(brew --prefix)/opt/rsrpc`,
+which the upgrade re-points, rather than at a versioned keg path.
+
+The unit restarts the daemon on failure with a 5-second delay, so a crash is
+recovered from automatically. Note that a port-1337 conflict is fatal by design
+and exits non-zero — under `Restart=on-failure` that means the unit retries
+every 5 seconds until the conflict clears, so check the log if the service will
+not stay up.
+
+Logs are appended to files rather than the journal:
+
+```bash
+tail -f /tmp/rsrpc.log
+tail -f /tmp/rsrpc.error.log
+```
+
+### Configuring the Service
+
+Override environment variables without editing the formula by dropping a file at
+`$HOMEBREW_USER_CONFIG_HOME/services/rsrpc.env`, which defaults to
+`~/.homebrew/services/rsrpc.env`:
+
+```bash
+# Example: turn up logging
+echo "RUST_LOG=debug" >> ~/.homebrew/services/rsrpc.env
+brew services restart rsrpc
+```
+
+`RUST_LOG` is the usual knob; the CLI reads it ahead of `RSRPC_LOGS_ENABLED`. If
+you export `HOMEBREW_USER_CONFIG_HOME`, the file moves with it.
+
+### Managing It by Hand Instead
+
+If you would rather own the unit yourself — or you installed a release binary
+outside Homebrew — write `~/.config/systemd/user/rsrpc.service`:
 
 ```ini
 [Unit]
@@ -62,7 +105,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=rsrpc
+ExecStart=%h/.local/bin/rsrpc
 Restart=on-failure
 RestartSec=5s
 Environment=RUST_LOG=info
@@ -71,20 +114,12 @@ Environment=RUST_LOG=info
 WantedBy=default.target
 ```
 
-`ExecStart=rsrpc` resolves the Homebrew binary on `PATH`. If you installed a
-release binary somewhere outside `PATH`, use its absolute path instead, for
-example `ExecStart=%h/.local/bin/rsrpc`.
-
-Enable and start the service:
+Use the absolute path of whichever binary you installed; a bare `ExecStart=rsrpc`
+only works if that path is on the service manager's `PATH`. Then:
 
 ```bash
 systemctl --user daemon-reload
 systemctl --user enable --now rsrpc
-```
-
-Check service status and logs:
-
-```bash
 systemctl --user status rsrpc
 journalctl --user -u rsrpc -f
 ```

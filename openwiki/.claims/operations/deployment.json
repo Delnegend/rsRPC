@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:31c53e2207b0eef77bbabf32e514241a0d20f831ece6ee410c9ea754bdf28c6a",
+  "pageVersion": "sha256:a97e1da3267b55a2460fc092b8814eda19d83aa34d7f4955f068208310ecf495",
   "claims": [
     {
       "id": "claim_d73dcf35bdc9431dbac786a275cf3244",
@@ -41,10 +41,30 @@
           "version": "repo-lines-v1:sha256:24d6839e557d2daec43e50ee6e866ab41269076dd1d743139a54debb252dd41e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyOWE0OTAwZTI5MmM0NTU0YTQwNTliOWRkMThmOTY1YzgxYzJmMWUxMmZjNDhlODY4MmFlMzI2MzAyOWNiYjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YzA2YzU2MWQ1YzMyNzM0MzY4NTI2OGE0NmIzMzkxZjM5OThlZWU4OTBkMmJlNTFmMGQyMWNjNGE1M2FlNmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMWYyZWMxNzU5M2MxMDU0ZWI0NjM2N2Q4NDUzZWYyNGExNzNjZTk2YjcxMTdkOTFmOWE2OGQ0NGZlZjhiMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmNDY3NTYzODAwNTkxOGE2YmIxZDY2ZjMwNGNlMDIxOWE4M2RiNGY4ZTIzZTEwNjFiYTJmNTU1NjAxYzRlMDIifQ"
         }
       ]
+    },
+    {
+      "id": "claim_12a0ee5afc0a429a924781c3205cce07",
+      "statement": "The `rsrpc` Homebrew formula declares a `service do` block, so `brew services start rsrpc` generates a systemd user unit on Linux and a launchd job on macOS and `brew upgrade` carries the service definition across versions.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L15-L32",
+          "version": "repo-lines-v1:sha256:24d6839e557d2daec43e50ee6e866ab41269076dd1d743139a54debb252dd41e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyOWE0OTAwZTI5MmM0NTU0YTQwNTliOWRkMThmOTY1YzgxYzJmMWUxMmZjNDhlODY4MmFlMzI2MzAyOWNiYjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YzA2YzU2MWQ1YzMyNzM0MzY4NTI2OGE0NmIzMzkxZjM5OThlZWU4OTBkMmJlNTFmMGQyMWNjNGE1M2FlNmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMWYyZWMxNzU5M2MxMDU0ZWI0NjM2N2Q4NDUzZWYyNGExNzNjZTk2YjcxMTdkOTFmOWE2OGQ0NGZlZjhiMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmNDY3NTYzODAwNTkxOGE2YmIxZDY2ZjMwNGNlMDIxOWE4M2RiNGY4ZTIzZTEwNjFiYTJmNTU1NjAxYzRlMDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bcd397abd2674992b2e21b32cc880a91",
+      "statement": "The generated unit's ExecStart targets `$(brew --prefix)/opt/rsrpc` rather than a versioned keg path, so an upgrade re-pointing the `bin` symlink does not break the running service.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L15-L32",
+          "version": "repo-lines-v1:sha256:24d6839e557d2daec43e50ee6e866ab41269076dd1d743139a54debb252dd41e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyOWE0OTAwZTI5MmM0NTU0YTQwNTliOWRkMThmOTY1YzgxYzJmMWUxMmZjNDhlODY4MmFlMzI2MzAyOWNiYjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YzA2YzU2MWQ1YzMyNzM0MzY4NTI2OGE0NmIzMzkxZjM5OThlZWU4OTBkMmJlNTFmMGQyMWNjNGE1M2FlNmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMWYyZWMxNzU5M2MxMDU0ZWI0NjM2N2Q4NDUzZWYyNGExNzNjZTk2YjcxMTdkOTFmOWE2OGQ0NGZlZjhiMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmNDY3NTYzODAwNTkxOGE2YmIxZDY2ZjMwNGNlMDIxOWE4M2RiNGY4ZTIzZTEwNjFiYTJmNTU1NjAxYzRlMDIifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.2",
-    "at": "2026-10-18T06:59:24.615Z"
+    "at": "2026-10-18T07:08:32.938Z"
   }
 }
