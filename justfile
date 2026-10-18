@@ -3,6 +3,9 @@
 # Format, lint, test, docs, and audit — must pass before merge.
 check:
     cargo fmt --all -- --check
+    # A version bump that skipped the lock would be silently rewritten by the
+    # next cargo command; fail here instead, before clippy gets to rewrite it.
+    cargo metadata --locked --format-version 1 >/dev/null
     cargo clippy --workspace --all-targets -- -D warnings
     cargo test --workspace --all-targets
     RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
@@ -14,8 +17,9 @@ bump version:
     #!/usr/bin/env bash
     set -euo pipefail
     sed -i -E '0,/^version = ".*"/s//version = "{{version}}"/' Cargo.toml
-    # Rewrites Cargo.lock from the manifests; never hand-edit versions in it.
-    cargo metadata --format-version 1 --no-deps >/dev/null
+    # Rewrite Cargo.lock from the manifests; never hand-edit versions in it.
+    # (`cargo metadata --no-deps` skips resolution and leaves the lock stale.)
+    cargo update -w
 
 # Build the Windows Proton/Wine bridge executable using container cross-compilation.
 bridge:
