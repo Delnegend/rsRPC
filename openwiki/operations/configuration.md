@@ -1,17 +1,17 @@
 ---
 type: reference
 title: Configuration Reference
-description: Complete configuration reference for rsrpc-cli command-line flags, environment variables, and RPCConfig options.
+description: Complete configuration reference for rsrpc command-line flags, environment variables, and RPCConfig options.
 tags: [configuration, cli, environment-variables, rpcconfig, reference]
 sources:
   - id: openwiki-source-58783f5f62c54fb0c3ee36cf
-    resource: repo://crates/cli/src/main.rs
+    resource: repo://crates/rsrpc/src/main.rs
   - id: openwiki-source-d81d37522b3385f0452a316e
-    resource: repo://crates/lib/src/lib.rs
+    resource: repo://crates/core/src/lib.rs
   - id: openwiki-source-bae660b604dcb34e4ca17d93
-    resource: repo://crates/lib/src/server/ipc_unix.rs
+    resource: repo://crates/core/src/server/ipc_unix.rs
   - id: openwiki-source-0da527745131e25b52757419
-    resource: repo://crates/lib/src/server/websocket.rs
+    resource: repo://crates/core/src/server/websocket.rs
 generated: { by: "omp", at: "2026-10-18T06:59:24.615Z" }
 verified:
   - by: openwiki/0.7.2
@@ -20,13 +20,12 @@ verified:
 
 # Configuration Reference
 
-This reference covers runtime configuration options across the CLI binary (`rsrpc-cli`), environment variables, and the `rsrpc` library interface.
+This reference covers runtime configuration options across the CLI binary (`rsrpc`), environment variables, and the `rsrpc-core` library interface.
 
 ## Command-Line Arguments (`rsrpc`)
 
-Options accepted when invoking the daemon. Installed from the Homebrew tap the
-command is `rsrpc`; a release zip unpacks to `rsrpc-<target>`, and the binary
-still reports itself as `rsrpc-cli` in `--version`:
+Options accepted when invoking the daemon. The installed command, the unpacked
+archive directory and the binary's own `--version` all read `rsrpc`:
 
 | Option | Type | Default | Description |
 |---|---|---|---|
@@ -55,10 +54,10 @@ rsrpc --no-process-scan
 
 ## Library Configuration (`RPCConfig`)
 
-When using `rsrpc` as an embedded crate, configuration is passed via `RPCConfig`:
+When using `rsrpc-core` as an embedded crate, configuration is passed via `RPCConfig`:
 
 ```rust
-use rsrpc::{RPCConfig, RPCServer, RpcError};
+use rsrpc_core::{RPCConfig, RPCServer, RpcError};
 
 fn run() -> Result<(), RpcError> {
     let config = RPCConfig {

@@ -8,9 +8,9 @@ verified:
     at: 2026-10-18T06:59:24.615Z
 sources:
   - id: openwiki-source-d1a44bf94917862756b7ac24
-    resource: repo://crates/lib/src/middleware.rs
+    resource: repo://crates/core/src/middleware.rs
   - id: openwiki-source-e430ec08b28d5acbe6a1a38f
-    resource: repo://crates/lib/src/server/client_connector.rs
+    resource: repo://crates/core/src/server/client_connector.rs
 generated: { by: "openwiki", at: "2026-10-17T15:02:42.014Z" }
 ---
 
@@ -29,7 +29,7 @@ flowchart TD
 
 ## Core Components
 
-The pipeline lives in `crates/lib/src/middleware.rs` and exposes two core abstractions:
+The pipeline lives in `crates/core/src/middleware.rs` and exposes two core abstractions:
 
 - **`ActivityMiddleware` trait:** A thread-safe trait defining `fn process(&self, activity: &mut Activity)`. Middlewares mutate or prune activity fields in place.
 - **`MiddlewarePipeline`:** An ordered container holding registered middlewares in an `Arc<dyn ActivityMiddleware>` vector. Calling `pipeline.process(&mut activity)` invokes each middleware sequentially.
@@ -66,7 +66,7 @@ Strips promotional version banners and self-advertising text from `assets.large_
 3. **WebSocket:** After validating web client `SET_ACTIVITY` commands.
 
 ```rust
-// Applied in crates/lib/src/server/client_connector.rs
+// Applied in crates/core/src/server/client_connector.rs
 if let Some(activity) = activity {
     activity.application_id = ipc_activity.application_id;
     ipc_clone.middleware.process(activity);
@@ -76,7 +76,7 @@ if let Some(activity) = activity {
 
 ## Declaring Middlewares
 
-All middleware stages are defined in `crates/lib/src/middleware.rs` and registered directly inside `MiddlewarePipeline::new()`:
+All middleware stages are defined in `crates/core/src/middleware.rs` and registered directly inside `MiddlewarePipeline::new()`:
 
 ```rust
 impl MiddlewarePipeline {

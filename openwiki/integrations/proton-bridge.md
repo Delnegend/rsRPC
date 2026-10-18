@@ -27,7 +27,7 @@ flowchart LR
     end
     Bridge -->|"Direct Linux Syscall\n(SYS_connect/read/write)"| Socket["/run/user/1000/discord-ipc-0"]
     subgraph Host["Linux Host"]
-        Socket --> Daemon["rsrpc-cli Daemon"]
+        Socket --> Daemon["rsrpc Daemon"]
         Daemon --> Client["Discord Client"]
     end
 ```

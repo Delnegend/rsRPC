@@ -5,21 +5,21 @@ description: Core architecture, component responsibilities, event flow, and inva
 tags: [architecture, design, connectors, process-scanner, ipc]
 sources:
   - id: openwiki-source-d377e7a601716c55aad14b4b
-    resource: repo://crates/lib/src/detection.rs
+    resource: repo://crates/core/src/detection.rs
   - id: openwiki-source-d81d37522b3385f0452a316e
-    resource: repo://crates/lib/src/lib.rs
+    resource: repo://crates/core/src/lib.rs
   - id: openwiki-source-e430ec08b28d5acbe6a1a38f
-    resource: repo://crates/lib/src/server/client_connector.rs
+    resource: repo://crates/core/src/server/client_connector.rs
   - id: openwiki-source-bae660b604dcb34e4ca17d93
-    resource: repo://crates/lib/src/server/ipc_unix.rs
+    resource: repo://crates/core/src/server/ipc_unix.rs
   - id: openwiki-source-8b63d2ec3590a94c0a0bf54e
-    resource: repo://crates/lib/src/server/ipc_win.rs
+    resource: repo://crates/core/src/server/ipc_win.rs
   - id: openwiki-source-254f752270d06129e44379da
-    resource: repo://crates/lib/src/server/process.rs
+    resource: repo://crates/core/src/server/process.rs
   - id: openwiki-source-0da527745131e25b52757419
-    resource: repo://crates/lib/src/server/websocket.rs
+    resource: repo://crates/core/src/server/websocket.rs
   - id: openwiki-source-bda2ffefb68135e3d414bf28
-    resource: repo://crates/lib/tests/api_errors.rs
+    resource: repo://crates/core/tests/api_errors.rs
 generated: { by: "omp", at: "2026-10-18T06:59:24.615Z" }
 verified:
   - by: openwiki/0.7.2
@@ -48,7 +48,7 @@ flowchart TD
 
 ## Core Components
 
-The core library (`crates/lib/src/`) provides four primary sub-servers:
+The core library (`crates/core/src/`) provides four primary sub-servers:
 
 ### 1. Process Scanner (`server/process.rs`)
 Polls the operating system process list and matches executable paths against Discord's `detectable.json` catalog using an Aho-Corasick automaton over reversed paths for fast suffix matching. The automaton, its `[activity, executable]` index table, and the activity list live behind a single mutex as one coherent `DetectState` snapshot taken per scan, so a concurrent custom-detectable rebuild cannot tear an in-flight match; matching is bounds-checked, so stale state yields no match instead of a panic. When nothing is detected, the scanner forwards the synthetic `NULL_ACTIVITY_ID` (`"null"`) activity, which tells connectors to clear the current presence; the scan loop stops when its event receiver is gone. Runs on a dedicated background thread with thread-safe custom detectable updates.

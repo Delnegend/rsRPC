@@ -5,7 +5,7 @@ description: Deployment guide covering installation, systemd user service setup,
 tags: [deployment, systemd, operations, service, flatpak]
 sources:
   - id: openwiki-source-58783f5f62c54fb0c3ee36cf
-    resource: repo://crates/cli/src/main.rs
+    resource: repo://crates/rsrpc/src/main.rs
   - id: openwiki-source-c59fe4336a371ea1052a01dd
     resource: repo://justfile
   - id: openwiki-source-23775c3de52f3ab95a13cb8b

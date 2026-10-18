@@ -7,7 +7,7 @@ sources:
   - id: openwiki-source-125fd31acef08c140d0a0374
     resource: repo://crates/bridge/scripts/bridge.sh
   - id: openwiki-source-58783f5f62c54fb0c3ee36cf
-    resource: repo://crates/cli/src/main.rs
+    resource: repo://crates/rsrpc/src/main.rs
   - id: openwiki-source-23775c3de52f3ab95a13cb8b
     resource: repo://README.md
 generated: { by: "omp", at: "2026-10-18T06:59:24.615Z" }
@@ -79,10 +79,10 @@ To build and run directly from this repository:
 
 ```bash
 # Build the optimized release binary
-cargo build -p rsrpc-cli --release
+cargo build -p rsrpc --release
 
 # Run
-./target/release/rsrpc-cli
+./target/release/rsrpc
 ```
 
 ## 2. Windows Games on Steam (Proton)
