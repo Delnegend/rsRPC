@@ -145,7 +145,7 @@ jobs:
       # under that same name, so the run, the release and a formula all agree.
       # Format, effort and layout are the action's decision, not this file's.
       - name: Package artifact
-        uses: Delnegend/actions/package-artifact@660fdcf3457c1166b038976561e48fe50566f6e2 # v1
+        uses: Delnegend/actions/package-artifact@45146f509ee9ee2489fc42007e880d69cc35f57e # v1
         with:
           name: ${{ matrix.name }}
           version: ${{ needs.prepare.outputs.version }}
