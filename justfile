@@ -30,3 +30,19 @@ bridge:
     mkdir -p dist
     cp target/i686-pc-windows-gnu/release/rsrpc-bridge.exe dist/
     cp crates/bridge/scripts/bridge.sh dist/
+
+# Language-agnostic version contract for Delnegend/actions/resolve-release.
+version action ver="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    case "{{action}}" in
+      get)
+        python3 -c "import tomllib;d=tomllib.load(open('Cargo.toml','rb'));print(d.get('workspace',{}).get('package',{}).get('version') or d.get('package',{}).get('version',''))"
+        ;;
+      bump)
+        [ -n "{{ver}}" ] || { echo "usage: just version bump X.Y.Z" >&2; exit 1; }
+        sed -i -E '0,/^version = ".*"/s//version = "{{ver}}"/' Cargo.toml
+        cargo update -w
+        ;;
+      *) echo "usage: just version get|bump X.Y.Z" >&2; exit 1 ;;
+    esac
