@@ -12,14 +12,8 @@ check:
     # Gated in CI via security scans; local run runs if cargo-audit is installed.
     if command -v cargo-audit >/dev/null 2>&1; then cargo audit --deny warnings; else echo "cargo-audit not installed locally; skipping (enforced in CI)"; fi
 
-# Set every crate version (release workflow only, not by hand).
 bump version:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    sed -i -E '0,/^version = ".*"/s//version = "{{version}}"/' Cargo.toml
-    # Rewrite Cargo.lock from the manifests; never hand-edit versions in it.
-    # (`cargo metadata --no-deps` skips resolution and leaves the lock stale.)
-    cargo update -w
+    @just version bump "{{version}}"
 
 # Build the Windows Proton/Wine bridge executable using container cross-compilation.
 bridge:

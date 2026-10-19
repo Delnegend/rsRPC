@@ -58,7 +58,7 @@ jobs:
 
       - name: Bump, tag, and push
         id: resolve
-        uses: Delnegend/actions/resolve-release@95dff8c808d26b0b4b849450d90652b9b4aca685 # v1
+        uses: Delnegend/actions/resolve-release@0e55ed74d7039e8f1f5b23607345eefaef65d8b4 # v1
         with:
           ref: ${{ inputs.ref }}
           dry-run: ${{ inputs.dry-run }}
@@ -116,7 +116,7 @@ jobs:
           PACKAGE: ${{ matrix.package }}
         run: cargo build -p "$PACKAGE" --release --target "$TARGET"
       - name: Package artifact
-        uses: Delnegend/actions/package-artifact@95dff8c808d26b0b4b849450d90652b9b4aca685 # v1
+        uses: Delnegend/actions/package-artifact@0e55ed74d7039e8f1f5b23607345eefaef65d8b4 # v1
         with:
           name: ${{ matrix.name }}
           version: ${{ needs.prepare.outputs.version }}
@@ -130,17 +130,8 @@ jobs:
     if: needs.prepare.outputs.skip != 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
-        with:
-          path: dist
-          # Each matrix entry uploads one archive; merge them into a single
-          # directory rather than one subdirectory per entry.
-          merge-multiple: true
       - name: Publish release
-        if: needs.prepare.outputs.publish == 'true'
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
+        uses: Delnegend/actions/publish-release@0e55ed74d7039e8f1f5b23607345eefaef65d8b4 # v1
         with:
-          tag_name: ${{ needs.prepare.outputs.ref }}
-          generate_release_notes: true
-          files: dist/*
+          ref: ${{ needs.prepare.outputs.ref }}
+          publish: ${{ needs.prepare.outputs.publish }}
