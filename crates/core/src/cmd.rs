@@ -69,9 +69,7 @@ impl ActivityCmd {
         {
             let cur = chrono::Utc::now().timestamp() + TIMESTAMP_ALREADY_MS_CUTOFF_OFFSET_SECS;
 
-            // convert starting timestamp
             if let Some(start) = timestamps.start.as_mut() {
-                // convert timestamp if in seconds
                 if start.as_millis() > cur {
                     *start = TimeoutValue::new(start.as_millis());
                 } else {
@@ -79,9 +77,7 @@ impl ActivityCmd {
                 }
             }
 
-            // convert ending timestamp
             if let Some(end) = timestamps.end.as_mut() {
-                // convert timestamp if in seconds
                 if end.as_millis() > cur {
                     *end = TimeoutValue::new(end.as_millis());
                 } else {
@@ -92,7 +88,7 @@ impl ActivityCmd {
     }
 
     fn fix_buttons(&mut self) {
-        // If `buttons` are an array of objects, we need to map the labels to `buttons` (as a string array) and the urls to `metadata.button_urls` (as an array of strings)
+        // Map object-format buttons to labels array and metadata.button_urls.
         if let Some(activity) = self.activity_mut()
             && let Some(buttons) = activity.buttons.as_mut()
         {
@@ -101,7 +97,6 @@ impl ActivityCmd {
 
             for b in buttons {
                 if let Some(label) = b.get("label") {
-                    // Unless the provider of the actvity REALLY screwed up, we can safely assume this is a string
                     button_labels.push(label.clone());
                 }
                 if let Some(url) = b.get("url") {
@@ -138,7 +133,6 @@ impl ActivityCmd {
 pub struct ActivityCmdArgs {
     pub pid: Option<u64>,
     pub activity: Option<Activity>,
-    // For INVITE_BROWSER
     pub code: Option<String>,
 }
 
@@ -173,7 +167,6 @@ pub struct Emoji {
     pub animated: Option<bool>,
 }
 
-// Important: https://docs.discord.sex/resources/presence#activity-metadata-object
 #[skip_serializing_none]
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "snake_case")]

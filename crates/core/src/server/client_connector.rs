@@ -130,7 +130,6 @@ impl ClientConnector {
                     Event::Connect(client_id, responder) => {
                         info!("Client {} connected", client_id);
 
-                        // Send initial connection data
                         if !responder.send(Message::Text(data_on_connect.clone())) {
                             error!("Failed to send connect data to client {}", client_id);
                         }
@@ -178,7 +177,6 @@ impl ClientConnector {
             }
         });
 
-        // Create a thread for each reciever
         let (ipc_event_rec, proc_event_rec, ws_event_rec) = match (
             self.ipc_event_rec.lock(),
             self.proc_event_rec.lock(),
@@ -215,7 +213,6 @@ impl ClientConnector {
 
                 if args.activity.is_none() {
                     let pid = args.pid.unwrap_or_default();
-                    // Send empty payload
                     let payload = empty_activity(pid, pid.to_string());
 
                     info!("Sending empty payload");
@@ -256,13 +253,11 @@ impl ClientConnector {
                 let proc_activity = proc_event.activity;
 
                 if proc_activity.id == NULL_ACTIVITY_ID {
-                    // If our last socket id is empty, skip
                     let active_socket = match proc_clone.active_socket.clone() {
                         Some(socket) => socket,
                         None => continue,
                     };
 
-                    // Send an empty payload
                     info!("Sending empty payload");
 
                     let payload =
@@ -275,10 +270,8 @@ impl ClientConnector {
                     continue;
                 }
 
-                // If the active socket is different from the current socket, send an empty payload for the old socket
                 if proc_clone.active_socket != Some(proc_activity.id.clone()) {
                     if let Some(active_socket) = proc_clone.active_socket.clone() {
-                        // Send an empty payload
                         info!("Sending empty payload");
 
                         let payload =
@@ -334,8 +327,7 @@ impl ClientConnector {
         std::thread::spawn(move || {
             while let Ok(mut ws_event) = ws_event_rec.recv() {
                 if ws_event.cmd != "SET_ACTIVITY" {
-                    // Just send the event as-is, there isn't really anything to go off of here
-                    // I will change this if arRPC implements things like INVITE_BROWSER event responses, to ensure compatibility
+                    // Forward non-activity events directly.
                     let payload = serde_json::to_string(&ws_event).unwrap_or("".to_string());
                     info!("Sending payload for WS event");
                     ws_clone.send_data(payload);
@@ -355,7 +347,6 @@ impl ClientConnector {
 
                 if args.activity.is_none() {
                     let pid = args.pid.unwrap_or_default();
-                    // Send empty payload
                     let payload = empty_activity(pid, pid.to_string());
 
                     info!("Sending empty payload");

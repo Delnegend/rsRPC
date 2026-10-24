@@ -78,13 +78,10 @@ pub(crate) struct Handshake {
 pub fn encode(r_type: PacketType, data: &str) -> Vec<u8> {
     let mut buffer: Vec<u8> = Vec::with_capacity(8 + data.len());
 
-    // Write the packet type
     buffer.extend_from_slice(&(r_type as u32).to_le_bytes());
 
-    // Write the data size
     buffer.extend_from_slice(&(data.len() as u32).to_le_bytes());
 
-    // Write the data
     buffer.extend_from_slice(data.as_bytes());
 
     buffer

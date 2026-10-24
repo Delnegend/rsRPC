@@ -32,7 +32,6 @@ pub(crate) fn get_socket_path() -> String {
         "/tmp".to_string()
     };
 
-    // Append a / to the temp dir if it doesn't have one
     let tmp_dir = if tmp_dir.ends_with('/') {
         tmp_dir
     } else {

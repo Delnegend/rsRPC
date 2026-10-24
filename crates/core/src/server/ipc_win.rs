@@ -142,10 +142,8 @@ impl IpcConnector {
 
     /// See the unix backend: `io::Error`, never aborts.
     fn create_socket(tries: Option<u8>) -> std::io::Result<Listener> {
-        // Define the path to the named pipe
         let pipe_path = r"\\.\pipe\discord-ipc";
 
-        // Append tried number to name if applicable
         let tries = match tries {
             Some(tries) => tries,
             None => 0,
