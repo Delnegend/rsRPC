@@ -12,8 +12,6 @@ check:
     # Gated in CI via security scans; local run runs if cargo-audit is installed.
     if command -v cargo-audit >/dev/null 2>&1; then cargo audit --deny warnings; else echo "cargo-audit not installed locally; skipping (enforced in CI)"; fi
 
-bump version:
-    @just version bump "{{version}}"
 
 # Build the Windows Proton/Wine bridge executable using container cross-compilation.
 bridge:
@@ -33,10 +31,10 @@ version action ver="":
       get)
         python3 -c "import tomllib;d=tomllib.load(open('Cargo.toml','rb'));print(d.get('workspace',{}).get('package',{}).get('version') or d.get('package',{}).get('version',''))"
         ;;
-      bump)
-        [ -n "{{ver}}" ] || { echo "usage: just version bump X.Y.Z" >&2; exit 1; }
+      set|bump)
+        [ -n "{{ver}}" ] || { echo "usage: just version set X.Y.Z" >&2; exit 1; }
         sed -i -E '0,/^version = ".*"/s//version = "{{ver}}"/' Cargo.toml
         cargo update -w
         ;;
-      *) echo "usage: just version get|bump X.Y.Z" >&2; exit 1 ;;
+      *) echo "usage: just version get|set X.Y.Z" >&2; exit 1 ;;
     esac
