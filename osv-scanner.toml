@@ -1,0 +1,9 @@
+# OSV reports GHSA-qwgh-2vcv-g2f7 for block-buffer 0.10.4 in Cargo.lock,
+# but the upstream maintainer advisory lists affected versions >=0.11.0,
+# <0.12.1: https://github.com/RustCrypto/utils/security/advisories/GHSA-qwgh-2vcv-g2f7
+# This ID-level exception also suppresses aliases and other versions; review it
+# if block-buffer changes, and remove it when OSV corrects the affected range.
+[[IgnoredVulns]]
+id = "GHSA-qwgh-2vcv-g2f7"
+ignoreUntil = 2026-11-30
+reason = "False positive for locked block-buffer 0.10.4; upstream affected range starts at 0.11.0"
