@@ -72,7 +72,7 @@ impl IpcFacilitator for IpcConnector {
                 // Never hold the guard across the accept loop: lock only long
                 // enough to accept one connection, mirroring the unix backend.
                 // (`accept` borrows nothing, so the guard MUST be scoped to the
-                // call by hand — the borrow checker cannot enforce it here.)
+                // call by hand; the borrow checker cannot enforce it here.)
                 let stream = {
                     let socket_guard = match socket_arc.lock() {
                         Ok(guard) => guard,

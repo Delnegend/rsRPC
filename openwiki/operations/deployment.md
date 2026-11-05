@@ -67,7 +67,7 @@ which the upgrade re-points, rather than at a versioned keg path.
 
 The unit restarts the daemon on failure with a 5-second delay, so a crash is
 recovered from automatically. Note that a port-1337 conflict is fatal by design
-and exits non-zero — under `Restart=on-failure` that means the unit retries
+and exits non-zero; under `Restart=on-failure` that means the unit retries
 every 5 seconds until the conflict clears, so check the log if the service will
 not stay up.
 
@@ -95,8 +95,8 @@ you export `HOMEBREW_USER_CONFIG_HOME`, the file moves with it.
 
 ### Managing It by Hand Instead
 
-If you would rather own the unit yourself — or you installed a release binary
-outside Homebrew — write `~/.config/systemd/user/rsrpc.service`:
+If you would rather own the unit yourself, or you installed a release binary
+outside Homebrew, write `~/.config/systemd/user/rsrpc.service`:
 
 ```ini
 [Unit]

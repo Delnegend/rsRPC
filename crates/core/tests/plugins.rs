@@ -55,8 +55,8 @@ fn plugin_enriches_detected_game_activity() {
         state: "Ranked 5v5 (Searching...)".to_string(),
     });
 
-    // `spawn` can return while the child's execve is still settling — its
-    // cmdline briefly reads as empty or as the parent's — so a single
+    // `spawn` can return while the child's execve is still settling (its
+    // cmdline briefly reads as empty or as the parent's), so a single
     // immediate scan can miss it under load. Poll instead.
     let deadline = Instant::now() + Duration::from_secs(10);
     let detected = loop {

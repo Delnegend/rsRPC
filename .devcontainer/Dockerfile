@@ -33,7 +33,7 @@ ENV XDG_RUNTIME_DIR=/run/user/1000
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal --no-modify-path && \
     /usr/local/cargo/bin/rustup component add rust-analyzer rustfmt clippy
 
-# mold — pinned to keep linking fast/reproducible for native (gnu) builds.
+# mold is pinned to keep linking fast/reproducible for native (gnu) builds.
 # Note: project .cargo/config.toml merges with this CARGO_HOME-level config.
 RUN curl -fsSL -o /tmp/mold.tar.gz "https://github.com/rui314/mold/releases/download/v${MOLD_VERSION}/mold-${MOLD_VERSION}-x86_64-linux.tar.gz" && \
     echo "f5ed2f6e31d1ada4f07fe766fe0de7a73104d1c5cdc59086fcecc16a43720b6d  /tmp/mold.tar.gz" | sha256sum -c - && \

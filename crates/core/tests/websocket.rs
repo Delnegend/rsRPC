@@ -315,7 +315,7 @@ fn message_from_unknown_client_keeps_server_alive() {
     let port = boot();
 
     // Raw client that sends a valid message but disconnects immediately,
-    // racing the server's connect/message ordering — then a fresh client
+    // racing the server's connect/message ordering; then a fresh client
     // must still be served.
     let hit = must!(
         WsClient::connect(port, "?v=1&encoding=json", Some(ORIGIN)),

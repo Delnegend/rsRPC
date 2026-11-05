@@ -1,6 +1,6 @@
 # rsRPC task runner. `just check` is the single CI gate.
 
-# Format, lint, test, docs, and audit — must pass before merge.
+# Format, lint, test, docs, and audit must pass before merge.
 check:
     cargo fmt --all -- --check
     # A version bump that skipped the lock would be silently rewritten by the

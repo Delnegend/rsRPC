@@ -49,7 +49,7 @@ rsrpc --no-process-scan
 | `RUST_LOG` | `info` | Standard `tracing` filter directive (e.g. `debug`, `trace`, `rsrpc=debug`). |
 | `RSRPC_LOGS_ENABLED` | `1` (CLI default) | Fallback toggle if `RUST_LOG` is unset. `0` disables log lines, `1` enables `info` level. |
 | `RSRPC_WS_PORTS` | `6463-6472` | Overrides the websocket facade's candidate listen ports: a single port (`6463`) or an inclusive range (`6463-6472`). Malformed values, ports below `1024`, and reversed ranges fall back to the default. |
-| `XDG_RUNTIME_DIR` | — | Primary directory for binding and discovering `discord-ipc-0` on Linux. |
+| `XDG_RUNTIME_DIR` | None | Primary directory for binding and discovering `discord-ipc-0` on Linux. |
 | `TMPDIR` / `TMP` / `TEMP` | `/tmp` | Ordered fallback directories when `XDG_RUNTIME_DIR` is not set. |
 
 ## Library Configuration (`RPCConfig`)
@@ -84,7 +84,7 @@ fn run() -> Result<(), RpcError> {
 
 - Mutators that need a running server (such as `on_process_scan_complete`) fail with `RpcError::NotStarted` before `start` and with `RpcError::AlreadyStarted` after it.
 - Calling `start` a second time returns `RpcError::AlreadyStarted`; connectors are never built twice.
-- If the client connector cannot bind its port — typically because another instance already owns it — `start` returns `RpcError::Io` with an underlying `io::Error` of kind `AddrInUse`. Nothing is initialized, so the server remains unstarted and mutators still report `NotStarted`; a failed start never leaves a half-started daemon.
+- If the client connector cannot bind its port, typically because another instance already owns it, `start` returns `RpcError::Io` with an underlying `io::Error` of kind `AddrInUse`. Nothing is initialized, so the server remains unstarted and mutators still report `NotStarted`; a failed start never leaves a half-started daemon.
 - Connector degradations are not errors: when no websocket port can be bound, `start` logs a warning and continues with a disabled facade, and the IPC connector comes up disabled when no socket can be bound.
 
 ### Fields

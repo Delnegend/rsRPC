@@ -20,7 +20,7 @@ Get running in less than 60 seconds:
 # 1. Install
 brew install Delnegend/tap/rsrpc
 
-# 2. Run it — fetches Discord's game list automatically
+# 2. Run it; it fetches Discord's game list automatically
 rsrpc
 ```
 
@@ -43,11 +43,11 @@ Open Discord and launch a game: your status updates. Press `Ctrl+C` to stop.
 
 ## Highlights
 
-- **One command to install** — `brew install Delnegend/tap/rsrpc`; the tap follows releases, so `brew upgrade` keeps you current.
-- **Zero setup for most games** — downloads Discord's detectable-games list on start, no config file needed.
-- **Catches games three ways** — running-process scan, local socket, and browser websocket, so odd launchers still show up.
-- **Windows games too** — the `rsrpc-bridge` formula covers Proton and Wine games that never touch the host IPC socket.
-- **Your list, your rules** — point it at your own `detectable.json`, or add and scan games while it runs.
+- **One command to install:** `brew install Delnegend/tap/rsrpc`; the tap follows releases, so `brew upgrade` keeps you current.
+- **Zero setup for most games:** downloads Discord's detectable-games list on start, no config file needed.
+- **Catches games three ways:** running-process scan, local socket, and browser websocket, so odd launchers still show up.
+- **Windows games too:** the `rsrpc-bridge` formula covers Proton and Wine games that never touch the host IPC socket.
+- **Your list, your rules:** point it at your own `detectable.json`, or add and scan games while it runs.
 
 ## Common Options
 
@@ -80,13 +80,13 @@ For connectors, event flow, and design notes, see **[Architecture Overview](open
 
 ## Documentation (OpenWiki)
 
-- **[Quickstart](openwiki/quickstart.md)** — Get running in under 60 seconds with Homebrew, Docker, or systemd.
-- **[Architecture Overview](openwiki/architecture/overview.md)** — Connectors, event flow, and invariants.
-- **[Activity Middleware](openwiki/architecture/middleware.md)** — Sanitization pipeline for thread names and mod watermarks.
-- **[Proton & Wine Bridge](openwiki/integrations/proton-bridge.md)** — Connect Windows games running in Steam Proton, Lutris, or Wine.
-- **[Configuration](openwiki/operations/configuration.md)** — CLI flags, `RPCConfig`, env vars, and the Rust API.
-- **[Deployment & Operations](openwiki/operations/deployment.md)** — Install from Homebrew or releases, and run under systemd.
+- **[Quickstart](openwiki/quickstart.md):** Get running in under 60 seconds with Homebrew, Docker, or systemd.
+- **[Architecture Overview](openwiki/architecture/overview.md):** Connectors, event flow, and invariants.
+- **[Activity Middleware](openwiki/architecture/middleware.md):** Sanitization pipeline for thread names and mod watermarks.
+- **[Proton & Wine Bridge](openwiki/integrations/proton-bridge.md):** Connect Windows games running in Steam Proton, Lutris, or Wine.
+- **[Configuration](openwiki/operations/configuration.md):** CLI flags, `RPCConfig`, env vars, and the Rust API.
+- **[Deployment & Operations](openwiki/operations/deployment.md):** Install from Homebrew or releases, and run under systemd.
 
 ## License
 
-[MIT](LICENSE) — fork of [SpikeHD/rsRPC](https://github.com/SpikeHD/rsRPC), inspired by [arRPC](https://github.com/OpenAsar/arRPC).
+[MIT](LICENSE); fork of [SpikeHD/rsRPC](https://github.com/SpikeHD/rsRPC), inspired by [arRPC](https://github.com/OpenAsar/arRPC).

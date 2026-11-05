@@ -155,7 +155,7 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
     // whole timeout story: each connection gets its own handler thread, and
     // when the peer closes the socket the blocked read returns `Err`, the
     // loop breaks, and the thread exits. A stalled peer therefore costs one
-    // parked thread — never the listener — and leaves no residue behind.
+    // parked thread (never the listener) and leaves no residue behind.
     // Oversize frames are still rejected up front via the `MAX_FRAME` length
     // check below, and frame bodies are parsed from bytes (`from_slice`), so
     // no unbounded allocation or UTF-8 pre-validation cost exists either.

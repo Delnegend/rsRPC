@@ -213,7 +213,7 @@ fn close_then_second_client_gets_ready() {
 /// Stalled partial frame: dropping the peer unblocks the handler thread.
 ///
 /// Behavior asserted: after the client goes away mid-frame, the server
-/// reports the disconnect (empty activity on the channel) promptly — the
+/// reports the disconnect (empty activity on the channel) promptly; the
 /// handler thread does not hang forever on a stalled read.
 #[test]
 #[serial_test::serial]
@@ -237,8 +237,8 @@ fn stalled_partial_frame_unblocks_on_peer_close() {
     );
 }
 
-/// All ten IPC slots taken: the eleventh connector comes back disabled —
-/// construction returns normally and `start` is an inert no-op — instead of
+/// All ten IPC slots taken: the eleventh connector comes back disabled;
+/// construction returns normally and `start` is an inert no-op, instead of
 /// exiting the host process.
 #[test]
 #[serial_test::serial]

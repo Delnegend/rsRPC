@@ -46,7 +46,7 @@ releases automatically, and upgrades with the rest of your system:
 # Install
 brew install Delnegend/tap/rsrpc
 
-# Start the daemon — it fetches Discord's game list on first run
+# Start the daemon; it fetches Discord's game list on first run
 rsrpc
 ```
 

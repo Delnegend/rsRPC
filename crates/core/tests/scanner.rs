@@ -117,8 +117,8 @@ fn process_detected_details_from_window_title() {
     let mut s = empty_server();
     s.append_detectables(vec![da]);
 
-    // `spawn` can return while the child's execve is still settling — its
-    // cmdline briefly reads as empty or as the parent's — so a single
+    // `spawn` can return while the child's execve is still settling (its
+    // cmdline briefly reads as empty or as the parent's), so a single
     // immediate scan can miss it under load. Poll instead.
     let deadline = Instant::now() + Duration::from_secs(10);
     let detected = loop {

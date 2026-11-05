@@ -28,7 +28,7 @@
     },
     {
       "id": "claim_ba9153bb38194f9697bfc0bcf447852c",
-      "statement": "WebsocketConnector searches its candidate port range sequentially — `6463` through `6472` inclusive by default, overridable via the `RSRPC_WS_PORTS` environment variable — and validates origin headers against permitted Discord origins.",
+      "statement": "WebsocketConnector searches its candidate port range sequentially (`6463` through `6472` inclusive by default, overridable via the `RSRPC_WS_PORTS` environment variable) and validates origin headers against permitted Discord origins.",
       "evidence": [
         {
           "resource": "repo://crates/lib/src/server/websocket.rs#L198-L205",
