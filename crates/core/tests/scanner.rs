@@ -1,12 +1,12 @@
+use rsrpc_core::ProcessServer;
 use rsrpc_core::detection::DetectableActivity;
-use rsrpc_core::{ProcessEventListeners, ProcessScanState, ProcessServer};
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::mpsc;
 
 fn empty_server() -> ProcessServer {
     let (tx, _rx) = mpsc::channel();
-    ProcessServer::new(vec![], tx, ProcessEventListeners::default())
+    ProcessServer::new(vec![], tx)
 }
 
 #[test]
@@ -60,35 +60,14 @@ fn scan_guard_concurrent() {
 }
 
 #[test]
-fn append_then_scan() {
-    let mut s = empty_server();
+fn scan_with_detectables() {
+    let (tx, _rx) = mpsc::channel();
     let da: DetectableActivity =
         serde_json::from_str(r#"{"name":"needleproc","id":"needleid","hook":false}"#).unwrap();
-    s.append_detectables(vec![da]);
+    let s = ProcessServer::new(vec![da], tx);
     let res = s.scan_for_processes().unwrap();
     // may or may not find; just ensure no panic and runs
     let _ = res;
-}
-
-#[test]
-fn obs_open_callback() {
-    use std::sync::atomic::{AtomicBool, Ordering};
-    let fired = Arc::new(AtomicBool::new(false));
-    let fired2 = fired.clone();
-    let cb: Arc<Mutex<Box<dyn FnMut(_) + Send + Sync>>> =
-        Arc::new(Mutex::new(Box::new(move |_st: ProcessScanState| {
-            fired2.store(true, Ordering::SeqCst);
-        })));
-    let (tx, _rx) = mpsc::channel();
-    let listeners = ProcessEventListeners {
-        on_process_scan_complete: Some(cb),
-    };
-    let s = ProcessServer::new(vec![], tx, listeners);
-    let _ = s.scan_for_processes();
-    // skip if no obs process; just report
-    if !fired.load(Ordering::SeqCst) {
-        eprintln!("skip: no obs process running");
-    }
 }
 
 #[test]
@@ -102,7 +81,7 @@ fn custom_detectable_greater_than_argument() {
 }
 
 #[test]
-fn process_detected_details_from_window_title() {
+fn process_detected_no_exe_fallback() {
     use std::process::Command;
     use std::time::{Duration, Instant};
     // Spawn a real process with a distinct name/comm
@@ -114,8 +93,8 @@ fn process_detected_details_from_window_title() {
   )
   .unwrap();
 
-    let mut s = empty_server();
-    s.append_detectables(vec![da]);
+    let (tx, _rx) = mpsc::channel();
+    let s = ProcessServer::new(vec![da], tx);
 
     // `spawn` can return while the child's execve is still settling (its
     // cmdline briefly reads as empty or as the parent's), so a single
@@ -132,11 +111,10 @@ fn process_detected_details_from_window_title() {
         );
         std::thread::sleep(Duration::from_millis(20));
     };
-    assert!(
-        detected.details.is_some(),
-        "detected process should have details populated from window_title/comm"
+    assert_eq!(
+        detected.details, None,
+        "un-enriched processes must not fall back to raw binary name"
     );
-    assert_eq!(detected.details.as_deref(), Some("sleep"));
 
     let _ = child.kill();
     let _ = child.wait();

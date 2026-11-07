@@ -175,7 +175,7 @@ fn rpc_server_starts_with_exhausted_websocket_range() {
     // The facade stayed disabled, but `start` completed: mutators reach the
     // initialized connectors instead of reporting `NotStarted`.
     must!(
-        server.append_detectables(Vec::new()),
+        server.scan_for_processes(),
         "server must finish starting despite the disabled facade"
     );
 

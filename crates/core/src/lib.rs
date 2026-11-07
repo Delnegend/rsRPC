@@ -5,30 +5,22 @@ use std::{
 };
 
 pub mod cmd;
+pub mod custom_games;
 pub mod detection;
-pub mod logger;
 pub mod middleware;
-pub mod plugins;
 mod server;
 pub mod url_params;
 pub use tracing;
 
-/// Callback invoked after each process scan completes.
-///
-/// Prefer the crate-root [`ProcessScanState`] re-export in new code.
-pub type ProcessCallback = Box<dyn FnMut(ProcessScanState) + Send + Sync>;
-
+pub use custom_games::{builtin_custom_games, custom_game, custom_game_with_args};
 pub use middleware::{
     ActivityMiddleware, MiddlewarePipeline, ModWatermarkFilter, ThreadNameFilter,
-};
-pub use plugins::{
-    GameEnrichment, GameStatusPlugin, LeagueOfLegendsPlugin, PluginRegistry, VrChatPlugin,
 };
 #[doc(hidden)]
 pub use server::gsi::{GsiMap, GsiPayload, GsiServer, GsiTeam, gsi_payload_to_activity};
 pub use server::ipc_utils::{MAX_FRAME, PacketType, encode, encode_into};
 #[doc(hidden)]
-pub use server::process::{ProcessEventListeners, ProcessScanState, ProcessServer};
+pub use server::process::ProcessServer;
 pub use server::{
     client_connector::ClientConnector, ipc::IpcConnector, ipc_utils::IpcFacilitator,
     websocket::WebsocketConnector,
@@ -54,7 +46,7 @@ impl Default for RPCConfig {
             enable_ipc_connector: true,
             enable_websocket_connector: true,
             enable_secondary_events: true,
-            enable_gsi: false,
+            enable_gsi: true,
             gsi_port: 3000,
             port: 1337,
         }
@@ -78,7 +70,7 @@ impl Default for RPCConfig {
 /// // Mutators before start() report NotStarted.
 /// let mut server = RPCServer::from_json_str("[]", RPCConfig::default())?;
 /// assert!(matches!(
-///   server.append_detectables(vec![]),
+///   server.scan_for_processes(),
 ///   Err(RpcError::NotStarted)
 /// ));
 /// # Ok(())
@@ -140,11 +132,9 @@ struct Connectors {
 }
 
 pub struct RPCServer {
-    detectable: Arc<Mutex<Vec<Arc<DetectableActivity>>>>,
+    detectable: Option<Vec<DetectableActivity>>,
     connectors: Option<Connectors>,
     config: RPCConfig,
-
-    on_process_scan_complete: Option<Arc<Mutex<ProcessCallback>>>,
 }
 
 impl RPCServer {
@@ -164,18 +154,13 @@ impl RPCServer {
     /// ```
     pub fn from_json_str(detectable: impl AsRef<str>, config: RPCConfig) -> Result<Self, RpcError> {
         let detectable: Vec<DetectableActivity> = serde_json::from_str(detectable.as_ref())?;
-        let detectable: Vec<Arc<DetectableActivity>> =
-            detectable.into_iter().map(Arc::new).collect();
 
         Ok(Self {
-            detectable: Arc::new(Mutex::new(detectable)),
+            detectable: Some(detectable),
 
             // Default to empty servers
             connectors: None,
             config,
-
-            // Event listeners
-            on_process_scan_complete: None,
         })
     }
 
@@ -197,57 +182,6 @@ impl RPCServer {
     pub fn from_file(file: impl AsRef<Path>, config: RPCConfig) -> Result<Self, RpcError> {
         let detectable = std::fs::read_to_string(file.as_ref())?;
         Self::from_json_str(detectable.as_str(), config)
-    }
-
-    /// Add new detectable processes on-the-fly. This should be run AFTER start().
-    ///
-    /// # Errors
-    ///
-    /// Returns [`RpcError::NotStarted`] when called before [`RPCServer::start`].
-    ///
-    /// ```
-    /// # fn main() -> Result<(), rsrpc_core::RpcError> {
-    /// use rsrpc_core::{RPCConfig, RPCServer, RpcError};
-    ///
-    /// let mut server = RPCServer::from_json_str("[]", RPCConfig::default())?;
-    /// assert!(matches!(
-    ///   server.append_detectables(vec![]),
-    ///   Err(RpcError::NotStarted)
-    /// ));
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn append_detectables(
-        &mut self,
-        detectable: Vec<DetectableActivity>,
-    ) -> Result<(), RpcError> {
-        let connectors = self.connectors()?;
-        lock_or_poison(&connectors.process_server)?.append_detectables(detectable);
-        Ok(())
-    }
-
-    /// Remove a detectable process by name.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`RpcError::NotStarted`] when called before [`RPCServer::start`].
-    ///
-    /// ```
-    /// # fn main() -> Result<(), rsrpc_core::RpcError> {
-    /// use rsrpc_core::{RPCConfig, RPCServer, RpcError};
-    ///
-    /// let mut server = RPCServer::from_json_str("[]", RPCConfig::default())?;
-    /// assert!(matches!(
-    ///   server.remove_detectable_by_name("Some Game"),
-    ///   Err(RpcError::NotStarted)
-    /// ));
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn remove_detectable_by_name(&mut self, name: impl Into<String>) -> Result<(), RpcError> {
-        let connectors = self.connectors()?;
-        lock_or_poison(&connectors.process_server)?.remove_detectable_by_name(name.into());
-        Ok(())
     }
 
     /// Manually trigger a scan for processes. This should be run AFTER start().
@@ -276,38 +210,6 @@ impl RPCServer {
             tracing::error!("Error while scanning processes: {}", err);
         }
 
-        Ok(())
-    }
-
-    /// Register the callback invoked after each process scan.
-    /// Must be called BEFORE [`RPCServer::start`].
-    ///
-    /// # Errors
-    ///
-    /// Returns [`RpcError::AlreadyStarted`] when called after
-    /// [`RPCServer::start`].
-    ///
-    /// ```
-    /// # fn main() -> Result<(), rsrpc_core::RpcError> {
-    /// use rsrpc_core::{RPCConfig, RPCServer};
-    ///
-    /// let mut server = RPCServer::from_json_str("[]", RPCConfig::default())?;
-    /// server.on_process_scan_complete(|_state| {})?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn on_process_scan_complete(
-        &mut self,
-        callback: impl FnMut(ProcessScanState) + Send + Sync + 'static,
-    ) -> Result<(), RpcError> {
-        if self.connectors.is_some() {
-            tracing::warn!(
-                "Cannot set on_process_scan_complete, connectors are already initialized"
-            );
-            return Err(RpcError::AlreadyStarted);
-        }
-
-        self.on_process_scan_complete = Some(Arc::new(Mutex::new(Box::new(callback))));
         Ok(())
     }
 
@@ -340,7 +242,6 @@ impl RPCServer {
     /// use rsrpc_core::{RPCConfig, RPCServer};
     ///
     /// let mut server = RPCServer::from_json_str("[]", RPCConfig::default())?;
-    /// server.on_process_scan_complete(|_state| {})?;
     /// server.start()?;
     /// # Ok(())
     /// # }
@@ -354,8 +255,7 @@ impl RPCServer {
         let (proc_event_sender, proc_event_receiver) = mpsc::channel();
         let (ipc_event_sender, ipc_event_receiver) = mpsc::channel();
         let (ws_event_sender, ws_event_reciever) = mpsc::channel();
-
-        let detectable = lock_or_poison(&self.detectable)?.to_vec();
+        let detectable = self.detectable.take().unwrap_or_default();
 
         let client_connector = match ClientConnector::new(
             self.config.port,
@@ -384,9 +284,6 @@ impl RPCServer {
             process_server: Arc::new(Mutex::new(ProcessServer::new(
                 detectable,
                 proc_event_sender,
-                ProcessEventListeners {
-                    on_process_scan_complete: self.on_process_scan_complete.clone(),
-                },
             ))),
             client_connector: Arc::new(Mutex::new(client_connector)),
             ipc_connector: Arc::new(Mutex::new(IpcConnector::new(ipc_event_sender.clone()))),

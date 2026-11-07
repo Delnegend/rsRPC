@@ -5,55 +5,12 @@ use serde_with::skip_serializing_none;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "snake_case")]
 pub struct DetectableActivity {
-    #[serde(rename = "bot_public")]
-    pub bot_public: Option<bool>,
-    #[serde(rename = "bot_require_code_grant")]
-    pub bot_require_code_grant: Option<bool>,
-    #[serde(rename = "cover_image")]
-    pub cover_image: Option<String>,
-    pub description: Option<String>,
-    #[serde(default)]
-    pub developers: Option<Vec<Developer>>,
-    #[serde(default)]
-    pub executables: Option<Vec<Executable>>,
-    pub flags: Option<i64>,
-    #[serde(rename = "guild_id")]
-    pub guild_id: Option<String>,
-    pub hook: bool,
-    pub icon: Option<String>,
     pub id: String,
     pub name: String,
     #[serde(default)]
-    pub publishers: Option<Vec<Publisher>>,
-    #[serde(rename = "rpc_origins")]
+    pub executables: Option<Vec<Executable>>,
     #[serde(default)]
-    pub rpc_origins: Option<Vec<String>>,
-    pub splash: Option<String>,
-    #[serde(rename = "third_party_skus")]
-    #[serde(default)]
-    pub third_party_skus: Option<Vec<ThirdPartySku>>,
-    #[serde(rename = "type")]
-    pub type_field: Option<i64>,
-    #[serde(rename = "verify_key")]
-    pub verify_key: Option<String>,
-    #[serde(rename = "primary_sku_id")]
-    pub primary_sku_id: Option<String>,
-    pub slug: Option<String>,
-    #[serde(default)]
-    pub aliases: Option<Vec<String>>,
-    pub overlay: Option<bool>,
-    #[serde(rename = "overlay_compatibility_hook")]
-    pub overlay_compatibility_hook: Option<bool>,
-    #[serde(rename = "privacy_policy_url")]
-    pub privacy_policy_url: Option<String>,
-    #[serde(rename = "terms_of_service_url")]
-    pub terms_of_service_url: Option<String>,
-    #[serde(rename = "eula_id")]
-    pub eula_id: Option<String>,
-    #[serde(rename = "deeplink_uri")]
-    pub deeplink_uri: Option<String>,
-    #[serde(default)]
-    pub tags: Option<Vec<String>>,
+    pub hook: bool,
     pub pid: Option<u64>,
     pub timestamp: Option<String>,
     pub details: Option<String>,
@@ -66,39 +23,12 @@ pub struct DetectableActivity {
 pub const NULL_ACTIVITY_ID: &str = "null";
 
 /// Build the synthetic "no activity" [`DetectableActivity`].
-///
-/// Every optional field is `None`, `hook` is `false`, the id is
-/// [`NULL_ACTIVITY_ID`], and `name` is empty.
 pub fn null_activity() -> DetectableActivity {
     DetectableActivity {
-        bot_public: None,
-        bot_require_code_grant: None,
-        cover_image: None,
-        description: None,
-        developers: None,
-        executables: None,
-        flags: None,
-        guild_id: None,
-        hook: false,
-        icon: None,
         id: NULL_ACTIVITY_ID.to_string(),
         name: String::new(),
-        publishers: None,
-        rpc_origins: None,
-        splash: None,
-        third_party_skus: None,
-        type_field: None,
-        verify_key: None,
-        primary_sku_id: None,
-        slug: None,
-        aliases: None,
-        overlay: None,
-        overlay_compatibility_hook: None,
-        privacy_policy_url: None,
-        terms_of_service_url: None,
-        eula_id: None,
-        deeplink_uri: None,
-        tags: None,
+        executables: None,
+        hook: false,
         pid: None,
         timestamp: None,
         details: None,
@@ -106,32 +36,13 @@ pub fn null_activity() -> DetectableActivity {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct Developer {
-    pub id: String,
-    pub name: String,
-}
-
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "snake_case")]
 pub struct Executable {
+    #[serde(default)]
     pub is_launcher: bool,
     pub name: String,
     pub os: String,
     pub arguments: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct Publisher {
-    pub id: String,
-    pub name: String,
-}
-
-#[skip_serializing_none]
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct ThirdPartySku {
-    pub distributor: String,
-    pub id: Option<String>,
-    pub sku: Option<String>,
 }

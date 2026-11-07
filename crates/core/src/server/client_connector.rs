@@ -253,35 +253,24 @@ impl ClientConnector {
                 let proc_activity = proc_event.activity;
 
                 if proc_activity.id == NULL_ACTIVITY_ID {
-                    let active_socket = match proc_clone.active_socket.clone() {
-                        Some(socket) => socket,
-                        None => continue,
-                    };
-
-                    info!("Sending empty payload");
-
-                    let payload =
-                        empty_activity(proc_clone.last_pid.unwrap_or_default(), active_socket);
-
-                    proc_clone.send_empty_payload(payload);
-
-                    proc_clone.active_socket = None;
-
+                    if let Some(active_socket) = proc_clone.active_socket.take() {
+                        info!("Sending empty payload");
+                        let payload =
+                            empty_activity(proc_clone.last_pid.unwrap_or_default(), active_socket);
+                        proc_clone.send_empty_payload(payload);
+                    }
                     continue;
                 }
 
-                if proc_clone.active_socket != Some(proc_activity.id.clone()) {
-                    if let Some(active_socket) = proc_clone.active_socket.clone() {
-                        info!("Sending empty payload");
-
-                        let payload =
-                            empty_activity(proc_clone.last_pid.unwrap_or_default(), active_socket);
-
-                        proc_clone.send_empty_payload(payload);
-                    }
-                } else {
-                    debug!("Already sent payload for activity: {}", proc_activity.name);
-                    continue;
+                if let Some(active_socket) = &proc_clone.active_socket
+                    && active_socket != &proc_activity.id
+                {
+                    info!("Sending empty payload");
+                    let payload = empty_activity(
+                        proc_clone.last_pid.unwrap_or_default(),
+                        active_socket.clone(),
+                    );
+                    proc_clone.send_empty_payload(payload);
                 }
 
                 let mut act = Activity {
@@ -317,10 +306,31 @@ impl ClientConnector {
 
                 info!("Sending payload for activity: {}", proc_activity.name);
 
-                match serde_json::to_string(&payload_struct) {
-                    Ok(payload) => proc_clone.send_activity_payload(payload),
-                    Err(err) => error!("Error serializing process activity: {}", err),
+                let payload_str = match serde_json::to_string(&payload_struct) {
+                    Ok(payload) => payload,
+                    Err(err) => {
+                        error!("Error serializing process activity: {}", err);
+                        continue;
+                    }
+                };
+
+                // Deduplicate: only broadcast if the payload actually changed
+                {
+                    let mut last_payload = proc_clone
+                        .last_payload
+                        .lock()
+                        .unwrap_or_else(|p| p.into_inner());
+                    if last_payload.as_deref() == Some(&payload_str) {
+                        continue;
+                    }
+                    *last_payload = Some(payload_str.clone());
                 }
+
+                proc_clone.last_pid = proc_activity.pid;
+                proc_clone.active_socket = Some(proc_activity.id.clone());
+
+                info!("Sending payload for activity: {}", proc_activity.name);
+                proc_clone.send_activity_payload(payload_str);
             }
         });
 

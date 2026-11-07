@@ -11,26 +11,14 @@ use std::vec;
 use sysinfo::System;
 
 use super::super::DetectableActivity;
-use crate::ProcessCallback;
 use crate::detection::null_activity;
 use tracing::{debug, error};
-
-#[derive(Default, Clone)]
-pub struct ProcessScanState {
-    pub obs_open: bool,
-}
-
-#[derive(Default)]
-pub struct ProcessEventListeners {
-    pub on_process_scan_complete: Option<Arc<Mutex<ProcessCallback>>>,
-}
 
 #[derive(Clone)]
 pub struct Exec {
     pub pid: u64,
     pub path: String,
     pub arguments: Option<String>,
-    pub window_title: Option<String>,
 }
 
 #[derive(Clone)]
@@ -45,9 +33,8 @@ pub struct ProcessDetectedEvent {
 /// Keeping all three behind one mutex means a rebuild can never tear against
 /// an in-flight scan, which would otherwise index with offsets from a
 /// different revision of the list.
-#[derive(Clone)]
 struct DetectState {
-    detectables: Vec<Arc<DetectableActivity>>,
+    detectables: Vec<DetectableActivity>,
     ac: Option<AhoCorasick>,
     indexes: Vec<[usize; 2]>,
 }
@@ -55,7 +42,7 @@ struct DetectState {
 impl DetectState {
     /// Compile `detectables` into a state; build failures keep the list but
     /// leave the matcher empty (logged) so one bad list cannot poison scans.
-    fn build(detectables: Vec<Arc<DetectableActivity>>) -> Self {
+    fn build(detectables: Vec<DetectableActivity>) -> Self {
         match build_ac_patterns(&detectables) {
             Ok((ac, indexes)) => Self {
                 detectables,
@@ -73,25 +60,11 @@ impl DetectState {
         }
     }
 
-    /// Rebuild the automaton from the current list, keeping the previous one
-    /// when the new patterns cannot be compiled.
-    fn rebuild(&mut self) {
-        match build_ac_patterns(&self.detectables) {
-            Ok((ac, indexes)) => {
-                self.ac = if indexes.is_empty() { None } else { Some(ac) };
-                self.indexes = indexes;
-            }
-            Err(err) => {
-                error!("Custom patterns are unusable, keeping the previous automaton: {err}");
-            }
-        }
-    }
-
     /// First activity whose executables match `reversed_path`.
     ///
     /// Bounds-checked end to end: a torn or stale snapshot yields `None`
     /// instead of a panic.
-    fn first_match(&self, reversed_path: &str) -> Option<(&Arc<DetectableActivity>, usize)> {
+    fn first_match(&self, reversed_path: &str) -> Option<(&DetectableActivity, usize)> {
         let mat = self.ac.as_ref()?.find(reversed_path)?;
         let exe_map = self.indexes.get(mat.pattern().as_usize())?;
         let activity = self.detectables.get(exe_map[0])?;
@@ -113,13 +86,9 @@ pub struct ProcessServer {
     detected_list: Arc<Mutex<Vec<Arc<DetectableActivity>>>>,
     scanning: Arc<AtomicBool>,
 
-    main_state: Arc<Mutex<DetectState>>,
-    custom_state: Arc<Mutex<DetectState>>,
-
+    main_state: Arc<DetectState>,
     pub event_sender: mpsc::Sender<ProcessDetectedEvent>,
 
-    event_listeners: Arc<Mutex<ProcessEventListeners>>,
-    plugin_registry: crate::plugins::PluginRegistry,
     #[cfg(not(target_os = "linux"))]
     sysinfo: Arc<Mutex<System>>,
 }
@@ -130,61 +99,30 @@ static NULL_ACTIVITY: OnceLock<Arc<DetectableActivity>> = OnceLock::new();
 
 impl ProcessServer {
     pub fn new(
-        detectable: Vec<Arc<DetectableActivity>>,
+        detectable: Vec<DetectableActivity>,
         event_sender: mpsc::Sender<ProcessDetectedEvent>,
-        event_listeners: ProcessEventListeners,
     ) -> Self {
-        debug!("Building Aho-Corasick patterns for main detectable activities...");
-        let main_state = DetectState::build(detectable);
-        debug!("Done building Aho-Corasick patterns for main detectable activities");
-
         ProcessServer {
             scanning: Arc::new(AtomicBool::new(false)),
             detected_list: Arc::new(Mutex::new(vec![])),
 
-            main_state: Arc::new(Mutex::new(main_state)),
-            custom_state: Arc::new(Mutex::new(DetectState::build(Vec::new()))),
-
+            main_state: {
+                debug!("Building Aho-Corasick patterns for detectable activities...");
+                let mut all_detectables = detectable;
+                all_detectables.extend(crate::custom_games::builtin_custom_games());
+                debug!("Done building Aho-Corasick patterns for detectable activities");
+                Arc::new(DetectState::build(all_detectables))
+            },
             event_sender,
-
-            event_listeners: Arc::new(Mutex::new(event_listeners)),
-            plugin_registry: crate::plugins::PluginRegistry::new(),
 
             #[cfg(not(target_os = "linux"))]
             sysinfo: Arc::new(Mutex::new(System::new())),
         }
     }
 
-    pub fn register_plugin(&self, plugin: impl crate::plugins::GameStatusPlugin + 'static) {
-        self.plugin_registry.register(plugin);
-    }
-
-    fn update_custom_detectables(&self) {
-        debug!("Updating Aho-Corasick patterns for custom detectable activities...");
-        let mut state = self.custom_state.lock().unwrap_or_else(|p| p.into_inner());
-        state.rebuild();
-        debug!("Done updating Aho-Corasick patterns for custom detectable activities");
-    }
-
-    pub fn append_detectables(&mut self, detectable: Vec<DetectableActivity>) {
-        let mut state = self.custom_state.lock().unwrap_or_else(|p| p.into_inner());
-        state
-            .detectables
-            .extend(detectable.into_iter().map(Arc::new));
-        state.rebuild();
-    }
-
-    pub fn remove_detectable_by_name(&mut self, name: String) {
-        let mut state = self.custom_state.lock().unwrap_or_else(|p| p.into_inner());
-        state.detectables.retain(|x| x.name != name);
-        state.rebuild();
-    }
-
     pub fn start(&self) {
         let wait_time = Duration::from_secs(10);
         let clone = self.clone();
-
-        self.update_custom_detectables();
 
         std::thread::spawn(move || {
             loop {
@@ -214,16 +152,32 @@ impl ProcessServer {
                             break;
                         }
                         *previous = detected;
-                    } else if previous.is_empty() || detected[0].id != previous[0].id {
-                        // Only forward when the detected game actually changes;
-                        // re-sending the same payload every scan is pure churn.
-                        if let Err(err) = clone.event_sender.send(ProcessDetectedEvent {
-                            activity: detected[0].clone(),
-                        }) {
-                            error!("Process event receiver is gone, stopping scan loop: {err}");
-                            break;
+                    } else {
+                        let mut current = detected;
+                        // Keep original start timestamp so the timer doesn't reset when details change
+                        if !previous.is_empty()
+                            && current[0].id == previous[0].id
+                            && let Some(orig_ts) = &previous[0].timestamp
+                        {
+                            let mut updated = (*current[0]).clone();
+                            updated.timestamp = Some(orig_ts.clone());
+                            current[0] = Arc::new(updated);
                         }
-                        *previous = detected;
+
+                        let has_changed = previous.is_empty()
+                            || current[0].id != previous[0].id
+                            || current[0].details != previous[0].details
+                            || current[0].state != previous[0].state;
+
+                        if has_changed {
+                            if let Err(err) = clone.event_sender.send(ProcessDetectedEvent {
+                                activity: current[0].clone(),
+                            }) {
+                                error!("Process event receiver is gone, stopping scan loop: {err}");
+                                break;
+                            }
+                            *previous = current;
+                        }
                     }
                 }
 
@@ -257,7 +211,6 @@ impl ProcessServer {
                         .collect::<Vec<_>>()
                         .join(" ")
                 }),
-                window_title: None,
             });
         }
 
@@ -302,15 +255,10 @@ impl ProcessServer {
                 } else {
                     Some(rest.join(" "))
                 };
-                let window_title = fs::read_to_string(path.join("comm"))
-                    .ok()
-                    .map(|s| s.trim().to_string())
-                    .filter(|s| !s.is_empty());
                 processes.push(Exec {
                     pid,
                     path: cmd_path,
                     arguments: cmd_args,
-                    window_title,
                 });
             }
         }
@@ -341,19 +289,6 @@ impl ProcessServer {
 
         debug!("Process scan triggered");
 
-        let main_state = self
-            .main_state
-            .lock()
-            .unwrap_or_else(|p| p.into_inner())
-            .clone();
-        let custom_state = self
-            .custom_state
-            .lock()
-            .unwrap_or_else(|p| p.into_inner())
-            .clone();
-
-        let mut obs_open = false;
-
         let mut process_path = String::with_capacity(256);
         let mut reversed_path = String::with_capacity(256);
 
@@ -369,19 +304,11 @@ impl ProcessServer {
                 if !process_path.starts_with('/') {
                     process_path.insert(0, '/');
                 }
-                // OBS substring check on normalized path
-                if !obs_open
-                    && (process_path.contains("obs64") || process_path.contains("streamlabs"))
-                {
-                    obs_open = true;
-                }
 
                 reversed_path.clear();
                 reversed_path.extend(process_path.chars().rev());
 
-                let (obj, exe_index) = main_state
-                    .first_match(&reversed_path)
-                    .or_else(|| custom_state.first_match(&reversed_path))?;
+                let (obj, exe_index) = self.main_state.first_match(&reversed_path)?;
 
                 let executable = match obj
                     .executables
@@ -402,7 +329,7 @@ impl ProcessServer {
                     return None;
                 }
 
-                let mut new_activity = (**obj).clone();
+                let mut new_activity = obj.clone();
                 new_activity.pid = Some(process.pid);
                 new_activity.timestamp = Some(
                     std::time::SystemTime::now()
@@ -410,34 +337,10 @@ impl ProcessServer {
                         .map(|d| d.as_millis().to_string())
                         .unwrap_or_else(|_| "0".to_string()),
                 );
-                // Check if any registered telemetry plugin provides live in-game status
-                if let Some(enrichment) =
-                    self.plugin_registry
-                        .extract(&new_activity.id, process.pid, &new_activity.name)
-                {
-                    if enrichment.details.is_some() {
-                        new_activity.details = enrichment.details;
-                    }
-                    if enrichment.state.is_some() {
-                        new_activity.state = enrichment.state;
-                    }
-                } else if new_activity.details.is_none() {
-                    // Fallback to window title / comm name
-                    new_activity.details = process.window_title.clone();
-                }
+                crate::custom_games::enrich_custom_game(&mut new_activity);
                 Some(Arc::new(new_activity))
             })
             .collect();
-
-        if let Some(callback) = self
-            .event_listeners
-            .lock()
-            .unwrap_or_else(|p| p.into_inner())
-            .on_process_scan_complete
-            .as_ref()
-        {
-            callback.lock().unwrap_or_else(|p| p.into_inner())(ProcessScanState { obs_open });
-        }
 
         detected_list.shrink_to_fit();
 
@@ -449,7 +352,7 @@ impl ProcessServer {
 
 #[allow(clippy::type_complexity)]
 fn build_ac_patterns(
-    detectables: &[Arc<DetectableActivity>],
+    detectables: &[DetectableActivity],
 ) -> Result<(AhoCorasick, Vec<[usize; 2]>), Box<dyn std::error::Error>> {
     let mut exe_patterns: Vec<String> = Vec::new();
     let mut exe_indexes: Vec<[usize; 2]> = Vec::new();

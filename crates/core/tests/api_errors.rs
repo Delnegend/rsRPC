@@ -50,49 +50,8 @@ fn mutators_before_start_report_not_started() {
     let mut server = empty_server();
 
     assert!(matches!(
-        server.append_detectables(vec![]),
-        Err(RpcError::NotStarted)
-    ));
-    assert!(matches!(
-        server.remove_detectable_by_name("Some Game"),
-        Err(RpcError::NotStarted)
-    ));
-    assert!(matches!(
         server.scan_for_processes(),
         Err(RpcError::NotStarted)
-    ));
-}
-
-#[test]
-fn registering_callback_before_start_succeeds() {
-    let mut server = empty_server();
-    assert!(matches!(
-        server.on_process_scan_complete(|_state| {}),
-        Ok(())
-    ));
-}
-
-#[test]
-fn registering_callback_after_start_reports_already_started() {
-    let mut server = match RPCServer::from_json_str(
-        "[]",
-        RPCConfig {
-            port: 0,
-            enable_process_scanner: false,
-            enable_ipc_connector: false,
-            enable_websocket_connector: false,
-            enable_secondary_events: false,
-            ..Default::default()
-        },
-    ) {
-        Ok(server) => server,
-        Err(_) => unreachable!(),
-    };
-    server.start().unwrap();
-
-    assert!(matches!(
-        server.on_process_scan_complete(|_state| {}),
-        Err(RpcError::AlreadyStarted)
     ));
 }
 
@@ -123,7 +82,7 @@ fn start_reports_bind_failure_when_client_port_is_taken() {
     // The failure is not a half-started server: mutators still report
     // NotStarted.
     assert!(matches!(
-        server.append_detectables(Vec::new()),
+        server.scan_for_processes(),
         Err(RpcError::NotStarted)
     ));
 }
