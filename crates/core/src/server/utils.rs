@@ -26,10 +26,3 @@ pub(crate) static CONNECTION_RESPONSE: &str = r#"
   }
 }
 "#;
-
-/// Historical misspelling of [`CONNECTION_RESPONSE`], kept so out-of-slice
-/// callers (`lib.rs`, `websocket.rs`) keep compiling until they migrate.
-/// New code MUST use [`CONNECTION_RESPONSE`].
-#[deprecated(since = "0.28.0", note = "use CONNECTION_RESPONSE instead")]
-#[allow(dead_code)]
-pub(crate) static CONNECTION_REPONSE: &str = CONNECTION_RESPONSE;
