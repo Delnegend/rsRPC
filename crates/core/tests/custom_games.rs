@@ -12,7 +12,10 @@ fn test_builtin_custom_games_initialization() {
     let detected = server.scan_for_processes().unwrap();
     if let Some(game) = detected.iter().find(|d| d.name == "Drag'n Wash") {
         assert_eq!(game.id, "1568491392664346654");
-        assert!(matches!(game.details.as_deref(), Some("In-game" | "Main Menu")));
+        assert!(matches!(
+            game.details.as_deref(),
+            Some("In-game" | "Main Menu")
+        ));
     }
 }
 

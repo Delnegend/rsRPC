@@ -16,10 +16,7 @@ pub(super) fn game() -> DetectableActivity {
 
 /// Dynamically enriches Drag'n Wash presence with "In-game" or "Main Menu".
 pub(super) fn enrich(activity: &mut DetectableActivity) {
-    if activity.name == GAME_NAME
-        || activity.id == DISCORD_APP_ID
-        || activity.id == STEAM_APP_ID
-    {
+    if activity.name == GAME_NAME || activity.id == DISCORD_APP_ID || activity.id == STEAM_APP_ID {
         activity.details = Some(detect_status().to_string());
     }
 }
