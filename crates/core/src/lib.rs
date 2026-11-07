@@ -57,11 +57,9 @@ impl Default for RPCConfig {
 /// mutation.
 ///
 /// Ordering contract: build the server with [`RPCServer::from_json_str`] or
-/// [`RPCServer::from_file`], optionally register
-/// [`RPCServer::on_process_scan_complete`], then call [`RPCServer::start`].
+/// [`RPCServer::from_file`], then call [`RPCServer::start`].
 /// Mutators that need a running server fail with [`RpcError::NotStarted`]
-/// before [`RPCServer::start`]; registering the scan callback after
-/// [`RPCServer::start`] fails with [`RpcError::AlreadyStarted`].
+/// before [`RPCServer::start`].
 ///
 /// ```
 /// # fn main() -> Result<(), rsrpc_core::RpcError> {
