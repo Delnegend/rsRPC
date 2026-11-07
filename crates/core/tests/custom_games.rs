@@ -102,15 +102,16 @@ fn test_timestamp_preservation_across_status_changes() {
     g2.details = Some("In-game".to_string());
 
     // When level changes for same game, the original start timestamp must be kept
-    let mut current = vec![Arc::new(g2)];
-    let previous = vec![Arc::new(g1)];
+    let mut current = [Arc::new(g2)];
+    let previous = [Arc::new(g1)];
 
-    if !previous.is_empty() && current[0].id == previous[0].id {
-        if let Some(orig_ts) = &previous[0].timestamp {
-            let mut updated = (*current[0]).clone();
-            updated.timestamp = Some(orig_ts.clone());
-            current[0] = Arc::new(updated);
-        }
+    if !previous.is_empty()
+        && current[0].id == previous[0].id
+        && let Some(orig_ts) = &previous[0].timestamp
+    {
+        let mut updated = (*current[0]).clone();
+        updated.timestamp = Some(orig_ts.clone());
+        current[0] = Arc::new(updated);
     }
 
     assert_eq!(current[0].details.as_deref(), Some("In-game"));

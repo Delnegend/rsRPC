@@ -1,7 +1,6 @@
 use rsrpc_core::ProcessServer;
 use rsrpc_core::detection::DetectableActivity;
 use std::sync::Arc;
-use std::sync::Mutex;
 use std::sync::mpsc;
 
 fn empty_server() -> ProcessServer {
