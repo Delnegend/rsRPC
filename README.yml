@@ -1,0 +1,44 @@
+$schema: "https://raw.githubusercontent.com/Delnegend/actions/main/scripts/README.schema.json"
+
+name: rsRPC
+repo: Delnegend/rsRPC
+tagline: "Shows what game you're playing on Discord, for Linux setups where the official client can't."
+
+badges:
+  ci: true
+  release: true
+  license: true
+
+quick_start: |
+  ```bash
+  # 1. Install
+  brew install Delnegend/tap/rsrpc
+
+  # 2. Run it; it fetches Discord's game list automatically
+  rsrpc
+  ```
+
+  Playing Windows games through Steam Play or Proton? Install the bridge too, then point the game's Steam launch options at it:
+
+  ```bash
+  brew install Delnegend/tap/rsrpc-bridge
+  # Steam launch options: $(brew --prefix)/opt/rsrpc-bridge/libexec/bridge.sh %command%
+  ```
+
+highlights:
+  - "**One command to install**: `brew install Delnegend/tap/rsrpc`; the tap follows releases, so `brew upgrade` keeps you current."
+  - "**Zero setup for most games**: downloads Discord's detectable-games list on start, no config file needed."
+  - "**Catches games three ways**: running-process scan, local socket, and browser websocket, so odd launchers still show up."
+  - "**Windows games too**: the `rsrpc-bridge` formula covers Proton and Wine games that never touch the host IPC socket."
+  - "**Your list, your rules**: point it at your own `detectable.json`, or add and scan games while it runs."
+
+documentation:
+  architecture: "Core architecture, process scanner automaton, and client connector invariants."
+  development: "Building from source, running test suites, and cross-compiling the Proton bridge."
+  deployment: "Homebrew tap installation, systemd user service setup, and Flatpak socket permissions."
+
+license:
+  type:
+    - MIT
+  holder: "Delnegend"
+  filename: LICENSE
