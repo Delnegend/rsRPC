@@ -38,11 +38,12 @@ fn free_port() -> u16 {
 
 /// Two adjacent ports that are both free at probe time.
 fn free_consecutive_pair() -> (u16, u16) {
-    for base in (65400..65500).step_by(2) {
+    for base in (65400u16..65500).step_by(2) {
+        let end = base.saturating_add(1);
         let start_free = TcpListener::bind(("127.0.0.1", base)).is_ok();
-        let end_free = TcpListener::bind(("127.0.0.1", base + 1)).is_ok();
+        let end_free = TcpListener::bind(("127.0.0.1", end)).is_ok();
         if start_free && end_free {
-            return (base, base + 1);
+            return (base, end);
         }
     }
     panic!("no free consecutive port pair found");
@@ -50,14 +51,14 @@ fn free_consecutive_pair() -> (u16, u16) {
 
 /// Wait until `port` accepts TCP connections.
 fn wait_connectable(port: u16) {
-    let deadline = Instant::now() + Duration::from_secs(5);
-    while Instant::now() < deadline {
+    let start = Instant::now();
+    while start.elapsed() < Duration::from_secs(5) {
         if TcpStream::connect(("127.0.0.1", port)).is_ok() {
             return;
         }
         std::thread::sleep(Duration::from_millis(20));
     }
-    panic!("port {} never became connectable", port);
+    panic!("port {port} never became connectable");
 }
 
 /// A single-port override binds exactly that port.

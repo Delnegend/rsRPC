@@ -27,12 +27,9 @@ const ORIGIN: &str = "https://discord.com";
 static SERIAL: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 fn serial() -> std::sync::MutexGuard<'static, ()> {
-    match SERIAL.lock() {
-        Ok(guard) => guard,
-        Err(_) => {
-            panic!("test serializer poisoned");
-        }
-    }
+    SERIAL
+        .lock()
+        .unwrap_or_else(|err| panic!("test serializer poisoned: {err}"))
 }
 
 /// Unwrap-or-fail without `unwrap`/`expect` tokens (test files stay
@@ -70,11 +67,12 @@ impl WsClient {
         let mut stream = TcpStream::connect(("127.0.0.1", port))?;
         stream.set_read_timeout(Some(Duration::from_secs(3)))?;
         let mut request = format!(
-            "GET /{} HTTP/1.1\r\nHost: 127.0.0.1:{}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: AAAAAAAAAAAAAAAAAAAAAA==\r\nSec-WebSocket-Version: 13\r\n",
-            query, port
+            "GET /{query} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: AAAAAAAAAAAAAAAAAAAAAA==\r\nSec-WebSocket-Version: 13\r\n",
         );
         if let Some(o) = origin {
-            request.push_str(&format!("Origin: {}\r\n", o));
+            request.push_str("Origin: ");
+            request.push_str(o);
+            request.push_str("\r\n");
         }
         request.push_str("Content-Length: 0\r\n\r\n");
         stream.write_all(request.as_bytes())?;
@@ -108,11 +106,12 @@ impl WsClient {
 
     fn send_text(&mut self, text: &str) -> std::io::Result<()> {
         let bytes = text.as_bytes();
-        let mut frame = vec![0x81, 0x80 | ((bytes.len().min(125)) as u8)];
+        let len = u8::try_from(bytes.len().min(125)).map_err(std::io::Error::other)?;
+        let mut frame = vec![0x81, 0x80 | len];
         let mask = [0x12u8, 0x34, 0x56, 0x78];
         frame.extend_from_slice(&mask);
-        for (i, b) in bytes.iter().enumerate() {
-            frame.push(b ^ mask[i % 4]);
+        for (b, key) in bytes.iter().zip(mask.iter().cycle()) {
+            frame.push(b ^ key);
         }
         self.stream.write_all(&frame)?;
         self.stream.flush()
@@ -121,13 +120,14 @@ impl WsClient {
     /// Read one server text frame; `None` on timeout/close.
     fn read_text(&mut self) -> Option<String> {
         let header = self.read_exact(2).ok()?;
-        let len = (header[1] & 0x7F) as usize;
-        if header[0] & 0x0F == 0x8 || len > 65536 {
+        let [opcode, length] = <[u8; 2]>::try_from(header).ok()?;
+        let len = usize::from(length & 0x7F);
+        if opcode & 0x0F == 0x8 || len > 65536 {
             return None;
         }
         let len = if len == 126 {
             let ext = self.read_exact(2).ok()?;
-            u16::from_be_bytes([ext[0], ext[1]]) as usize
+            usize::from(u16::from_be_bytes(ext.try_into().ok()?))
         } else {
             len
         };
@@ -145,7 +145,9 @@ impl WsClient {
                         "connection closed",
                     ));
                 }
-                Ok(m) => self.buf.extend_from_slice(&chunk[..m]),
+                Ok(m) => self.buf.extend_from_slice(chunk.get(..m).ok_or_else(|| {
+                    std::io::Error::new(std::io::ErrorKind::InvalidData, "invalid read length")
+                })?),
                 Err(e) => return Err(e),
             }
         }
@@ -200,8 +202,7 @@ fn valid_handshake_receives_ready() {
     let ready = wait_ready(&mut client);
     assert!(
         ready.as_deref().is_some_and(|t| t.contains("\"READY\"")),
-        "expected READY payload, got {:?}",
-        ready
+        "expected READY payload, got {ready:?}"
     );
 }
 
@@ -218,8 +219,7 @@ fn wrong_version_gets_no_ready() {
     let got = client.read_text();
     assert!(
         got.as_deref().is_none_or(|t| !t.contains("\"READY\"")),
-        "version-gated client must not receive READY, got {:?}",
-        got
+        "version-gated client must not receive READY, got {got:?}"
     );
 }
 
@@ -248,8 +248,7 @@ fn bad_origin_set_activity_is_ignored_and_server_survives() {
     let ready = wait_ready(&mut good);
     assert!(
         ready.as_deref().is_some_and(|t| t.contains("\"READY\"")),
-        "server must stay alive for next client, got {:?}",
-        ready
+        "server must stay alive for next client, got {ready:?}"
     );
 }
 
@@ -304,8 +303,7 @@ fn malformed_json_does_not_kill_server() {
     let ready = wait_ready(&mut next);
     assert!(
         ready.as_deref().is_some_and(|t| t.contains("\"READY\"")),
-        "server must survive malformed input, got {:?}",
-        ready
+        "server must survive malformed input, got {ready:?}"
     );
 }
 

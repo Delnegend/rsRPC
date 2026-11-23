@@ -19,6 +19,7 @@ use std::sync::mpsc;
 use std::time::Duration;
 
 use common::{next_free_socket_dir, read_frame, write_frame};
+use interprocess::local_socket::traits::Stream as _;
 use rsrpc_core::{IpcConnector, IpcFacilitator, cmd::ActivityCmd};
 
 const OPCODE_HANDSHAKE: u32 = 0;
@@ -60,26 +61,26 @@ fn spawn_connector(dir: &std::path::Path) -> (IpcConnector, mpsc::Receiver<Activ
 }
 
 fn connect_stream(dir: &std::path::Path) -> interprocess::local_socket::Stream {
-    use interprocess::local_socket::traits::Stream as _;
     use interprocess::local_socket::{GenericFilePath, ToFsName};
 
-    let deadline = std::time::Instant::now() + SOCKET_WAIT;
+    let start = std::time::Instant::now();
     loop {
         for slot in 0..10u8 {
             let path = format!("{}/discord-ipc-{slot}", dir.display());
             let name = match path.to_fs_name::<GenericFilePath>() {
                 Ok(name) => name,
                 Err(err) => {
-                    panic!("test socket name failed: {:?}", err);
+                    panic!("test socket name failed: {err:?}");
                 }
             };
             if let Ok(stream) = interprocess::local_socket::Stream::connect(name) {
                 return stream;
             }
         }
-        if std::time::Instant::now() > deadline {
-            panic!("timed out waiting for test IPC socket");
-        }
+        assert!(
+            start.elapsed() <= SOCKET_WAIT,
+            "timed out waiting for test IPC socket"
+        );
         std::thread::sleep(Duration::from_millis(50));
     }
 }
@@ -88,12 +89,7 @@ fn handshake_and_assert_ready(stream: &mut interprocess::local_socket::Stream) {
     write_frame(stream, OPCODE_HANDSHAKE, &valid_handshake_body());
     let (opcode, body) = read_frame(stream);
     assert_eq!(opcode, 1, "READY reply must be a Frame packet");
-    let text = match String::from_utf8(body) {
-        Ok(text) => text,
-        Err(_) => {
-            panic!("READY reply must be UTF-8");
-        }
-    };
+    let text = must!(String::from_utf8(body), "READY reply must be UTF-8");
     assert!(text.contains("\"READY\""), "READY reply must contain READY");
 }
 
@@ -127,11 +123,10 @@ fn oversize_frame_closes_without_ready() {
     // READY frame may arrive.
     let mut buf = [0u8; 8];
     let mut saw_data = false;
-    let deadline = std::time::Instant::now() + SOCKET_WAIT;
+    let start = std::time::Instant::now();
     // Best-effort nonblocking probe: interprocess Stream supports it.
-    use interprocess::local_socket::traits::Stream as _;
     must!(stream.set_nonblocking(true), "set_nonblocking");
-    while std::time::Instant::now() < deadline {
+    while start.elapsed() < SOCKET_WAIT {
         match stream.read(&mut buf) {
             Ok(0) => break, // EOF: server closed the connection
             Ok(_) => {
@@ -159,11 +154,10 @@ fn unknown_opcode_ignored_and_server_survives() {
     write_frame(&mut stream, 99, b"");
 
     // No reply must arrive on this connection.
-    use interprocess::local_socket::traits::Stream as _;
     must!(stream.set_nonblocking(true), "set_nonblocking");
-    let deadline = std::time::Instant::now() + Duration::from_millis(500);
+    let start = std::time::Instant::now();
     let mut buf = [0u8; 64];
-    while std::time::Instant::now() < deadline {
+    while start.elapsed() < Duration::from_millis(500) {
         match stream.read(&mut buf) {
             Ok(0) => {
                 panic!("server closed connection on unknown opcode");
@@ -175,7 +169,7 @@ fn unknown_opcode_ignored_and_server_survives() {
                 std::thread::sleep(Duration::from_millis(20));
             }
             Err(err) => {
-                panic!("server errored on unknown opcode: {:?}", err);
+                panic!("server errored on unknown opcode: {err:?}");
             }
         }
     }
@@ -197,11 +191,8 @@ fn close_then_second_client_gets_ready() {
     // Handshake sends no activity; Close sends an empty-activity command.
     write_frame(&mut first, OPCODE_CLOSE, b"{}");
     let cmd = must!(rx.recv_timeout(SOCKET_WAIT), "Close must report activity");
-    let args = match cmd.args {
-        Some(args) => args,
-        None => {
-            panic!("Close activity has args");
-        }
+    let Some(args) = cmd.args else {
+        panic!("Close activity has args");
     };
     assert!(args.activity.is_none(), "Close must send empty activity");
 
@@ -258,13 +249,13 @@ fn exhausted_slots_leave_connector_disabled() {
 
     // The eleventh connector has nowhere to bind; it must stay alive and
     // disabled, and its `start` must not panic or spawn an accept loop.
-    let mut disabled = IpcConnector::new(tx.clone());
+    let mut disabled = IpcConnector::new(tx);
     IpcFacilitator::start(&mut disabled);
 
     // The disabled connector may not have claimed a socket of its own.
     let sockets = std::fs::read_dir(&dir)
         .expect("socket dir readable")
-        .filter_map(|entry| entry.ok())
+        .filter_map(Result::ok)
         .filter(|entry| {
             entry
                 .file_name()

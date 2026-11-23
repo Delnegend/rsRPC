@@ -16,29 +16,13 @@ fn env_dir(key: &str) -> String {
 }
 
 pub(crate) fn get_socket_path() -> String {
-    let xdg_runtime_dir = env_dir("XDG_RUNTIME_DIR");
-    let tmpdir = env_dir("TMPDIR");
-    let tmp = env_dir("TMP");
-    let temp = env_dir("TEMP");
-    let tmp_dir = if !xdg_runtime_dir.is_empty() {
-        xdg_runtime_dir
-    } else if !tmpdir.is_empty() {
-        tmpdir
-    } else if !tmp.is_empty() {
-        tmp
-    } else if !temp.is_empty() {
-        temp
-    } else {
-        "/tmp".to_string()
-    };
-
-    let tmp_dir = if tmp_dir.ends_with('/') {
-        tmp_dir
-    } else {
-        format!("{tmp_dir}/")
-    };
-
-    format!("{tmp_dir}discord-ipc")
+    let directory = ["XDG_RUNTIME_DIR", "TMPDIR", "TMP", "TEMP"]
+        .iter()
+        .map(|key| env_dir(key))
+        .find(|value| !value.is_empty())
+        .unwrap_or_else(|| "/tmp".to_string());
+    let separator = if directory.ends_with('/') { "" } else { "/" };
+    format!("{directory}{separator}discord-ipc")
 }
 
 struct BoundListener {
@@ -101,12 +85,9 @@ impl IpcFacilitator for IpcConnector {
      * Create a new thread that will recieve messages from the socket
      */
     fn start(&mut self) {
-        let socket_arc = match self.socket.as_ref() {
-            Some(arc) => Arc::clone(arc),
-            None => {
-                warn!("IPC connector is disabled (no socket bound), nothing to start");
-                return;
-            }
+        let Some(socket_arc) = self.socket.as_ref().map(Arc::clone) else {
+            warn!("IPC connector is disabled (no socket bound), nothing to start");
+            return;
         };
         let event_sender = self.event_sender.clone();
 
@@ -133,7 +114,7 @@ impl IpcFacilitator for IpcConnector {
                         // Fresh per-connection state: handshake/client/pid/nonce always
                         // start empty. Nothing leaks from a previous connection, and no
                         // snapshot of the parent's state is shared.
-                        let mut conn = IpcConnector {
+                        let mut conn = Self {
                             socket: Some(Arc::clone(&socket_arc)),
                             did_handshake: false,
                             client_id: String::new(),
@@ -159,7 +140,7 @@ impl IpcFacilitator for IpcConnector {
 
 impl IpcConnector {
     /**
-     * Create a socket and return a new IpcConnector.
+     * Create a socket and return a new `IpcConnector`.
      *
      * When no socket can be bound (every candidate slot is taken), the
      * connector is created disabled: `start` logs and does nothing (no
@@ -215,27 +196,24 @@ impl IpcConnector {
                         "Socket {} already in use, checking if stale...",
                         socket_path
                     );
-                    match Stream::connect(name) {
-                        Ok(_) => {
-                            warn!("Socket {} is in use by another process", socket_path);
-                        }
-                        Err(_) => {
-                            info!("Socket {} is stale, removing and retrying...", socket_path);
-                            let _ = std::fs::remove_file(&socket_path);
-                            let name = socket_path
-                                .clone()
-                                .to_fs_name::<GenericFilePath>()
-                                .map_err(|err| {
-                                    std::io::Error::new(
-                                        err.kind(),
-                                        format!("invalid socket path: {err}"),
-                                    )
-                                })?;
-                            let listener_options = ListenerOptions::new().name(name);
-                            if let Ok(socket) = listener_options.create_sync() {
-                                info!("Created IPC socket after cleaning stale: {}", socket_path);
-                                return Ok((socket, socket_path));
-                            }
+                    if Stream::connect(name).is_ok() {
+                        warn!("Socket {} is in use by another process", socket_path);
+                    } else {
+                        info!("Socket {} is stale, removing and retrying...", socket_path);
+                        let _ = std::fs::remove_file(&socket_path);
+                        let name = socket_path
+                            .clone()
+                            .to_fs_name::<GenericFilePath>()
+                            .map_err(|err| {
+                                std::io::Error::new(
+                                    err.kind(),
+                                    format!("invalid socket path: {err}"),
+                                )
+                            })?;
+                        let listener_options = ListenerOptions::new().name(name);
+                        if let Ok(socket) = listener_options.create_sync() {
+                            info!("Created IPC socket after cleaning stale: {}", socket_path);
+                            return Ok((socket, socket_path));
                         }
                     }
                 }
@@ -243,7 +221,7 @@ impl IpcConnector {
                 warn!("Failed to create IPC socket: {}", err);
 
                 if tries < 9 {
-                    return Self::create_socket(Some(tries + 1));
+                    return Self::create_socket(Some(tries.saturating_add(1)));
                 }
                 return Err(err);
             }

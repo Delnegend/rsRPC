@@ -27,6 +27,7 @@ pub struct MiddlewarePipeline {
 
 impl MiddlewarePipeline {
     /// Create the middleware pipeline with all declared middlewares included.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             middlewares: vec![Arc::new(ThreadNameFilter), Arc::new(ModWatermarkFilter)],

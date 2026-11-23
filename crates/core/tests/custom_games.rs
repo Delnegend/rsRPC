@@ -22,7 +22,7 @@ fn test_builtin_custom_games_initialization() {
 #[test]
 fn test_custom_game_detection_by_process_scanner() {
     let mut child = Command::new("sleep").arg("9998").spawn().unwrap();
-    let pid = child.id() as u64;
+    let pid = u64::from(child.id());
 
     let game = custom_game("Sleep Game", "test_custom_sleep_id", &[("linux", "sleep")]);
 
@@ -52,7 +52,7 @@ fn test_custom_game_detection_by_process_scanner() {
 #[test]
 fn test_custom_game_with_args_detection() {
     let mut child = Command::new("sleep").arg("9997").spawn().unwrap();
-    let pid = child.id() as u64;
+    let pid = u64::from(child.id());
 
     let game = custom_game_with_args(
         "Sleep With Arg Game",

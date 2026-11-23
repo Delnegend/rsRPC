@@ -36,17 +36,17 @@ fn build_client(args: &Args) -> Result<RPCServer, RpcError> {
     }
 }
 
-pub fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let filter = match std::env::var("RUST_LOG") {
-        Ok(val) => tracing_subscriber::EnvFilter::new(val),
-        Err(_) => {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let filter = std::env::var("RUST_LOG").map_or_else(
+        |_| {
             if matches!(std::env::var("RSRPC_LOGS_ENABLED"), Ok(val) if val == "0") {
                 tracing_subscriber::EnvFilter::new("off")
             } else {
                 tracing_subscriber::EnvFilter::new("info")
             }
-        }
-    };
+        },
+        tracing_subscriber::EnvFilter::new,
+    );
     tracing_subscriber::fmt().with_env_filter(filter).init();
     let args = Args::parse();
     let mut client = build_client(&args)?;

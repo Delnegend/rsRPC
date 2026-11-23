@@ -14,8 +14,8 @@ fn bench_encode_into(c: &mut Criterion) {
     c.bench_function("ipc/encode_into frame 1KiB", |b| {
         let body = vec![b'x'; 1024];
         b.iter(|| {
-            let mut out = Vec::with_capacity(8 + body.len());
-            encode_into(&mut out, PacketType::Frame as u32, &body);
+            let mut out = Vec::with_capacity(body.len().saturating_add(8));
+            encode_into(&mut out, 1, &body);
             let _ = out;
         });
     });

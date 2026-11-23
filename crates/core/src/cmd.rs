@@ -34,14 +34,15 @@ pub struct ActivityCmd {
 }
 
 impl ActivityCmd {
-    pub fn empty() -> Self {
+    #[must_use]
+    pub const fn empty() -> Self {
         Self {
             application_id: None,
-            cmd: "".to_string(),
+            cmd: String::new(),
             args: None,
             data: None,
             evt: None,
-            nonce: Value::String("".to_string()),
+            nonce: Value::String(String::new()),
         }
     }
 
@@ -55,6 +56,7 @@ impl ActivityCmd {
     ///
     /// String nonces are returned unquoted (`Value::String("abc")` yields
     /// `abc`); every other JSON value falls back to its JSON rendering.
+    #[must_use]
     pub fn nonce_str(&self) -> Cow<'_, str> {
         match &self.nonce {
             Value::String(inner) => Cow::Borrowed(inner.as_str()),
@@ -67,13 +69,24 @@ impl ActivityCmd {
             .activity_mut()
             .and_then(|activity| activity.timestamps.as_mut())
         {
-            let cur = chrono::Utc::now().timestamp() + TIMESTAMP_ALREADY_MS_CUTOFF_OFFSET_SECS;
+            let now = std::time::SystemTime::now();
+            let seconds = match now.duration_since(std::time::UNIX_EPOCH) {
+                Ok(duration) => i64::try_from(duration.as_secs()).unwrap_or(i64::MAX),
+                Err(error) => {
+                    let duration = error.duration();
+                    i64::try_from(duration.as_secs())
+                        .unwrap_or(i64::MAX)
+                        .saturating_neg()
+                        .saturating_sub(i64::from(duration.subsec_nanos() != 0))
+                }
+            };
+            let cur = seconds.saturating_add(TIMESTAMP_ALREADY_MS_CUTOFF_OFFSET_SECS);
 
             if let Some(start) = timestamps.start.as_mut() {
                 if start.as_millis() > cur {
                     *start = TimeoutValue::new(start.as_millis());
                 } else {
-                    *start = TimeoutValue::new(start.as_millis() * 1000);
+                    *start = TimeoutValue::new(start.as_millis().saturating_mul(1000));
                 }
             }
 
@@ -81,7 +94,7 @@ impl ActivityCmd {
                 if end.as_millis() > cur {
                     *end = TimeoutValue::new(end.as_millis());
                 } else {
-                    *end = TimeoutValue::new(end.as_millis() * 1000);
+                    *end = TimeoutValue::new(end.as_millis().saturating_mul(1000));
                 }
             }
         }
@@ -100,10 +113,7 @@ impl ActivityCmd {
                     button_labels.push(label.clone());
                 }
                 if let Some(url) = b.get("url") {
-                    let text = match url.as_str() {
-                        Some(text) => text.to_string(),
-                        None => String::new(),
-                    };
+                    let text = url.as_str().map_or_else(String::new, str::to_string);
                     button_urls.push(text);
                 }
             }
@@ -211,17 +221,20 @@ pub struct TimeoutValue(i64);
 
 impl TimeoutValue {
     /// Wrap a millisecond timestamp.
-    pub fn new(millis: i64) -> Self {
+    #[must_use]
+    pub const fn new(millis: i64) -> Self {
         Self(millis)
     }
 
     /// Read the wrapped millisecond timestamp.
-    pub fn as_millis(&self) -> i64 {
+    #[must_use]
+    pub const fn as_millis(&self) -> i64 {
         self.0
     }
 
     /// Read the wrapped millisecond timestamp.
-    pub fn get(&self) -> i64 {
+    #[must_use]
+    pub const fn get(&self) -> i64 {
         self.0
     }
 }

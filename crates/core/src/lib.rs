@@ -29,6 +29,8 @@ pub use server::{
 pub use url_params::{UrlParams, get_url_params};
 
 #[derive(Clone, Debug)]
+// Independent connector switches are part of the public configuration API.
+#[allow(clippy::struct_excessive_bools)]
 pub struct RPCConfig {
     pub enable_process_scanner: bool,
     pub enable_ipc_connector: bool,
@@ -91,10 +93,10 @@ pub enum RpcError {
 impl std::fmt::Display for RpcError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            RpcError::Io(err) => write!(f, "RPC I/O error: {err}"),
-            RpcError::Json(err) => write!(f, "RPC JSON error: {err}"),
-            RpcError::NotStarted => write!(f, "RPC server has not been started"),
-            RpcError::AlreadyStarted => write!(f, "RPC server has already been started"),
+            Self::Io(err) => write!(f, "RPC I/O error: {err}"),
+            Self::Json(err) => write!(f, "RPC JSON error: {err}"),
+            Self::NotStarted => write!(f, "RPC server has not been started"),
+            Self::AlreadyStarted => write!(f, "RPC server has already been started"),
         }
     }
 }
@@ -102,22 +104,22 @@ impl std::fmt::Display for RpcError {
 impl std::error::Error for RpcError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            RpcError::Io(err) => Some(err),
-            RpcError::Json(err) => Some(err),
-            RpcError::NotStarted | RpcError::AlreadyStarted => None,
+            Self::Io(err) => Some(err),
+            Self::Json(err) => Some(err),
+            Self::NotStarted | Self::AlreadyStarted => None,
         }
     }
 }
 
 impl From<std::io::Error> for RpcError {
     fn from(err: std::io::Error) -> Self {
-        RpcError::Io(err)
+        Self::Io(err)
     }
 }
 
 impl From<serde_json::Error> for RpcError {
     fn from(err: serde_json::Error) -> Self {
-        RpcError::Json(err)
+        Self::Json(err)
     }
 }
 
@@ -182,7 +184,7 @@ impl RPCServer {
         Self::from_json_str(detectable.as_str(), config)
     }
 
-    /// Manually trigger a scan for processes. This should be run AFTER start().
+    /// Manually trigger a scan for processes. This should be run AFTER `start()`.
     ///
     /// # Errors
     ///
@@ -202,11 +204,12 @@ impl RPCServer {
     /// ```
     pub fn scan_for_processes(&mut self) -> Result<(), RpcError> {
         let connectors = self.connectors()?;
-        let process_server = lock_or_poison(&connectors.process_server)?;
+        let process_server = lock_or_poison(&connectors.process_server);
 
         if let Err(err) = process_server.scan_for_processes() {
             tracing::error!("Error while scanning processes: {}", err);
         }
+        drop(process_server);
 
         Ok(())
     }
@@ -217,11 +220,7 @@ impl RPCServer {
             return Err(RpcError::NotStarted);
         }
 
-        if let Some(connectors) = self.connectors.as_mut() {
-            Ok(connectors)
-        } else {
-            Err(RpcError::NotStarted)
-        }
+        self.connectors.as_mut().ok_or(RpcError::NotStarted)
     }
 
     /// Start the process detector, client connector, and related threads.
@@ -289,7 +288,7 @@ impl RPCServer {
         };
 
         {
-            let mut guard = lock_or_poison(&connectors.client_connector)?;
+            let mut guard = lock_or_poison(&connectors.client_connector);
             tracing::info!("Starting client connector on port {}...", guard.port);
             guard.start();
         }
@@ -298,17 +297,17 @@ impl RPCServer {
 
         if config.enable_ipc_connector {
             tracing::info!("Starting IPC connector...");
-            lock_or_poison(&connectors.ipc_connector)?.start();
+            lock_or_poison(&connectors.ipc_connector).start();
         }
 
         if config.enable_process_scanner {
             tracing::info!("Starting process server...");
-            lock_or_poison(&connectors.process_server)?.start();
+            lock_or_poison(&connectors.process_server).start();
         }
 
         if config.enable_websocket_connector || config.enable_secondary_events {
             tracing::info!("Starting websocket connector...");
-            lock_or_poison(&connectors.ws_connector)?.start(
+            lock_or_poison(&connectors.ws_connector).start(
                 config.enable_websocket_connector,
                 config.enable_secondary_events,
             );
@@ -331,14 +330,13 @@ impl RPCServer {
 /// Lock a mutex, recovering the inner value when a previous holder failed
 /// while holding it.
 ///
-/// The poisoned state is logged and recovered via `into_inner`;
-/// this function always returns `Ok`.
-fn lock_or_poison<T>(mutex: &Mutex<T>) -> Result<MutexGuard<'_, T>, RpcError> {
+/// The poisoned state is logged and recovered via `into_inner`.
+fn lock_or_poison<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
     match mutex.lock() {
-        Ok(guard) => Ok(guard),
+        Ok(guard) => guard,
         Err(poisoned) => {
             tracing::warn!("Recovering from poisoned mutex");
-            Ok(poisoned.into_inner())
+            poisoned.into_inner()
         }
     }
 }

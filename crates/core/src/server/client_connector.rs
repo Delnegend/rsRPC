@@ -14,7 +14,7 @@ use tracing::{debug, error, info, warn};
 
 use super::process::ProcessDetectedEvent;
 
-fn empty_activity(pid: u64, socket_id: String) -> String {
+fn empty_activity(pid: u64, socket_id: &str) -> String {
     format!(
         r#"
     {{
@@ -81,15 +81,15 @@ impl ClientConnector {
         ipc_event_rec: std::sync::mpsc::Receiver<ActivityCmd>,
         proc_event_rec: std::sync::mpsc::Receiver<ProcessDetectedEvent>,
         ws_event_rec: std::sync::mpsc::Receiver<ActivityCmd>,
-    ) -> std::io::Result<ClientConnector> {
+    ) -> std::io::Result<Self> {
         let server = simple_websockets::launch(port).map_err(|_| {
             error!("Failed to launch websocket server, port may already be in use");
             std::io::Error::new(
                 std::io::ErrorKind::AddrInUse,
-                format!("client connector: port {} already in use", port),
+                format!("client connector: port {port} already in use"),
             )
         })?;
-        Ok(ClientConnector {
+        Ok(Self {
             server: Arc::new(Mutex::new(Some(server))),
             clients: Arc::new(Mutex::new(HashMap::new())),
             data_on_connect,
@@ -106,18 +106,19 @@ impl ClientConnector {
         })
     }
 
-    pub fn start(&mut self) {
+    fn start_server(&self) -> bool {
         let server = match self.server.lock() {
-            Ok(mut guard) => match guard.take() {
-                Some(server) => server,
-                None => {
+            Ok(mut guard) => {
+                if let Some(server) = guard.take() {
+                    server
+                } else {
                     warn!("Server already started");
-                    return;
+                    return false;
                 }
-            },
+            }
             Err(err) => {
                 error!("Server lock poisoned: {}", err);
-                return;
+                return false;
             }
         };
         let clients_clone = self.clients.clone();
@@ -176,44 +177,50 @@ impl ClientConnector {
                 }
             }
         });
+        true
+    }
 
-        let (ipc_event_rec, proc_event_rec, ws_event_rec) = match (
-            self.ipc_event_rec.lock(),
-            self.proc_event_rec.lock(),
-            self.ws_event_rec.lock(),
-        ) {
-            (Ok(mut ipc), Ok(mut proc), Ok(mut ws)) => match (ipc.take(), proc.take(), ws.take()) {
-                (Some(ipc), Some(proc), Some(ws)) => (ipc, proc, ws),
-                _ => {
+    pub fn start(&mut self) {
+        if !self.start_server() {
+            return;
+        }
+
+        let (ipc_event_rec, proc_event_rec, ws_event_rec) =
+            if let (Ok(mut ipc), Ok(mut proc), Ok(mut ws)) = (
+                self.ipc_event_rec.lock(),
+                self.proc_event_rec.lock(),
+                self.ws_event_rec.lock(),
+            ) {
+                if let (Some(ipc), Some(proc), Some(ws)) = (ipc.take(), proc.take(), ws.take()) {
+                    (ipc, proc, ws)
+                } else {
                     warn!("Receivers already taken");
                     return;
                 }
-            },
-            _ => {
+            } else {
                 error!("Receiver lock poisoned");
                 return;
-            }
-        };
+            };
 
+        self.start_ipc_receiver(ipc_event_rec);
+        self.start_process_receiver(proc_event_rec);
+        self.start_ws_receiver(ws_event_rec);
+    }
+
+    fn start_ipc_receiver(&self, ipc_event_rec: std::sync::mpsc::Receiver<ActivityCmd>) {
         let mut ipc_clone = self.clone();
-        let mut proc_clone = self.clone();
-        let mut ws_clone = self.clone();
-
         std::thread::spawn(move || {
             while let Ok(mut ipc_activity) = ipc_event_rec.recv() {
                 ipc_activity.fix();
 
-                let mut args = match ipc_activity.args {
-                    Some(args) => args,
-                    None => {
-                        warn!("Invalid activity command, skipping");
-                        continue;
-                    }
+                let Some(mut args) = ipc_activity.args else {
+                    warn!("Invalid activity command, skipping");
+                    continue;
                 };
 
                 if args.activity.is_none() {
                     let pid = args.pid.unwrap_or_default();
-                    let payload = empty_activity(pid, pid.to_string());
+                    let payload = empty_activity(pid, &pid.to_string());
 
                     info!("Sending empty payload");
 
@@ -239,14 +246,21 @@ impl ClientConnector {
                             ipc_clone.send_activity_payload(payload);
                         }
                         Err(err) => {
-                            error!("Error serializing IPC activity: {}", err)
+                            error!("Error serializing IPC activity: {}", err);
                         }
-                    };
+                    }
                 } else {
                     warn!("Invalid activity command, skipping");
                 }
             }
         });
+    }
+
+    fn start_process_receiver(
+        &self,
+        proc_event_rec: std::sync::mpsc::Receiver<ProcessDetectedEvent>,
+    ) {
+        let mut proc_clone = self.clone();
 
         std::thread::spawn(move || {
             while let Ok(proc_event) = proc_event_rec.recv() {
@@ -256,7 +270,7 @@ impl ClientConnector {
                     if let Some(active_socket) = proc_clone.active_socket.take() {
                         info!("Sending empty payload");
                         let payload =
-                            empty_activity(proc_clone.last_pid.unwrap_or_default(), active_socket);
+                            empty_activity(proc_clone.last_pid.unwrap_or_default(), &active_socket);
                         proc_clone.send_empty_payload(payload);
                     }
                     continue;
@@ -266,10 +280,8 @@ impl ClientConnector {
                     && active_socket != &proc_activity.id
                 {
                     info!("Sending empty payload");
-                    let payload = empty_activity(
-                        proc_clone.last_pid.unwrap_or_default(),
-                        active_socket.clone(),
-                    );
+                    let payload =
+                        empty_activity(proc_clone.last_pid.unwrap_or_default(), active_socket);
                     proc_clone.send_empty_payload(payload);
                 }
 
@@ -287,8 +299,7 @@ impl ClientConnector {
                         timestamps: ProcessTimestamps {
                             start: proc_activity
                                 .timestamp
-                                .as_ref()
-                                .cloned()
+                                .clone()
                                 .unwrap_or_else(|| "0".to_string()),
                         },
                         r#type: 0,
@@ -319,7 +330,7 @@ impl ClientConnector {
                     let mut last_payload = proc_clone
                         .last_payload
                         .lock()
-                        .unwrap_or_else(|p| p.into_inner());
+                        .unwrap_or_else(std::sync::PoisonError::into_inner);
                     if last_payload.as_deref() == Some(&payload_str) {
                         continue;
                     }
@@ -333,12 +344,16 @@ impl ClientConnector {
                 proc_clone.send_activity_payload(payload_str);
             }
         });
+    }
+
+    fn start_ws_receiver(&self, ws_event_rec: std::sync::mpsc::Receiver<ActivityCmd>) {
+        let mut ws_clone = self.clone();
 
         std::thread::spawn(move || {
             while let Ok(mut ws_event) = ws_event_rec.recv() {
                 if ws_event.cmd != "SET_ACTIVITY" {
                     // Forward non-activity events directly.
-                    let payload = serde_json::to_string(&ws_event).unwrap_or("".to_string());
+                    let payload = serde_json::to_string(&ws_event).unwrap_or_default();
                     info!("Sending payload for WS event");
                     ws_clone.send_data(payload);
 
@@ -347,17 +362,14 @@ impl ClientConnector {
 
                 ws_event.fix();
 
-                let mut args = match ws_event.args {
-                    Some(args) => args,
-                    None => {
-                        warn!("Invalid activity command, skipping");
-                        continue;
-                    }
+                let Some(mut args) = ws_event.args else {
+                    warn!("Invalid activity command, skipping");
+                    continue;
                 };
 
                 if args.activity.is_none() {
                     let pid = args.pid.unwrap_or_default();
-                    let payload = empty_activity(pid, pid.to_string());
+                    let payload = empty_activity(pid, &pid.to_string());
 
                     info!("Sending empty payload");
 
@@ -383,9 +395,9 @@ impl ClientConnector {
                             ws_clone.send_activity_payload(payload);
                         }
                         Err(err) => {
-                            error!("Error serializing WS activity: {}", err)
+                            error!("Error serializing WS activity: {}", err);
                         }
-                    };
+                    }
                 } else {
                     warn!("Invalid activity command, skipping");
                 }

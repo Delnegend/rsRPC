@@ -56,13 +56,13 @@ pub struct GsiMatchStats {
 }
 
 /// Convert a GSI payload to an enriched [`ActivityCmd`].
+#[must_use]
 pub fn gsi_payload_to_activity(payload: &GsiPayload) -> Option<ActivityCmd> {
     let app_id = payload
         .provider
         .as_ref()
         .and_then(|p| p.appid)
-        .map(|id| id.to_string())
-        .unwrap_or_else(|| "730".to_string()); // Default to CS2 appid (730)
+        .map_or_else(|| "730".to_string(), |id| id.to_string()); // Default to CS2 appid (730)
 
     let map_name = payload
         .map
@@ -102,10 +102,10 @@ pub fn gsi_payload_to_activity(payload: &GsiPayload) -> Option<ActivityCmd> {
         format!("CT {ct_score} - {t_score} T")
     };
 
-    let large_image = if map_name != "In Menu" {
-        Some(map_name.to_lowercase().replace('/', "_"))
-    } else {
+    let large_image = if map_name == "In Menu" {
         Some("cs2_logo".to_string())
+    } else {
+        Some(map_name.to_lowercase().replace('/', "_"))
     };
 
     Some(ActivityCmd {
@@ -156,6 +156,7 @@ pub struct GsiServer {
 }
 
 impl GsiServer {
+    #[must_use]
     pub fn new(port: u16) -> Self {
         Self {
             port,
@@ -163,11 +164,15 @@ impl GsiServer {
         }
     }
 
-    pub fn port(&self) -> u16 {
+    #[must_use]
+    pub const fn port(&self) -> u16 {
         self.port
     }
 
     /// Start the GSI server and forward parsed activities to `event_sender`.
+    ///
+    /// # Errors
+    /// Returns an error if the listening socket cannot be bound.
     pub fn start(&self, event_sender: Sender<ActivityCmd>) -> std::io::Result<()> {
         let listener = TcpListener::bind(("127.0.0.1", self.port))?;
         let running = self.running.clone();

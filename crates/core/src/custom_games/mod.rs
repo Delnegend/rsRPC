@@ -5,6 +5,7 @@ use crate::detection::{DetectableActivity, Executable, null_activity};
 mod dragnwash;
 
 /// Create a custom detectable game with executable names per operating system.
+#[must_use]
 pub fn custom_game(name: &str, app_id: &str, executables: &[(&str, &str)]) -> DetectableActivity {
     DetectableActivity {
         id: app_id.to_string(),
@@ -26,6 +27,7 @@ pub fn custom_game(name: &str, app_id: &str, executables: &[(&str, &str)]) -> De
 }
 
 /// Create a custom detectable game with optional CLI argument matching.
+#[must_use]
 pub fn custom_game_with_args(
     name: &str,
     app_id: &str,
@@ -51,6 +53,7 @@ pub fn custom_game_with_args(
 }
 
 /// Returns the static list of custom games embedded in the binary.
+#[must_use]
 pub fn builtin_custom_games() -> Vec<DetectableActivity> {
     vec![dragnwash::game()]
 }

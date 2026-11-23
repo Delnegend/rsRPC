@@ -11,10 +11,7 @@ use rsrpc_core::{RPCConfig, RPCServer, RpcError};
 use serde_json::{Value, json};
 
 fn empty_server() -> RPCServer {
-    match RPCServer::from_json_str("[]", RPCConfig::default()) {
-        Ok(server) => server,
-        Err(_) => unreachable!(),
-    }
+    RPCServer::from_json_str("[]", RPCConfig::default()).unwrap_or_else(|_| unreachable!())
 }
 
 #[test]
@@ -62,7 +59,7 @@ fn start_reports_bind_failure_when_client_port_is_taken() {
     let held = TcpListener::bind(("127.0.0.1", 0)).unwrap();
     let port = held.local_addr().unwrap().port();
 
-    let mut server = match RPCServer::from_json_str(
+    let mut server = RPCServer::from_json_str(
         "[]",
         RPCConfig {
             port,
@@ -72,10 +69,8 @@ fn start_reports_bind_failure_when_client_port_is_taken() {
             enable_secondary_events: false,
             ..Default::default()
         },
-    ) {
-        Ok(server) => server,
-        Err(_) => unreachable!(),
-    };
+    )
+    .unwrap_or_else(|_| unreachable!());
 
     assert!(matches!(server.start(), Err(RpcError::Io(_))));
 
@@ -91,7 +86,7 @@ fn start_reports_bind_failure_when_client_port_is_taken() {
 /// silently initializing a second set of connectors.
 #[test]
 fn start_twice_reports_already_started() {
-    let mut server = match RPCServer::from_json_str(
+    let mut server = RPCServer::from_json_str(
         "[]",
         RPCConfig {
             port: 0,
@@ -101,10 +96,8 @@ fn start_twice_reports_already_started() {
             enable_secondary_events: false,
             ..Default::default()
         },
-    ) {
-        Ok(server) => server,
-        Err(_) => unreachable!(),
-    };
+    )
+    .unwrap_or_else(|_| unreachable!());
     server.start().unwrap();
 
     assert!(matches!(server.start(), Err(RpcError::AlreadyStarted)));

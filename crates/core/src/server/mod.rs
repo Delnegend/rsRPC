@@ -1,3 +1,6 @@
+// These items are shared within the crate, while the server module remains private.
+#![allow(clippy::redundant_pub_crate)]
+
 pub(crate) mod client_connector;
 pub(crate) mod gsi;
 pub(crate) mod ipc_utils;

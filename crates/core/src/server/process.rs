@@ -102,7 +102,7 @@ impl ProcessServer {
         detectable: Vec<DetectableActivity>,
         event_sender: mpsc::Sender<ProcessDetectedEvent>,
     ) -> Self {
-        ProcessServer {
+        Self {
             scanning: Arc::new(AtomicBool::new(false)),
             detected_list: Arc::new(Mutex::new(vec![])),
 
@@ -139,7 +139,7 @@ impl ProcessServer {
                     let mut previous = clone
                         .detected_list
                         .lock()
-                        .unwrap_or_else(|p| p.into_inner());
+                        .unwrap_or_else(std::sync::PoisonError::into_inner);
 
                     if detected.is_empty() {
                         // Nothing detected: forward the shared "no activity"
@@ -154,29 +154,34 @@ impl ProcessServer {
                         *previous = detected;
                     } else {
                         let mut current = detected;
-                        // Keep original start timestamp so the timer doesn't reset when details change
-                        if !previous.is_empty()
-                            && current[0].id == previous[0].id
-                            && let Some(orig_ts) = &previous[0].timestamp
-                        {
-                            let mut updated = (*current[0]).clone();
-                            updated.timestamp = Some(orig_ts.clone());
-                            current[0] = Arc::new(updated);
-                        }
-
-                        let has_changed = previous.is_empty()
-                            || current[0].id != previous[0].id
-                            || current[0].details != previous[0].details
-                            || current[0].state != previous[0].state;
-
-                        if has_changed {
-                            if let Err(err) = clone.event_sender.send(ProcessDetectedEvent {
-                                activity: current[0].clone(),
-                            }) {
-                                error!("Process event receiver is gone, stopping scan loop: {err}");
-                                break;
+                        if let Some(first) = current.first_mut() {
+                            // Keep original start timestamp so the timer doesn't reset when details change
+                            if let Some(old) = previous.first()
+                                && first.id == old.id
+                                && let Some(orig_ts) = &old.timestamp
+                            {
+                                let mut updated = (**first).clone();
+                                updated.timestamp = Some(orig_ts.clone());
+                                *first = Arc::new(updated);
                             }
-                            *previous = current;
+
+                            let has_changed = previous.first().is_none_or(|old| {
+                                first.id != old.id
+                                    || first.details != old.details
+                                    || first.state != old.state
+                            });
+
+                            if has_changed {
+                                if let Err(err) = clone.event_sender.send(ProcessDetectedEvent {
+                                    activity: Arc::clone(first),
+                                }) {
+                                    error!(
+                                        "Process event receiver is gone, stopping scan loop: {err}"
+                                    );
+                                    break;
+                                }
+                                *previous = current;
+                            }
                         }
                     }
                 }
@@ -186,6 +191,10 @@ impl ProcessServer {
         });
     }
 
+    /// Lists running processes.
+    ///
+    /// # Errors
+    /// Returns an error if a process ID cannot be parsed.
     #[cfg(not(target_os = "linux"))]
     pub fn process_list(&self) -> Result<Vec<Exec>, Box<dyn std::error::Error>> {
         use std::path::Path;
@@ -217,6 +226,10 @@ impl ProcessServer {
         Ok(processes)
     }
 
+    /// Lists running processes.
+    ///
+    /// # Errors
+    /// Returns an error if the process directory cannot be read or a process ID cannot be parsed.
     #[cfg(target_os = "linux")]
     pub fn process_list() -> Result<Vec<Exec>, Box<dyn std::error::Error>> {
         use std::fs;
@@ -266,6 +279,10 @@ impl ProcessServer {
         Ok(processes)
     }
 
+    /// Scans running processes for detectable activities.
+    ///
+    /// # Errors
+    /// Returns an error if another scan is in progress or listing processes fails.
     pub fn scan_for_processes(
         &self,
     ) -> Result<Vec<Arc<DetectableActivity>>, Box<dyn std::error::Error>> {
@@ -285,7 +302,7 @@ impl ProcessServer {
         #[cfg(not(target_os = "linux"))]
         let processes = self.process_list()?;
         #[cfg(target_os = "linux")]
-        let processes = ProcessServer::process_list()?;
+        let processes = Self::process_list()?;
 
         debug!("Process scan triggered");
 
@@ -296,7 +313,7 @@ impl ProcessServer {
             .iter()
             .filter_map(|process| {
                 process_path.clear();
-                process_path.extend(process.path.chars().flat_map(|c| c.to_lowercase()));
+                process_path.extend(process.path.chars().flat_map(char::to_lowercase));
                 if process_path.contains('\\') {
                     process_path = process_path.replace('\\', "/");
                 }
@@ -310,17 +327,13 @@ impl ProcessServer {
 
                 let (obj, exe_index) = self.main_state.first_match(&reversed_path)?;
 
-                let executable = match obj
+                let executable = obj
                     .executables
                     .as_ref()
-                    .and_then(|exes| exes.get(exe_index))
-                {
-                    Some(executable) => executable,
-                    None => return None,
-                };
+                    .and_then(|exes| exes.get(exe_index))?;
 
                 if let Some(exec_args) = &executable.arguments
-                    && executable.name.starts_with(">")
+                    && executable.name.starts_with('>')
                     && !process
                         .arguments
                         .as_ref()
@@ -334,8 +347,7 @@ impl ProcessServer {
                 new_activity.timestamp = Some(
                     std::time::SystemTime::now()
                         .duration_since(std::time::UNIX_EPOCH)
-                        .map(|d| d.as_millis().to_string())
-                        .unwrap_or_else(|_| "0".to_string()),
+                        .map_or_else(|_| "0".to_string(), |d| d.as_millis().to_string()),
                 );
                 crate::custom_games::enrich_custom_game(&mut new_activity);
                 Some(Arc::new(new_activity))
@@ -366,9 +378,9 @@ fn build_ac_patterns(
 
                 let mut exec_name = executable.name.replace('\\', "/").to_lowercase();
 
-                if exec_name.starts_with(">") {
+                if exec_name.starts_with('>') {
                     exec_name.replace_range(0..1, "/");
-                } else if !exec_name.starts_with("/") {
+                } else if !exec_name.starts_with('/') {
                     exec_name.insert(0, '/');
                 }
 

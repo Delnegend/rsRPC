@@ -34,14 +34,14 @@ fn scan_guard_concurrent() {
     for _ in 0..ATTEMPTS {
         let s = Arc::new(empty_server());
         let s1 = s.clone();
-        let s2 = s.clone();
+        let s2 = s;
         let h1 = thread::spawn(move || s1.scan_for_processes().map_err(|e| e.to_string()));
         let h2 = thread::spawn(move || s2.scan_for_processes().map_err(|e| e.to_string()));
         let r1 = h1.join().unwrap();
         let r2 = h2.join().unwrap();
 
         let oks = [&r1, &r2].iter().filter(|x| x.is_ok()).count();
-        let errs: Vec<String> = [r1, r2].into_iter().filter_map(|r| r.err()).collect();
+        let errs: Vec<String> = [r1, r2].into_iter().filter_map(Result::err).collect();
 
         assert_eq!(oks + errs.len(), 2, "every scan must return a result");
         for err in &errs {
@@ -85,7 +85,7 @@ fn process_detected_no_exe_fallback() {
     use std::time::{Duration, Instant};
     // Spawn a real process with a distinct name/comm
     let mut child = Command::new("sleep").arg("9999").spawn().unwrap();
-    let pid = child.id() as u64;
+    let pid = u64::from(child.id());
 
     let da: DetectableActivity = serde_json::from_str(
     r#"{"name":"sleep","id":"test_sleep_id","hook":false,"executables":[{"is_launcher":false,"name":"sleep","os":"linux"}]}"#,

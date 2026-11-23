@@ -107,13 +107,13 @@ impl WebsocketConnector {
 
     pub fn start(&mut self, set_activity: bool, secondary_events: bool) {
         let server = match self.server.lock() {
-            Ok(mut guard) => match guard.take() {
-                Some(server) => server,
-                None => {
+            Ok(mut guard) => {
+                let Some(server) = guard.take() else {
                     warn!("No websocket server to start (disabled or already started)");
                     return;
-                }
-            },
+                };
+                server
+            }
             Err(err) => {
                 error!("Server lock poisoned: {}", err);
                 return;
@@ -128,55 +128,16 @@ impl WebsocketConnector {
 
                 match server.poll_event() {
                     Event::Connect(client_id, responder) => {
-                        let connection = responder.connection_details();
-                        let url_params = get_url_params(&connection.uri);
-                        let version = url_params.v.as_deref().unwrap_or("0");
-                        let encoding = url_params.encoding.as_deref().unwrap_or("json");
-
-                        info!("Client {} connected", client_id);
-
-                        if version != "1" || encoding != "json" {
-                            warn!("Invalid connection from client {}", client_id);
-                            continue;
-                        }
-
-                        if !responder.send(Message::Text(CONNECTION_RESPONSE.to_string())) {
-                            error!("Failed to send READY to client {}", client_id);
-                            continue;
-                        }
-
-                        match clients.lock() {
-                            Ok(mut guard) => {
-                                guard.insert(client_id, (None, responder));
-                            }
-                            Err(err) => {
-                                error!("Clients lock poisoned: {}", err);
-                            }
-                        }
+                        handle_connect(client_id, responder, &clients);
                     }
                     Event::Disconnect(client_id) => {
-                        info!("Client {} disconnected", client_id);
-                        let removed = match clients.lock() {
-                            Ok(mut guard) => guard.remove(&client_id),
-                            Err(err) => {
-                                error!("Clients lock poisoned: {}", err);
-                                continue;
-                            }
-                        };
-
-                        match removed {
-                            Some(responder) => {
-                                handle_disconnect(client_id, &event_sender, &responder)
-                            }
-                            None => warn!("Disconnect from unknown client {}, ignoring", client_id),
-                        }
+                        handle_client_disconnect(client_id, &event_sender, &clients);
                     }
                     Event::Message(client_id, message) => {
                         debug!("Received message from client {}: {:?}", client_id, message);
 
-                        let text = match message {
-                            Message::Text(text) => text,
-                            _ => continue,
+                        let Message::Text(text) = message else {
+                            continue;
                         };
 
                         // Snapshot the responder under a short lock, then work unlocked.
@@ -187,12 +148,9 @@ impl WebsocketConnector {
                                 continue;
                             }
                         };
-                        let responder = match responder {
-                            Some(responder) => responder,
-                            None => {
-                                warn!("Message from unknown client {}, ignoring", client_id);
-                                continue;
-                            }
+                        let Some(responder) = responder else {
+                            warn!("Message from unknown client {}, ignoring", client_id);
+                            continue;
                         };
 
                         // Origin check before ANY parse (headers are free).
@@ -239,14 +197,14 @@ impl WebsocketConnector {
                                     continue;
                                 }
 
-                                handle_invite(&event, &event_sender, &responder)
+                                handle_invite(&event, &event_sender, &responder);
                             }
                             "SET_ACTIVITY" => {
                                 if !set_activity {
                                     continue;
                                 }
 
-                                handle_set_activity(&event, &event_sender, &clients, client_id)
+                                handle_set_activity(&event, &event_sender, &clients, client_id);
                             }
                             // Re-checked after the full parse; the probe above already
                             // filtered anything else, so these are unreachable in practice.
@@ -261,6 +219,59 @@ impl WebsocketConnector {
                 }
             }
         });
+    }
+}
+
+fn handle_client_disconnect(
+    client_id: u64,
+    event_sender: &mpsc::Sender<ActivityCmd>,
+    clients: &Arc<Mutex<HashMap<u64, ActivityResponder>>>,
+) {
+    info!("Client {} disconnected", client_id);
+    let removed = match clients.lock() {
+        Ok(mut guard) => guard.remove(&client_id),
+        Err(err) => {
+            error!("Clients lock poisoned: {}", err);
+            return;
+        }
+    };
+
+    if let Some(responder) = removed {
+        handle_disconnect(client_id, event_sender, &responder);
+    } else {
+        warn!("Disconnect from unknown client {}, ignoring", client_id);
+    }
+}
+
+fn handle_connect(
+    client_id: u64,
+    responder: Responder,
+    clients: &Arc<Mutex<HashMap<u64, ActivityResponder>>>,
+) {
+    let connection = responder.connection_details();
+    let url_params = get_url_params(&connection.uri);
+    let version = url_params.v.as_deref().unwrap_or("0");
+    let encoding = url_params.encoding.as_deref().unwrap_or("json");
+
+    info!("Client {} connected", client_id);
+
+    if version != "1" || encoding != "json" {
+        warn!("Invalid connection from client {}", client_id);
+        return;
+    }
+
+    if !responder.send(Message::Text(CONNECTION_RESPONSE.to_string())) {
+        error!("Failed to send READY to client {}", client_id);
+        return;
+    }
+
+    match clients.lock() {
+        Ok(mut guard) => {
+            guard.insert(client_id, (None, responder));
+        }
+        Err(err) => {
+            error!("Clients lock poisoned: {}", err);
+        }
     }
 }
 

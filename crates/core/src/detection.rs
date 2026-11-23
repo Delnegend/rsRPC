@@ -23,6 +23,7 @@ pub struct DetectableActivity {
 pub const NULL_ACTIVITY_ID: &str = "null";
 
 /// Build the synthetic "no activity" [`DetectableActivity`].
+#[must_use]
 pub fn null_activity() -> DetectableActivity {
     DetectableActivity {
         id: NULL_ACTIVITY_ID.to_string(),

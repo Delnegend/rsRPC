@@ -25,8 +25,7 @@ impl WsClient {
         let mut stream = TcpStream::connect(("127.0.0.1", port))?;
         stream.set_read_timeout(Some(Duration::from_secs(2)))?;
         let request = format!(
-            "GET / HTTP/1.1\r\nHost: 127.0.0.1:{}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: AAAAAAAAAAAAAAAAAAAAAA==\r\nSec-WebSocket-Version: 13\r\nContent-Length: 0\r\n\r\n",
-            port
+            "GET / HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: AAAAAAAAAAAAAAAAAAAAAA==\r\nSec-WebSocket-Version: 13\r\nContent-Length: 0\r\n\r\n"
         );
         stream.write_all(request.as_bytes())?;
         stream.flush()?;
@@ -58,14 +57,15 @@ impl WsClient {
     }
 
     fn read_text(&mut self) -> Option<String> {
-        let header = self.read_exact(2).ok()?;
-        let len = (header[1] & 0x7F) as usize;
-        if header[0] & 0x0F == 0x8 || len > 65536 {
+        let header: [u8; 2] = self.read_exact(2).ok()?.try_into().ok()?;
+        let [opcode, payload_len] = header;
+        let len = usize::from(payload_len & 0x7F);
+        if opcode & 0x0F == 0x8 || len > 65536 {
             return None;
         }
         let len = if len == 126 {
-            let ext = self.read_exact(2).ok()?;
-            u16::from_be_bytes([ext[0], ext[1]]) as usize
+            let ext: [u8; 2] = self.read_exact(2).ok()?.try_into().ok()?;
+            usize::from(u16::from_be_bytes(ext))
         } else {
             len
         };
@@ -83,7 +83,9 @@ impl WsClient {
                         "eof",
                     ));
                 }
-                Ok(n_read) => self.buf.extend_from_slice(&chunk[..n_read]),
+                Ok(n_read) => self
+                    .buf
+                    .extend_from_slice(chunk.get(..n_read).expect("read length fits buffer")),
                 Err(e) => return Err(e),
             }
         }

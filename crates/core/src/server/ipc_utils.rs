@@ -12,9 +12,10 @@ use crate::{
 };
 use tracing::{debug, error, info, warn};
 
-/// Hard cap on a single IPC frame body. Anything larger is rejected before
-/// allocation (length check happens on the 4-byte header), so a malicious
-/// peer cannot OOM the server by announcing a gigabyte payload.
+/// Hard cap on a single IPC frame body.
+///
+/// Anything larger is rejected before allocation (length check happens on the
+/// 4-byte header), so a malicious peer cannot announce a gigabyte payload.
 pub const MAX_FRAME: u32 = 1024 * 1024;
 
 /// Pre-encoded handshake reply. Built once at startup; every handshake
@@ -57,33 +58,36 @@ impl PacketType {
     ///
     /// Returns `None` for unknown opcodes; callers MUST log and skip the
     /// frame rather than mis-parsing it as another type.
-    pub fn from_u32(value: u32) -> Option<Self> {
+    #[must_use]
+    pub const fn from_u32(value: u32) -> Option<Self> {
         match value {
-            0 => Some(PacketType::Handshake),
-            1 => Some(PacketType::Frame),
-            2 => Some(PacketType::Close),
-            3 => Some(PacketType::Ping),
-            4 => Some(PacketType::Pong),
+            0 => Some(Self::Handshake),
+            1 => Some(Self::Frame),
+            2 => Some(Self::Close),
+            3 => Some(Self::Ping),
+            4 => Some(Self::Pong),
             _ => None,
         }
     }
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
-pub(crate) struct Handshake {
+struct Handshake {
     pub(crate) v: u32,
     pub(crate) client_id: String,
 }
 
+#[must_use]
 pub fn encode(r_type: PacketType, data: &str) -> Vec<u8> {
-    let mut buffer: Vec<u8> = Vec::with_capacity(8 + data.len());
-
-    buffer.extend_from_slice(&(r_type as u32).to_le_bytes());
-
-    buffer.extend_from_slice(&(data.len() as u32).to_le_bytes());
-
-    buffer.extend_from_slice(data.as_bytes());
-
+    let opcode = match r_type {
+        PacketType::Handshake => 0,
+        PacketType::Frame => 1,
+        PacketType::Close => 2,
+        PacketType::Ping => 3,
+        PacketType::Pong => 4,
+    };
+    let mut buffer = Vec::with_capacity(data.len().saturating_add(8));
+    encode_into(&mut buffer, opcode, data.as_bytes());
     buffer
 }
 
@@ -92,13 +96,13 @@ pub fn encode(r_type: PacketType, data: &str) -> Vec<u8> {
 /// message echo path, where the payload bytes are already on hand.
 pub fn encode_into(out: &mut Vec<u8>, opcode: u32, body: &[u8]) {
     out.extend_from_slice(&opcode.to_le_bytes());
-    out.extend_from_slice(&(body.len() as u32).to_le_bytes());
+    out.extend(body.len().to_le_bytes().into_iter().chain([0; 4]).take(4));
     out.extend_from_slice(body);
 }
 
 #[allow(clippy::result_large_err)]
-pub(crate) fn send_empty(
-    event_sender: &mut mpsc::Sender<ActivityCmd>,
+fn send_empty(
+    event_sender: &mpsc::Sender<ActivityCmd>,
     pid: u64,
 ) -> Result<(), mpsc::SendError<ActivityCmd>> {
     info!("Sending empty activity");
@@ -136,7 +140,29 @@ fn read_header(reader: &mut BufReader<&mut Stream>) -> Option<(u32, u32)> {
     Some((opcode, len))
 }
 
-pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream) {
+fn handle_close<T: IpcFacilitator>(ipc: &mut T) {
+    info!("Received close");
+    let activity_cmd = ActivityCmd {
+        application_id: Some(ipc.client_id().to_string()),
+        cmd: "SET_ACTIVITY".to_string(),
+        data: None,
+        evt: None,
+        args: Some(ActivityCmdArgs {
+            pid: Some(ipc.pid()),
+            activity: None,
+            code: None,
+        }),
+        nonce: Value::String(ipc.nonce().to_string()),
+    };
+    if let Err(err) = ipc.event_sender().send(activity_cmd) {
+        error!("Error sending activity command: {}", err);
+    }
+    ipc.set_handshake(false);
+    ipc.set_client_id(String::new());
+    ipc.set_pid(0);
+}
+
+pub(super) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream) {
     // Write helper: pushes bytes through the buffered reader's inner stream.
     // (`BufReader` buffers only reads, so writing via `get_mut` never loses
     // bytes; this also keeps ONE mutable borrow of `stream` for the loop.)
@@ -166,12 +192,9 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
     loop {
         let current_pid = ipc.pid();
 
-        let (opcode, len) = match read_header(&mut reader) {
-            Some(header) => header,
-            None => {
-                send_empty_log(ipc, current_pid);
-                break;
-            }
+        let Some((opcode, len)) = read_header(&mut reader) else {
+            send_empty_log(ipc, current_pid);
+            break;
         };
 
         if len > MAX_FRAME {
@@ -187,7 +210,7 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
             warn!("Unknown opcode {}, skipping frame body", opcode);
             // Drain the body (bounded by the MAX_FRAME check above) so the next
             // read starts on a frame boundary, then wait for the next frame.
-            body.resize(len as usize, 0);
+            body.resize(usize::try_from(len).unwrap_or(usize::MAX), 0);
             if reader.read_exact(&mut body).is_err() {
                 send_empty_log(ipc, current_pid);
                 break;
@@ -196,7 +219,7 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
         };
 
         body.clear();
-        body.resize(len as usize, 0);
+        body.resize(usize::try_from(len).unwrap_or(usize::MAX), 0);
         if let Err(err) = reader.read_exact(&mut body) {
             debug!("Error reading frame body: {}", err);
             send_empty_log(ipc, current_pid);
@@ -238,15 +261,10 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
                     }
                 };
 
-                let args = match &activity_cmd.args {
-                    Some(args) => args,
-                    None => {
-                        warn!("Invalid activity command, skipping");
-
-                        // Send empty activity
-                        send_empty_log(ipc, current_pid);
-                        continue;
-                    }
+                let Some(args) = &activity_cmd.args else {
+                    warn!("Invalid activity command, skipping");
+                    send_empty_log(ipc, current_pid);
+                    continue;
                 };
 
                 let app_id = ipc.client_id().to_string();
@@ -263,37 +281,13 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
                 //  Use this as a lock-step feature to avoid flooding messages.
                 //  Can be used to validate messages such as the Presence or Subscribes."
                 // XXX: arRPC does some editing of the message, setting data.name: "", data.type: 0, evt: null etc... why?
-                let mut resp = Vec::with_capacity(8 + body.len());
-                encode_into(&mut resp, PacketType::Frame as u32, &body);
+                let mut resp = Vec::with_capacity(body.len().saturating_add(8));
+                encode_into(&mut resp, 1, &body);
 
                 write_frame(&mut reader, &resp, "connection response");
             }
             PacketType::Close => {
-                info!("Received close");
-
-                // Send message with an empty activity
-                let activity_cmd = ActivityCmd {
-                    application_id: Some(ipc.client_id().to_string()),
-                    cmd: "SET_ACTIVITY".to_string(),
-                    data: None,
-                    evt: None,
-                    args: Some(ActivityCmdArgs {
-                        pid: Some(ipc.pid()),
-                        activity: None,
-                        code: None,
-                    }),
-                    nonce: Value::String(ipc.nonce().to_string()),
-                };
-
-                if let Err(err) = ipc.event_sender().send(activity_cmd) {
-                    error!("Error sending activity command: {}", err);
-                }
-
-                // Reset per-connection state and exit; the listener keeps accepting
-                // new connections on the same socket (no listener churn).
-                ipc.set_handshake(false);
-                ipc.set_client_id(String::new());
-                ipc.set_pid(0);
+                handle_close(ipc);
 
                 break;
             }
@@ -301,8 +295,8 @@ pub(crate) fn handle_stream<T: IpcFacilitator>(ipc: &mut T, stream: &mut Stream)
                 debug!("Received ping");
 
                 // Send a pong
-                let mut resp = Vec::with_capacity(8 + body.len());
-                encode_into(&mut resp, PacketType::Pong as u32, &body);
+                let mut resp = Vec::with_capacity(body.len().saturating_add(8));
+                encode_into(&mut resp, 4, &body);
 
                 write_frame(&mut reader, &resp, "pong");
             }

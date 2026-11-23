@@ -51,8 +51,8 @@ pub(super) fn detect_status() -> &'static str {
 
 fn is_scene_unload(line: &str) -> bool {
     if let Some(rest) = line.strip_prefix("Unloading ")
-        && let Some(idx) = rest.find(" unused Assets")
-        && let Ok(count) = rest[..idx].parse::<u32>()
+        && let Some((count, _)) = rest.split_once(" unused Assets")
+        && let Ok(count) = count.parse::<u32>()
     {
         return count >= 500;
     }
@@ -90,9 +90,11 @@ fn find_player_log() -> Option<PathBuf> {
             let vdf = root.join("steamapps").join("libraryfolders.vdf");
             if let Ok(content) = std::fs::read_to_string(&vdf) {
                 for line in content.lines() {
-                    let parts: Vec<&str> = line.split('"').collect();
-                    if parts.len() >= 4 && parts[1] == "path" {
-                        let lib_dir = PathBuf::from(parts[3]);
+                    let mut parts = line.split('"');
+                    if let (Some(_), Some("path"), Some(_), Some(path)) =
+                        (parts.next(), parts.next(), parts.next(), parts.next())
+                    {
+                        let lib_dir = PathBuf::from(path);
                         if lib_dir.is_dir() && !steam_libs.contains(&lib_dir) {
                             steam_libs.push(lib_dir);
                         }

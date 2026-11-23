@@ -28,15 +28,19 @@ unreachable = "deny"
 panic_in_result_fn = "deny"
 unchecked_time_subtraction = "deny"
 
-# Progressive disclosure: allow non-panic style warnings
-pedantic = { level = "allow", priority = -1 }
-nursery = { level = "allow", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+indexing_slicing = "deny"
+arithmetic_side_effects = "deny"
+string_slice = "deny"
+exit = "deny"
+as_conversions = "deny"
 
 [profile.release]
 opt-level = 3
 # Thin LTO for CI speed; full LTO lives in [profile.dist] for releases.
 lto = "thin"
-codegen-units = 16
+codegen-units = 1
 # Binaries are shipped stripped; keep symbols in dev/test for backtraces.
 strip = true
 # Abort on panic: smaller binaries, no unwinding in a single-shot RPC bridge.
