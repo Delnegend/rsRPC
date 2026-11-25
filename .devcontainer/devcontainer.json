@@ -14,11 +14,13 @@
 		"cargo-cache:/usr/local/cargo"
 	],
 	"mounts": [
-		"source=${localEnv:XDG_RUNTIME_DIR:/run/user/1000},target=/run/user/1000,type=bind"
+		"source=${localEnv:XDG_RUNTIME_DIR:/run/user/1000},target=/run/user/1000,type=bind",
+		"source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
 	],
 	"containerEnv": {
 		"XDG_RUNTIME_DIR": "/run/user/1000",
-		"RSRPC_LOGS_ENABLED": "1"
+		"RSRPC_LOGS_ENABLED": "1",
+		"SSH_AUTH_SOCK": "/ssh-agent"
 	},
 	"customizations": {
 		"vscode": {
