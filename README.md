@@ -4,9 +4,9 @@
 
 **Shows what game you're playing on Discord, for Linux setups where the official client can't.**
 
-[![CI](https://img.shields.io/github/actions/workflow/status/Delnegend/rsRPC/ci.yml?branch=main&style=flat-square)](https://github.com/Delnegend/rsRPC/actions)
-[![Release](https://img.shields.io/github/v/release/Delnegend/rsRPC?style=flat-square)](https://github.com/Delnegend/rsRPC/releases)
-[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
+[![CI](https://badgers.space/github/checks/Delnegend/rsRPC/main?corner_radius=0&label=build)](https://github.com/Delnegend/rsRPC/actions)
+[![Release](https://badgers.space/github/release/Delnegend/rsRPC?corner_radius=0&color=ea7233)](https://github.com/Delnegend/rsRPC/releases)
+[![License](https://badgers.space/badge/license/MIT/007ec6?corner_radius=0)](LICENSE)
 
 </div>
 
